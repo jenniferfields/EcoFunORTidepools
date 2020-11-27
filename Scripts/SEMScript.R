@@ -14,16 +14,19 @@ library(car)
 devtools::install_github("seananderson/ggsidekick")
 library(ggsidekick) #for theme sleek
 library(tidyverse)
+library(GGally)
 
 #source code scripts
 source("scripts/tidepoolphysicalparameters.R")
 source("scripts/CleanCarbChem.R")
+source("scripts/CommunityComp.R")
 source("scripts/plot.psemfun.R") #plot draft SEM
 #change poolid to character
-Communitymetrics$PoolID<-as.character(Communitymetrics$PoolID)
+
+SEMcommunitydata$PoolID<-as.character(SEMcommunitydata$PoolID)
 
 #combine community comp with biogeochem
-SEMdata<-left_join(DeltaSamples,Communitymetrics)
+SEMdata<-left_join(DeltaSamples,SEMcommunitydata)
 
 SEMdata<-as.data.frame(SEMdata)
 
@@ -48,8 +51,8 @@ SEMdaynightAvg<- SEMdata %>%
                    AvgNtoP = mean(NtoP),
                    AvgTempmean = mean(Temp.mean),
                    AvgTempmax = mean(Temp.max),
-                   AvgMytilus = mean(Mytilus.californianus),
-                   AvgPhyllo = mean(Phyllospadix.spp),
+                   AvgMytilus = mean(MusselCover),
+                   AvgPhyllo = mean(SurfgrassCover),
                    AvgFleshyalgae = mean(macroalgae),
                    AvgCCA = mean(allCCA),
                    Avgproddom = mean(prodphyllodom),
@@ -95,10 +98,13 @@ Phyllounscaled<-SEMdaynightAvg %>%
                 MaxLight =Parmaxdeltaavg, MaxTemp = Tempmaxdeltaavg, Light=ParmeandeltaAvg, 
                 MytilusLoss=MytilusdeltaAvg,PhyllospadixLoss=PhyllodeltaAvg, MicroMacroAlgaeCover=micromacroalgaedeltaAvg,
                 SAtoVRatio=SAVav,TideHeight=THav, RawTemp=TempmeandeltaAvg) #rename cols to match sem
+#check collinearity
+#ggpairs(Phyllounscaled[c(4:6,10,12,15,18:19,22:23)]) #good
+
 
 PAvgMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = Phyllounscaled)
 PAvgLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=Phyllounscaled)
-PAvgTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio +TideHeight ,data = Phyllounscaled)
+PAvgTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = Phyllounscaled)
 PAvgNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =Phyllounscaled)
 PAvgNEC<- lm(NEC~pH +MaxTemp +PhyllospadixLoss +SAtoVRatio+TideHeight,data =Phyllounscaled)
 PAvgpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight , data = Phyllounscaled)
@@ -165,6 +171,8 @@ Mytilusunscaled<-SEMdaynightAvg %>%
                 MaxLight =Parmaxdeltaavg, MaxTemp = Tempmaxdeltaavg, Light=ParmeandeltaAvg, 
                 MytilusLoss=MytilusdeltaAvg,PhyllospadixLoss=PhyllodeltaAvg, MicroMacroAlgaeCover=micromacroalgaedeltaAvg,
                 SAtoVRatio=SAVav,TideHeight=THav, RawTemp=TempmeandeltaAvg) #rename cols to match sem
+#check collinearity
+#ggpairs(Mytilusunscaled[c(4:6,10,12,15,17,19,22:23)]) #good
 
 #models based on hypotheses
 MAvgMMalgae<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = Mytilusunscaled)

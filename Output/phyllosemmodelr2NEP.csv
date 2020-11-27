@@ -1,8 +1,8 @@
 "","Response","family","link","method","R.squared"
-"1","MicroMacroAlgaeCover","gaussian","identity","none",0.39
-"2","Light","gaussian","identity","none",0.41
-"3","MaxTemp","gaussian","identity","none",0.39
-"4","NtoPRatio","gaussian","identity","none",0.13
+"1","MicroMacroAlgaeCover","gaussian","identity","none",0.15
+"2","Light","gaussian","identity","none",0.6
+"3","MaxTemp","gaussian","identity","none",0.53
+"4","NtoPRatio","gaussian","identity","none",0.12
 "5","NEP","gaussian","identity","none",0.41
-"6","pH","gaussian","identity","none",0.83
-"7","NEC","gaussian","identity","none",0.81
+"6","pH","gaussian","identity","none",0.84
+"7","NEC","gaussian","identity","none",0.78

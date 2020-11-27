@@ -237,78 +237,125 @@ Removal.period$Par<- A1* (exp( -y / t1)) + y0
 
 
 ####PAR DATA GRAPHS#####
-LightControlDailyMax <- Control.period %>%
-  drop_na(Par) %>%
-  dplyr::group_by(Date.Time) %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control) %>%
-  dplyr::summarise(Par.max = max(Par, na.rm=T),
-                   Temp.max = max(Temp.C, na.rm = T)) 
+Control.period$Day<-as.factor(as.Date(Control.period$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
 
-LightControlDailyMax <- as.data.frame(LightControlDailyMax)
+ControlDailyMax <- Control.period %>%
+  drop_na(Par) %>%#remove NA light values 
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day) %>% #cut by day to get daily max 
+  dplyr::summarise(Par.max = max(Par, na.rm=T),
+                   Temp.max=max(Temp.C,na.rm=T))
+
+ControlDailyMax <- as.data.frame(ControlDailyMax)
 
 #View(LightControlDailyMax)
+Removal.period$Day<-as.factor(as.Date(Removal.period$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
 
-LightRemovalDailyMax <- Removal.period %>%
-  drop_na(Par) %>%
-  dplyr::group_by(Date.Time) %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control) %>%
+RemovalDailyMax <- Removal.period %>%
+  drop_na(Par) %>% #remove NA light values
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day) %>%
   dplyr::summarise(Par.max = max(Par, na.rm=T),
-                   Temp.max = max(Temp.C, na.rm = T))
+                   Temp.max=max(Temp.C,na.rm=T))
 
-LightRemovalDailyMax <-as.data.frame(LightRemovalDailyMax)
+RemovalDailyMax <-as.data.frame(RemovalDailyMax)
 
-LightControlDailyMax$Before_After<-"Before"
-LightRemovalDailyMax$Before_After<-"After"
+ControlDailyMax$Before_After<-"Before"
+RemovalDailyMax$Before_After<-"After"
 
-LightData<-rbind(LightControlDailyMax,LightRemovalDailyMax)
+MaxTempLightData<-rbind(ControlDailyMax,RemovalDailyMax)
 #View(LightData)
+#temperature
 
-#manipulating temp and light data for mean and variances
-Control.periodsum <- Control.period %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,LoggerDepth) %>%
-  filter(Par > 0) %>%
-  dplyr::summarise(Temp.mean = mean(Temp.C, na.rm=T), #do this after editing the dates and times
-                   Temp.var = var(Temp.C, na.rm=T),
-                   Par.mean = mean(Par, na.rm=T))
 
-Control.periodsum<-as.data.frame(Control.periodsum)
-Control.periodsum$Before_After<-"Before" #creating column for before since before removal
+TemptimeseriesC<-Control.period %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control)
+TemptimeseriesC$Before_After<-"Before"
 
-Removal.periodsum <- Removal.period %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,LoggerDepth) %>%
-  filter(Par > 0) %>%
-  dplyr::summarise(Temp.mean = mean(Temp.C, na.rm=T), #do this after editing the dates and times
-                   Temp.var = var(Temp.C, na.rm=T),
-                   Par.mean = mean(Par, na.rm=T))
+TemptimeseriesR<-Removal.period %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control)
+TemptimeseriesR$Before_After<-"After"
+Temptimeseries<-rbind(TemptimeseriesC,TemptimeseriesR)
 
-Removal.periodsum<-as.data.frame(Removal.periodsum)
 
-Removal.periodsum$Before_After<-"After"#creating column for after since after removal
 
-#View(Removal.periodsum)
-TempandLightdata<-rbind(Control.periodsum,Removal.periodsum)
-TempandLightdata<-left_join(TempandLightdata, LightData)
-#View(TempandLightdata)
-
-TempandLightdata$PoolID <- as.character(TempandLightdata$PoolID)
+Temptimeseries$PoolID<-as.character(Temptimeseries$PoolID)
 
 ###Look at differences between daily max, mean, variances of temp and light
-DeltaLightandTempdata<- TempandLightdata %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control)  %>%
-  dplyr::summarise(DeltaLightMax = Par.max[Before_After == 'After'] - Par.max[Before_After == 'Before'],
-                   PercentLightMax = 100 * (Par.max[Before_After == 'After'] - Par.max[Before_After == 'Before']) /  Par.max[Before_After == 'Before'],
-                   DeltaTempMax = Temp.max[Before_After == 'After'] - Temp.max[Before_After == 'Before'],
-                   PercentTempMax = 100 * (Temp.max[Before_After == 'After'] - Temp.max[Before_After == 'Before']) /  Temp.max[Before_After == 'Before'],
-                   deltaTempmean = Temp.mean[Before_After == 'After'] - Temp.mean[Before_After == 'Before'],
-                   deltaTempmax = Temp.max[Before_After == 'After'] - Temp.max[Before_After == 'Before'],
-                   deltaTempvar = Temp.var[Before_After == 'After'] - Temp.var[Before_After == 'Before'],
-                   deltaParmean = Par.mean[Before_After == 'After'] - Par.mean[Before_After == 'Before'])
+DeltaLightandTempdata<- MaxTempLightData %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Before_After)  %>%
+  dplyr::summarise(Par.maxav = mean(Par.max),Temp.maxav=mean(Temp.max)) %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control) %>%
+  dplyr::summarise(DeltaLightMax = Par.maxav[Before_After == 'After'] - Par.maxav[Before_After == 'Before'],
+                   PercentLightMax = 100 * ((Par.maxav[Before_After == 'After'] - Par.maxav[Before_After == 'Before']) /  Par.maxav[Before_After == 'Before']),
+                   DeltaTempMax = Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before'],
+                   PercentTempMax = 100 * (Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before']) /  Temp.maxav[Before_After == 'Before'])
               
 #taking mean because the volume and surface changed in removal pools in after period
 #View(DeltaLightandTempdata)
 DeltaLightandTempdata <-as.data.frame(DeltaLightandTempdata)
+DeltaLightandTempdata$PoolID <- as.factor(DeltaLightandTempdata$PoolID)
 
 DeltaLightandTempdata<-left_join(DeltaLightandTempdata,Funsppandpp)
+Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
+
+Phyllotimeseries<-Temptimeseries%>%
+  filter(Foundation_spp =="Phyllospadix") 
+
+Phyllotimeseriesmean<-Temptimeseries%>%
+  filter(Foundation_spp =="Phyllospadix") %>%
+  group_by(PoolID,Removal_Control,Phyllodelta,by60=cut(Date.Time, "60 min"), Date.Time) %>%
+  summarise(Meantemp = mean(Temp.C),
+            Maxtemp = max(Temp.C),
+           mintemp=min(Temp.C))
+#idk wtf
+#join together somehow
+Phyllotimeseriesmean$Date.Time<-as.factor(Phyllotimeseriesmean$Date.Time)
+Phyllotimeseries<-left_join(Phyllotimeseries,Phyllotimeseriesmean)
+
+Phyllotimeseries$PoolID<-as.factor(Phyllotimeseries$PoolID)
+
+
+#Phyllotimeseries$Day<-as.factor(as.Date(Phyllotimeseries$by60, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
+Temptimeseries %>%
+  filter(Foundation_spp =="Phyllospadix") %>%
+ggplot(aes(x=Date.Time,y=Temp.C,color=Phyllodelta)) +
+  geom_line()+
+  theme_classic()+
+  facet_wrap(~Removal_Control) +
+  theme(axis.text.x=element_text(size = 35, color = "black"), 
+        axis.text.y=element_text(size = 35, color = "black"),
+        axis.title.y = element_text(size = 40, color = "black"),
+        axis.title.x = element_text(size = 40, color = "black"),
+        legend.text =element_text(size = 25, color = "black"),
+        legend.title = element_text(size = 35, color = "black"))+
+  labs(y="Temperature (°C)", x="Date", color ="Surfgrass Loss")
+ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+
+Temptimeseries %>%
+  filter(Foundation_spp =="Mytilus") %>%
+  ggplot(aes(x=Date.Time,y=Temp.C,color=Mytilusdelta)) +
+  geom_line()+
+  theme_classic()+
+  facet_wrap(~Removal_Control) +
+  theme(axis.text.x=element_text(size = 35, color = "black"), 
+        axis.text.y=element_text(size = 35, color = "black"),
+        axis.title.y = element_text(size = 40, color = "black"),
+        axis.title.x = element_text(size = 40, color = "black"),
+        legend.text =element_text(size = 25, color = "black"),
+        legend.title = element_text(size = 35, color = "black"))+
+  labs(y="Temperature (°C)", x="Date", color ="Mussel Loss")
+ggsave(filename = "Output/musseltemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+
+
+
+ggplot(Phyllotimeseries, aes(x=Date.Time,y=Meantemp,color=Phyllodelta)) +
+  geom_line()+
+  theme_classic()+
+  facet_wrap(~Removal_Control)
+
+ggsave(filename = "Output/musselTHupdated.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+
+Musseltimeseries<-Temptimeseries%>%
+  filter(Foundation_spp =="Mytilus" & PoolID  != '30')
 
 #separate datasets for surfgrass and mussels
 DeltaLightandTempPhyllo<-DeltaLightandTempdata %>%
@@ -317,15 +364,14 @@ DeltaLightandTempPhyllo<-DeltaLightandTempdata %>%
 DeltaLightandTempMytilus<-DeltaLightandTempdata %>%
   filter(Foundation_spp =="Mytilus" & PoolID  != '30')
 
-#check collinearity 
+#check collinearity between f spp. loss and size of pool and tide height
+#ggpairs(DeltaLightandTempPhyllo[c(9:11)]) #good
+#ggpairs(DeltaLightandTempMytilus[c(9:11)]) #good
 
-#ggpairs(DeltaLightandTempPhyllo[c(28,32:33)]) #good
-
-#ggpairs(DeltaLightandTempMytilus[c(27,32:33)]) #good
 #stats for light/temp plots & ggpredict function for regression line
 phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = DeltaLightandTempPhyllo) 
 #model of temp with foundation spp loss and tide pool size and tide height as covariates
-#plot(phyllomaxtempmod)#good
+plot(phyllomaxtempmod)#good
 qqp(resid(phyllomaxtempmod),"norm") #good
 summary(phyllomaxtempmod) #sum of mod
 
@@ -340,25 +386,30 @@ pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main datafram
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=DeltaTempMax)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.3) +
+  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(face="italic", color="black", size=26), 
-        axis.title.y=element_text(color="black", size=26),
-        axis.text.x =element_blank(),
-        axis.text.y =element_text(color="black", size=18)) +
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=30),
+        axis.text.y =element_text(color="black", size=30)) +
   theme(legend.position="none")+
-  labs( x= '', y='Change in daily max temp (°C)') 
+  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Change in average daily max temperature (°C)') 
 phyllotemp 
 
-phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllo)
-#plot(phyllopercentlightmod)
+phyllopercentlightmodall<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllo)
+plot(phyllopercentlightmodall) #two outliers 
+DeltaLightandTempPhyllonooutliers<- DeltaLightandTempPhyllo %>%
+  filter(PercentLightMax <= 200) #remove outlier pools >3 SD from mean or greater than 1 cook's distances
+phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllonooutliers)
+
+plot(phyllopercentlightmod)
 qqp(resid(phyllopercentlightmod),"norm")#good
 summary(phyllopercentlightmod)
 
-plightgg<-ggpredict(phyllopercentlightmod, c("Phyllodelta"))
+plightgg<-ggpredict(phyllopercentlightmodall, c("Phyllodelta"))
 plot(plightgg)
 plight<-as.data.frame(plightgg)
 
@@ -368,21 +419,21 @@ plight<-plight %>%
 plight<-left_join(plight,DeltaLightandTempPhyllo)
 
 phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=PercentLightMax)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.3) +
+  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
-  theme(axis.title.x=element_text(face="italic", color="black", size=26), 
-        axis.title.y=element_text(color="black", size=26),
-        axis.text.x =element_text(color="black", size=18),
-        axis.text.y =element_text(color="black", size=18)) +
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=30),
+        axis.text.y =element_text(color="black", size=30)) +
   theme(legend.position="none")+ 
   labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Percent change in daily max light') 
 phyllolight
 
 mytilusmaxtempmod<-lm(DeltaTempMax ~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilus)
-#plot(mytilusmaxtempmod)#good
+plot(mytilusmaxtempmod)#good two points outside...ugh
 qqp(resid(mytilusmaxtempmod),"norm")#good
 summary(mytilusmaxtempmod)
 
@@ -396,24 +447,24 @@ mmaxtemp<-mmaxtemp %>%
 mmaxtemp<-left_join(mmaxtemp,DeltaLightandTempMytilus)
 
 mytilustemp<-ggplot(mmaxtemp, aes(x =Mytilusdelta, y=DeltaTempMax)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.3) +
+  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
-  theme(axis.title.x =element_blank(), 
-        axis.title.y=element_text(color="black", size=26),
-        axis.text.x =element_blank(),
-        axis.text.y =element_text(color="black", size=18)) +
+  theme(axis.title.x =element_text(color="black", size=40),
+        axis.title.y=element_text(color="black", size=30),
+        axis.text.x =element_text(color="black", size=30),
+        axis.text.y =element_text(color="black", size=30)) +
   ylim(-5,10)+
-  theme(legend.position="none")+ 
-  xlab('M. californianus loss')+ ylab("")
+  theme(legend.position="none") + 
+  labs(x='CA mussel loss \n (Mytilus californianus)', y="")
 
 
 DeltaLightandTempMytilusNoTP25<-DeltaLightandTempMytilus%>%
-  filter(PercentLightMax >= -50)  #filter out pt less than 50 (Tidepool 25)
+  filter(PercentLightMax >= -60)  #filter out pt less than 60 (Tidepool 25) since 3 SD away from average
 mytiluspercentlightmod<-lm(PercentLightMax~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilusNoTP25)
-#plot(mytiluspercentlightmod) #good
+plot(mytiluspercentlightmod) #good
 qqp(resid(mytiluspercentlightmod),"norm")#good with quadroot light value
 summary(mytiluspercentlightmod)
 
@@ -427,18 +478,25 @@ mlight<-mlight %>%
 mlight<-left_join(mlight,DeltaLightandTempMytilus)
 
 mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=PercentLightMax)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =1.5,linetype=2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.3) +
+  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2,linetype=2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
   theme(legend.position="none")+ 
-  theme(axis.title.x=element_text(face="italic", color="black", size=26), 
-        axis.title.y=element_text(color="black", size=26),
-        axis.text.x =element_text(color="black", size=18),
-        axis.text.y =element_text(color="black", size=18)) +
+  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=30),
+        axis.text.y =element_text(color="black", size=30)) +
   xlab('CA mussel loss \n (Mytilus californianus)')+ ylab('') 
 mytiluslight
+
+temp<-phyllotemp+mytilustemp
+temp
+ggsave(filename = "Output/temp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+light<-phyllolight+mytiluslight
+light
+ggsave(filename = "Output/light.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 #patchwork figs together
 figure <-phyllotemp + mytilustemp + phyllolight+ mytiluslight +      #patchwork to combine plots

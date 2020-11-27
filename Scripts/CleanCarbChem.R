@@ -30,6 +30,7 @@ library(tidyverse) #for all things %>%
 # load data
 #source scripts
 source("scripts/tidepoolphysicalparameters.R")#load physical parameters
+source("scripts/CommunityComp.R") #load community comp 
 #Load Data
 Nutrients<-read_csv("Data/Biogeochem/RawNutrientData.csv")
 CarbChem<-read_csv("Data/Biogeochem/ChemData.csv")
@@ -55,7 +56,6 @@ CarbChem$SalCal<-swSCTp(as.numeric(CarbChem$Conductivity)/1000, CarbChem$Temp.po
 #first column date and time in same column
 
 CarbChem$Sampling_Day<-mdy(CarbChem$Sampling_Day, quiet=FALSE, tz="America/Los_Angeles", truncated=0)
-CarbChem$Sampling_time<-as_hms(CarbChem$Sampling_time)
 CarbChem$Date_Time <- paste(CarbChem$Sampling_Day, CarbChem$Sampling_time)
 CarbChem$Date_Time<-ymd_hms(CarbChem$Date_Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time
 
@@ -544,7 +544,249 @@ DeltaSamples$NEP.mmol.m2.hr<-as.numeric(DeltaSamples$NEP.mmol.m2.hr)
 
 DeltaSamples<-left_join(DeltaSamples,TempandLightSum)
 
-#for supplemental summary table:
+######PCA of biogeochem########
+CarbChem$Sampling_Day<-as.factor(CarbChem$Sampling_Day)
+
+
+Biogeochem.sum<-CarbChem %>%
+  dplyr::group_by(PoolID,Foundation_spp,Before_After,Removal_Control)  %>% #group PoolID
+  dplyr::select(PoolID,Foundation_spp,Before_After,Removal_Control,Temp.pool,DO_mg_L,pH_insitu,NN_umol_L,NH4_umol_L,PO_umol_L) %>% #selects columns of data 
+  dplyr::summarise_if(is.numeric,.funs=c(mean="mean",var="var",max="max")) #take everything thats numeric and find mean, var,   min and max
+#View(Biogeochem.sum)
+
+#add foundation species cover and physical parameters to individual datasets
+#create dataframe that has both before (baseline so low number in this case 1) and after
+#surfgrass and mussel loss that can be used in plot later as color/size variable 
+PFunsppcover<-Funsppcover%>%
+  filter(Foundation_spp =="Phyllospadix") 
+PFunsppcover<-PFunsppcover[c(1,5)] #select 
+PFunsppcover$Before_After<- "After"
+PBeforespploss<-PhyllocommunitynMDS%>%
+  select(PoolID,Before_After) %>%
+  filter(Before_After =='Before')
+PBeforespploss$Phyllodelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
+Phylloloss<-rbind(PBeforespploss,PFunsppcover) #combine before and after together
+
+MFunsppcover<-Funsppcover%>%
+  filter(Foundation_spp =="Mytilus") 
+MFunsppcover<-MFunsppcover[c(1,4)] #select poolid and mytilus delta
+MFunsppcover$Before_After<- "After"
+MBeforespploss<-MytiluscommunitynMDS%>%
+  select(PoolID,Before_After) %>%
+  filter(Before_After =='Before')
+MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
+Musselloss<-rbind(MBeforespploss,MFunsppcover) #combine before and after together
+
+
+PhylloBiogeochem <-Biogeochem.sum %>%
+  filter(Foundation_spp !="Mytilus")
+MytilusBiogeochem <-Biogeochem.sum %>%
+  filter(Foundation_spp !="Phyllospadix")
+
+PhylloBiogeochem<-left_join(PhylloBiogeochem,Phylloloss)
+PhysicalParameters$PoolID<-as.character(PhysicalParameters$PoolID)
+PhylloBiogeochem<-left_join(PhylloBiogeochem,PhysicalParameters) 
+MytilusBiogeochem <-left_join(MytilusBiogeochem,Musselloss)
+MytilusBiogeochem<-left_join(MytilusBiogeochem,PhysicalParameters) 
+
+PhylloBiogeochemPCA<-PhylloBiogeochem[,c("DO_mg_L_mean","DO_mg_L_var","DO_mg_L_max",
+                                         "pH_insitu_mean","pH_insitu_var","pH_insitu_max",
+                                         "NN_umol_L_mean","NN_umol_L_var","NN_umol_L_max",
+                                         "NH4_umol_L_mean","NH4_umol_L_var","NH4_umol_L_max",
+                                         "PO_umol_L_var","PO_umol_L_mean","PO_umol_L_max","Temp.pool_mean",
+                                         "Temp.pool_var","Temp.pool_max")] #Take out columns that will not be in PCA
+
+MytilusBiogeochemPCA<-MytilusBiogeochem[,c("DO_mg_L_mean","DO_mg_L_var","DO_mg_L_max",
+                                           "pH_insitu_mean","pH_insitu_var","pH_insitu_max",
+                                           "NN_umol_L_mean","NN_umol_L_var","NN_umol_L_max",
+                                           "NH4_umol_L_mean","NH4_umol_L_var","NH4_umol_L_max",
+                                           "PO_umol_L_var","PO_umol_L_mean","PO_umol_L_max","Temp.pool_mean",
+                                           "Temp.pool_var","Temp.pool_max")] #Take out columns that will not be in PCA
+#Run the PCA with z-scored data for both phyllo and mytilus model
+PhylloBiogeochemPCAmodel<-prcomp(PhylloBiogeochemPCA, center = TRUE, scale. = TRUE)
+#PCAmodel<-princomp(BCPCA1.scale)
+MytilusBiogeochemPCAmodel<-prcomp(MytilusBiogeochemPCA, center = TRUE, scale. = TRUE)
+
+summary(PhylloBiogeochemPCAmodel)#shows amount of variance explained by each axis
+#This is actually a big wide table, with all 38 Principle Components
+#It tell us the amount of variance explained by each axis, and the cumulative proportion of variance explained
+#PC1  0.3288PC2 0.2790total 0.6079
+summary(MytilusBiogeochemPCAmodel)
+#pc1 0.3808 pc2 0.2383 0.6191
+
+
+PhylloPCAscores<- data.frame(PhylloBiogeochemPCAmodel$x[,c(1,2)])#asks for first rows (PC1 and PC2) of table
+MytilusPCAscores<- data.frame(MytilusBiogeochemPCAmodel$x[,c(1,2)])
+#View(PCAscores)
+biplot(PhylloBiogeochemPCAmodel, xlab="PC1", ylab="PC2")
+PhylloBiogeochemPCAgraph<-data.frame(bind_cols(PhylloBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Phyllodelta","SAtoV","TideHeight")], PhylloPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
+MytilusBiogeochemPCAgraph<-data.frame(bind_cols(MytilusBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Mytilusdelta","SAtoV","TideHeight")], MytilusPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
+
+
+
+#Now to do the MANOVA
+#remove ocean
+PhylloBiogeochemmanova<-PhylloBiogeochemPCAgraph%>%
+  filter(Foundation_spp !="Ocean")
+phylloManova<-manova(cbind(PC1,PC2)~Phyllodelta  + SAtoV +TideHeight , data=PhylloBiogeochemmanova)
+summary(phylloManova, test="Pillai")
+
+mytilusBiogeochemmanova<-MytilusBiogeochemPCAgraph%>%
+  filter(Foundation_spp !="Ocean")
+mytilusmanova<-manova(cbind(PC1,PC2)~Mytilusdelta + SAtoV +TideHeight, data=mytilusBiogeochemmanova)
+summary(mytilusmanova, test="Pillai")
+
+########Combined data with Before/After##########
+#Plot with just point data
+
+## add a column combining after before and foundation species
+PhylloBiogeochemPCAgraph$AB_F<-factor(paste(PhylloBiogeochemPCAgraph$Before_After, PhylloBiogeochemPCAgraph$Foundation_spp))
+MytilusBiogeochemPCAgraph$AB_F<-factor(paste(MytilusBiogeochemPCAgraph$Before_After, MytilusBiogeochemPCAgraph$Foundation_spp))
+#create dataframe for centroids with median from x and y axes
+pcentroids <- aggregate(cbind(PC1,PC2)~AB_F*Before_After*Removal_Control,PhylloBiogeochemPCAgraph,mean)
+mcentroids<-aggregate(cbind(PC1,PC2)~AB_F*Before_After*Removal_Control,MytilusBiogeochemPCAgraph,mean)
+
+
+#create groupings for shape labels
+mgroupings<-c("After Mytilus" = 2,  "Before Mytilus" = 17, 
+              "Before Ocean" = 15, "After Ocean" = 0)
+pgroupings<-c("After Phyllospadix" = 2,"Before Phyllospadix" = 17,"Before Ocean" = 15, "After Ocean" = 0)
+
+#for arrows fucnction:
+x0 <- pcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(PC1)
+x0<-as.matrix(x0)
+y0 <- pcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(PC2)
+y0<-as.matrix(y0)
+x1<-pcentroids %>%
+  filter(Before_After == "After") %>%
+  select(PC1)
+x1<-as.matrix(x1)
+y1<-pcentroids %>%
+  filter(Before_After == "After") %>%
+  select(PC2)
+y1<-as.matrix(y1)
+
+
+Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
+  geom_point(aes(color =Phyllodelta, size =Phyllodelta, stroke=2), shape=16) +
+  scale_color_distiller(palette = "Greens",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=pcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(pgroupings))+
+  geom_segment(aes(x = x0[1], y = y0[1], xend = (x1[1]), yend = (y1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = x0[3], y = y0[3], xend = (x1[3]), yend = (y1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
+               colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='PC1 (32.88%)', y = 'PC2 (27.9%)', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
+  #PC1  0.3288PC2 0.2790total 0.6079
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 35), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+Surfgrassplot
+#ggsave(filename = "Output/Phyllopcagraph.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 10)
+#plot with loadings and point
+surfgrass<-autoplot(PhylloBiogeochemPCAmodel, 
+                                    loadings = TRUE, loadings.colour = 'black',
+                                    loadings.label = TRUE, loadings.label.size = 12 , loadings.label.colour = '#2b8cbe',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
+  theme_classic() + 
+  theme(legend.text=element_text(size=24)) +
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
+surfgrass
+#ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+
+library(patchwork)
+
+surfgrasspca<-Surfgrassplot+surfgrass+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =35, face = "bold"))   #edit the lettered text
+surfgrasspca
+ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+
+#for arrows fucnction:
+v0 <- mcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(PC1)
+v0<-as.matrix(v0)
+z0 <- mcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(PC2)
+z0<-as.matrix(z0)
+v1<-mcentroids %>%
+  filter(Before_After == "After") %>%
+  select(PC1)
+v1<-as.matrix(v1)
+z1<-mcentroids %>%
+  filter(Before_After == "After") %>%
+  select(PC2)
+z1<-as.matrix(z1)
+
+
+musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
+  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, stroke=2), shape=16) +
+  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=mcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[3], y = z0[3], xend = (v1[3]), yend = (z1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),size = .5, #segment with arrow for ocean before and after
+               colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='PC1 (38.08%)', y = 'PC2 (23.83%)', shape='', color='Mussel loss',size='Mussel loss', linetype ='Before or after') +
+  #pc1 0.3808 pc2 0.2383 0.6191
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 35), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+musselplot
+#ggsave(filename = "Output/Phyllopcagraph.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 10)
+#plot with loadings and point
+musselloadings<-autoplot(MytilusBiogeochemPCAmodel, 
+                    loadings = TRUE, loadings.colour = 'black',
+                    loadings.label = TRUE, loadings.label.size = 12 ,
+                    loadings.label.colour = '#2b8cbe',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
+  theme_classic() + 
+  theme(legend.text=element_text(size=24)) +
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
+musselloadings
+#ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+
+library(patchwork)
+
+musselpca<-musselplot+musselloadings+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =35, face = "bold"))   #edit the lettered text
+musselpca
+ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+
+
+#####for supplemental summary table######
 
 CarbChem$daysample<-as.factor(CarbChem$Sampling_Day)
 
