@@ -243,7 +243,7 @@ ControlDailyMax <- Control.period %>%
   drop_na(Par) %>%#remove NA light values 
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day) %>% #cut by day to get daily max 
   dplyr::summarise(Par.max = max(Par, na.rm=T),
-                   Temp.max=max(Temp.C,na.rm=T))
+                   Temp.max=max(Temp.C,na.rm=T),Par.mean=mean(Par,na.rm = T))
 
 ControlDailyMax <- as.data.frame(ControlDailyMax)
 
@@ -254,7 +254,8 @@ RemovalDailyMax <- Removal.period %>%
   drop_na(Par) %>% #remove NA light values
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day) %>%
   dplyr::summarise(Par.max = max(Par, na.rm=T),
-                   Temp.max=max(Temp.C,na.rm=T))
+                   Temp.max=max(Temp.C,na.rm=T),
+                   Par.mean=mean(Par,na.rm = T))
 
 RemovalDailyMax <-as.data.frame(RemovalDailyMax)
 
@@ -262,6 +263,17 @@ ControlDailyMax$Before_After<-"Before"
 RemovalDailyMax$Before_After<-"After"
 
 MaxTempLightData<-rbind(ControlDailyMax,RemovalDailyMax)
+
+tp2025<-MaxTempLightData%>%
+  filter(PoolID == 20 | PoolID ==25)
+
+ggplot(tp2025, aes(x=ymd(Day),y=Par.max))+
+  geom_line()+
+  facet_wrap(~PoolID)
+#tp29<-MaxTempLightData %>%
+  #filter(PoolID ==29)
+#ggplot(tp29, aes(x=Temp.max,group=Before_After, color=Before_After))+
+  #geom_histogram(bins=10)
 #View(LightData)
 #temperature
 
@@ -278,17 +290,20 @@ Temptimeseries<-rbind(TemptimeseriesC,TemptimeseriesR)
 
 
 Temptimeseries$PoolID<-as.character(Temptimeseries$PoolID)
-
+#before mean and after mean and see if the
+#before an
 ###Look at differences between daily max, mean, variances of temp and light
 DeltaLightandTempdata<- MaxTempLightData %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Before_After)  %>%
-  dplyr::summarise(Par.maxav = mean(Par.max),Temp.maxav=mean(Temp.max)) %>%
+  dplyr::summarise(Par.maxav = mean(Par.max),Temp.maxav=mean(Temp.max),Parmeanav= mean(Par.mean)) %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control) %>%
   dplyr::summarise(DeltaLightMax = Par.maxav[Before_After == 'After'] - Par.maxav[Before_After == 'Before'],
                    PercentLightMax = 100 * ((Par.maxav[Before_After == 'After'] - Par.maxav[Before_After == 'Before']) /  Par.maxav[Before_After == 'Before']),
+                   Percentlightmean =100* ((Parmeanav[Before_After == 'After'] - Parmeanav[Before_After == 'Before']) /  Parmeanav[Before_After == 'Before']),
                    DeltaTempMax = Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before'],
                    PercentTempMax = 100 * (Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before']) /  Temp.maxav[Before_After == 'Before'])
-              
+
+
 #taking mean because the volume and surface changed in removal pools in after period
 #View(DeltaLightandTempdata)
 DeltaLightandTempdata <-as.data.frame(DeltaLightandTempdata)
@@ -367,8 +382,11 @@ DeltaLightandTempMytilus<-DeltaLightandTempdata %>%
 #check collinearity between f spp. loss and size of pool and tide height
 #ggpairs(DeltaLightandTempPhyllo[c(9:11)]) #good
 #ggpairs(DeltaLightandTempMytilus[c(9:11)]) #good
+notp29<-DeltaLightandTempPhyllo%>%
+  filter(PoolID !=29)
 
 #stats for light/temp plots & ggpredict function for regression line
+
 phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = DeltaLightandTempPhyllo) 
 #model of temp with foundation spp loss and tide pool size and tide height as covariates
 plot(phyllomaxtempmod)#good
@@ -399,17 +417,19 @@ phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=DeltaTempMax)) +
   labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Change in average daily max temperature (°C)') 
 phyllotemp 
 
-phyllopercentlightmodall<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllo)
+notp26<-DeltaLightandTempPhyllo%>%
+  filter(PoolID !=26)
+phyllopercentlightmodall<-lm(Percentlightmean~Phyllodelta +SAVav +THav,data =notp26)
 plot(phyllopercentlightmodall) #two outliers 
 DeltaLightandTempPhyllonooutliers<- DeltaLightandTempPhyllo %>%
   filter(PercentLightMax <= 200) #remove outlier pools >3 SD from mean or greater than 1 cook's distances
-phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllonooutliers)
+phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllo)
 
 plot(phyllopercentlightmod)
-qqp(resid(phyllopercentlightmod),"norm")#good
+qqp(resid(phyllopercentlightmodal),"norm")#good
 summary(phyllopercentlightmod)
 
-plightgg<-ggpredict(phyllopercentlightmodall, c("Phyllodelta"))
+plightgg<-ggpredict(phyllopercentlightmod, c("Phyllodelta"))
 plot(plightgg)
 plight<-as.data.frame(plightgg)
 

@@ -141,11 +141,27 @@ PhyllocommunitynMDS$PoolID<-as.character(PhyllocommunitynMDS$PoolID)
 PhyllocommunitynMDS<-left_join(Phylloloss,PhyllocommunitynMDS) #combine with rest of dataframe by pool id
 
 PhyllonMDS<-PhyllocommunitynMDS[-c(1:10,72:73)]  
-
+PhyllonMDS<-PhyllonMDS%>%
+  dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
 set.seed(267)
 PhylloSessiles<-metaMDS(sqrt(sqrt(PhyllonMDS)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
 
-PhylloSessiles$stress #0.1696881
+PhylloSessiles$stress #0.1182824
+
+#ordplot in ggplot
+psdata.scores <- as.data.frame(scores(PhylloSessiles))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+psdata.scores$site <- rownames(psdata.scores)  # create a column of site names, from the rownames of data.scores
+psspecies.scores <- as.data.frame(scores(PhylloSessiles, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+psspecies.scores$species <- rownames(psspecies.scores)  # create a column of species, from the rownames of species.scores
+ordSesSurf<-ggplot() + 
+  geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+                    axis.text.y = element_blank(), # remove y-axis text
+                    axis.ticks = element_blank(),  # remove axis ticks
+                    axis.title.x = element_blank(), # remove x-axis labels
+                    axis.title.y = element_blank()) # remove y-axis labels
+            
 phyllopp<-Funsppandpp%>%
   filter(Foundation_spp =="Phyllospadix")
 phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$SAVav,phyllopp$THav)
@@ -153,135 +169,187 @@ phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$SAVav,phyllopp$THav)
 phyllograph<-phyllograph%>%
   rename(SAV="phyllopp$SAVav",TH="phyllopp$THav")
 
-psessperm<-adonis(log(PhyllonMDS+1)~Phyllodelta+SAV+TH, phyllograph, permutations = 999, 
+psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+SAV+TH, phyllograph, permutations = 999, 
                                method="bray")
 psessperm
 
-#nMDS of surgrass
-ordiplot(PhylloSessiles, type = 'text')
-
+####Phyllo Sessile nMDS graph####
 PSessilesnMDSpts<-data.frame(PhylloSessiles$points)
-Pphypar<-TidePooldes%>%
-  filter(Foundation_spp =="Phyllospadix")
-PSessilesnMDS<-cbind(PhyllocommunitynMDS$PoolID,
-                     PhyllocommunitynMDS$Removal_Control,
-                     PhyllocommunitynMDS$Before_After,
-                     PhyllocommunitynMDS$Phyllodelta,
-                     Pphypar$TideHeight,
-                     Pphypar$SAtoV,
+
+PSessilesnMDSgraph<-cbind(phyllograph,
                      PSessilesnMDSpts)
 
+PSessilesnMDSgraph$MDS1<-as.numeric(PSessilesnMDSgraph$MDS1)
 
-colnames(PSessilesnMDS)[1:6]<- c("PoolID","Removal_Control","Before_After","SurfgrassLoss","TideHeight","SAV")
-
-set.seed(267)
-permanovaSessilemodel<-adonis(PsessnMDS~SurfgrassLoss +SAV +TideHeight, PSessilesnMDS, permutations = 999, 
-                              method="bray")
-permanovaSessilemodel
-#Terms added sequentially (first to last)
-
-#Df SumsOfSqs MeanSqs F.Model      R2 Pr(>F)    
-#SurfgrassLoss  1    1.2622 1.26223  7.5809 0.18411  0.001 ***
-# SAV            1    0.4005 0.40051  2.4054 0.05842  0.031 *  
-# TideHeight     1    0.5311 0.53107  3.1896 0.07746  0.007 ** 
-# Residuals     28    4.6620 0.16650         0.68001           
-#Total         31    6.8558                 1.00000 
-PSessilesnMDS$MDS1<-as.numeric(PSessilesnMDS$MDS1)
-PSessilesnMDS$MDS2<-as.numeric(PSessilesnMDS$MDS2)
-
-
-## add a column combining after before and foundation species
-SessilesnMDS$AB_F<-factor(paste(SessilesnMDS$Before_After, SessilesnMDS$Foundation_spp))
+PSessilesnMDSgraph$MDS2<-as.numeric(PSessilesnMDSgraph$MDS2)
 
 #create dataframe for centroids with median from x and y axes
-centroids <- aggregate(cbind(MDS1,MDS2)~Foundation_spp*Before_After*Removal_Control*AB_F,SessilesnMDS,median)
-
-
-#separate out diatoms points to make different color
-diatomsyes<-SessilesnMDS %>%
-  filter(DiatomPresent =="Yes" & Before_After =="After" & Removal_Control =="Removal")
-
-diatomsno<-SessilesnMDS %>%
-  filter(DiatomPresent =="No" & Before_After =="After" & Removal_Control =="Removal")
+pscentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                           PSessilesnMDSgraph,median)
 
 #for arrows fucnction:
-#no diatoms
-x0 <- centroids %>%
+x0 <- pscentroids %>%
   filter(Before_After == "Before") %>%
   select(MDS1)
 x0<-as.matrix(x0)
 
-y0 <- centroids %>%
+y0 <- pscentroids %>%
   filter(Before_After == "Before") %>%
   select(MDS2)
 y0<-as.matrix(y0)
 
-x1<-centroids %>%
+x1<-pscentroids %>%
   filter(Before_After == "After") %>%
   select(MDS1)
 x1<-as.matrix(x1)
 
-y1<-centroids %>%
+y1<-pscentroids %>%
   filter(Before_After == "After") %>%
   select(MDS2)
 y1<-as.matrix(y1)
-
-#create dataframe for centroids with median from x and y axes
-pcentroids <- aggregate(cbind(NMDS1,NMDS2)~Before_After*Removal_Control,phyllograph,median)
-#use median since nonnormal data
-
-#create groupings for shape labels
-phyllocommgraph$RC_BA<-factor(paste(phyllocommgraph$Before_After, phyllocommgraph$Removal_Control))
 
 pgroupings<-c("After" = 2,"Before" = 17)
 
-#for arrows fucnction:
-x0 <- pcomcentroids %>%
-  filter(Before_After=="Before") %>%
-  select(NMDS1)
-x0<-as.matrix(x0)
-y0 <- pcomcentroids %>%
-  filter(Before_After == "Before") %>%
-  select(NMDS2)
-y0<-as.matrix(y0)
-x1<-pcomcentroids %>%
-  filter(Before_After == "After") %>%
-  select(NMDS1)
-x1<-as.matrix(x1)
-y1<-pcomcentroids %>%
-  filter(Before_After == "After") %>%
-  select(NMDS2)
-y1<-as.matrix(y1)
-
-
-Surfgrassplot<-ggplot(phyllocommgraph, aes(x = NMDS1 , y= NMDS2,shape = Before_After)) + #basic plot
-  geom_point(aes(color =SurfgrassLoss, size =SurfgrassLoss, alpha=3,stroke=2), shape=16) +
+Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
   scale_color_distiller(palette = "Greens",guide = "legend")+
   scale_size(range = c(1,15)) +
-  geom_point(data=pcomcentroids, size=10, stroke = 2.75) +
-  #stat_ellipse(aes(linetype=RC_BA))+
-  #ordiellipse(PhylloSessilesafter, phyllocommgraph$RC_BA, display = "sites", 
-  #kind = "se", conf = 0.95, label = T)+
+  geom_point(data=pscentroids, size=10, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(pgroupings))+
   geom_segment(aes(x = x0[1], y = y0[1], xend = (x1[1]), yend = (y1[1])),size = 1,#segment with arrow for surfgrass before/after control
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='nMDS1', y = 'nMDS2', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
-  theme(axis.text = element_text(color = "black", size = 35), 
-        axis.title.x = element_text(color="black", size=40), 
-        axis.title.y = element_text(color="black", size=40), 
+  labs(x ='', y = 'Sessile community nMDS2', shape='', color='',size='', linetype ='Before or after') +
+  annotate("text",  size=14, x=0.85, y=0.75, label= "2D stress = 0.12") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        axis.ticks = element_blank(),
         legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 35), 
-        legend.position= "top",
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "none",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   guides(shape = "none", alpha = "none")+
   guides(colour = guide_legend(nrow = 1))#makes legend only one row
-Surfgrassplot
-ggsave("Output/surfgrassprocrustesswtich.pdf",useDingbats = FALSE, width=40, height=30,dpi=600, unit="cm")
+Surfgrasssessilesplot
 
+#ggsave("Output/surfgrassprocrustesswtich.pdf",useDingbats = FALSE, width=40, height=30,dpi=600, unit="cm")
 
+####Mussel Sessile nMDS#####
+
+#create dataframe that has both before (baseline so low number in this case 1) and after
+#surfgrass loss that can be used in plot later as color/size variable 
+MFunsppcover<-Funsppcover%>%
+  filter(Foundation_spp =="Mytilus") 
+MFunsppafter<-MFunsppcover[c(1,4)]
+MFunsppafter$Before_After<- "After"
+MBeforespploss<-MytiluscommunitynMDS%>%
+  select(PoolID,Before_After) %>%
+  filter(Before_After =='Before')
+MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
+Musselloss<-rbind(MBeforespploss,MFunsppafter) #combine before and after together
+MytiluscommunitynMDS$PoolID<-as.character(MytiluscommunitynMDS$PoolID)
+MytiluscommunitynMDS<-left_join(Musselloss,MytiluscommunitynMDS) #combine with rest of dataframe by pool id
+
+Myilussessspplist<-MytiluscommunitynMDS[-c(1:10,72:73)] 
+Myilussessspplist<-Myilussessspplist%>%
+  dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in surfgrass pools)
+
+set.seed(267)
+McombinednMDS<-metaMDS(sqrt(sqrt(Myilussessspplist)),k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
+McombinednMDS$stress  #0.1736432
+
+#nMDS of surgrass
+#ordiplot in ggplot
+msdata.scores <- as.data.frame(scores(McombinednMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+msdata.scores$site <- rownames(msdata.scores)  # create a column of site names, from the rownames of data.scores
+msspecies.scores <- as.data.frame(scores(McombinednMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+msspecies.scores$species <- rownames(msspecies.scores)  # create a column of species, from the rownames of species.scores
+ordSesMussel<-ggplot() + 
+  geom_text(data=msspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_blank(), # remove x-axis labels
+        axis.title.y = element_blank()) # remove y-axis labels
+  
+
+mpp<-Funsppandpp%>%
+  filter(Foundation_spp =="Mytilus")
+mgraph<-cbind(MytiluscommunitynMDS,mpp$SAVav,mpp$THav)
+
+mgraph<-mgraph%>%
+  rename(SAV="mpp$SAVav",TH="mpp$THav")
+
+msessperm<-adonis(sqrt(sqrt(Myilussessspplist))~Mytilusdelta+SAV+TH, mgraph, permutations = 999, 
+                  method="bray")
+msessperm
+
+####mussel sessile nMDS plot####
+
+MSessilesnMDSpts<-data.frame(McombinednMDS$points)
+
+MSessilesnMDSgraph<-cbind(mgraph,
+                          MSessilesnMDSpts)
+
+MSessilesnMDSgraph$MDS1<-as.numeric(MSessilesnMDSgraph$MDS1)
+
+MSessilesnMDSgraph$MDS2<-as.numeric(MSessilesnMDSgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+mscentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                         MSessilesnMDSgraph,median)
+
+#for arrows fucnction:
+v0 <- mscentroids %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+v0<-as.matrix(v0)
+
+z0 <- mscentroids %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+z0<-as.matrix(z0)
+
+v1<-mscentroids %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+v1<-as.matrix(v1)
+
+z1<-mscentroids %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+z1<-as.matrix(z1)
+
+mgroupings<-c("After" = 2,"Before" = 17)
+
+Musselsessilesplot<-ggplot(MSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=mscentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='', y = 'Sessile community nMDS2', shape='', color='',size='', linetype ='Before or after') +
+  annotate("text",  size=14, x=0.68, y=0.6, label= "2D stress = 0.17") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        axis.ticks = element_blank(),
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "none",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+Musselsessilesplot
 
 ####Procrustes graphs IDk what is happening really####
 
@@ -295,15 +363,17 @@ PsessnMDSafter<-Phylloafter[-c(1:10,72:73)]
 #create dissimlarity matrices for procrustes analysis
 #log transform community data to remove affect of rare spp
 set.seed(267)
-PhylloSessilesbefore<-metaMDS(log(PsessnMDSbefore+1),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
+PhylloSessilesbefore<-metaMDS(sqrt(sqrt(PsessnMDSbefore)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
 
 set.seed(267)
-PhylloSessilesafter<-metaMDS(log(PsessnMDSafter+1),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
+PhylloSessilesafter<-metaMDS(sqrt(sqrt(PsessnMDSafter)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
+set.seed(267)
 pro<-procrustes(PhylloSessilesbefore,PhylloSessilesafter) #procrustes rotation with before as target and after as rotation
 
 Targetp<-as.data.frame(pro$X)
 Yrotp<-as.data.frame(pro$Yrot)
-
+nMDStarget<-as.data.frame(pro$X)
+nMDSyrot<-as.data.frame(pro$Yrot)
 Targetp$Before_After<-"After"
 Yrotp$Before_After<-"Before"
 Yrotp<-Yrotp%>%
@@ -322,15 +392,13 @@ phyllocommgraph<-phyllocommgraph %>%
 
 #unsure how to add procrustes analysis to permanova
 set.seed(267)
-permanovaSessilemodel<-adonis(formula=pro~SurfgrassLoss +SAV +TideHeight, phyllocommgraph, permutations = 999, 
+permanovaSessilemodel<-adonis(cbind(PsessnMDSbefore,PsessnMDSafter),sqrt(PsessnMDSbefore))~SurfgrassLoss +SAV +TideHeight, phyllocommgraph, permutations = 999, 
                               method="bray")
 permanovaSessilemodel
 
 
-
-
 #create dataframe for centroids with median from x and y axes
-pcomcentroids <- aggregate(cbind(NMDS1,NMDS2)~Before_After*Removal_Control,phyllocommgraph,median)
+psesscentroids <- aggregate(cbind(NMDS1,NMDS2)~Before_After*Removal_Control,phyllocommgraph,median)
 #use median since nonnormal data
 
 #create groupings for shape labels
@@ -339,19 +407,19 @@ phyllocommgraph$RC_BA<-factor(paste(phyllocommgraph$Before_After, phyllocommgrap
 pgroupings<-c("After" = 2,"Before" = 17)
 
 #for arrows fucnction:
-x0 <- pcomcentroids %>%
+x0 <-psesscentroids %>%
   filter(Before_After=="Before") %>%
   select(NMDS1)
 x0<-as.matrix(x0)
-y0 <- pcomcentroids %>%
+y0 <- psesscentroids %>%
   filter(Before_After == "Before") %>%
   select(NMDS2)
 y0<-as.matrix(y0)
-x1<-pcomcentroids %>%
+x1<-psesscentroids %>%
   filter(Before_After == "After") %>%
   select(NMDS1)
 x1<-as.matrix(x1)
-y1<-pcomcentroids %>%
+y1<-psesscentroids %>%
   filter(Before_After == "After") %>%
   select(NMDS2)
 y1<-as.matrix(y1)
@@ -361,7 +429,7 @@ Surfgrassplot<-ggplot(phyllocommgraph, aes(x = NMDS1 , y= NMDS2,shape = Before_A
   geom_point(aes(color =SurfgrassLoss, size =SurfgrassLoss, alpha=3,stroke=2), shape=16) +
   scale_color_distiller(palette = "Greens",guide = "legend")+
   scale_size(range = c(1,15)) +
-  geom_point(data=pcomcentroids, size=10, stroke = 2.75) +
+  geom_point(data=psesscentroids, size=10, stroke = 2.75) +
   #stat_ellipse(aes(linetype=RC_BA))+
   #ordiellipse(PhylloSessilesafter, phyllocommgraph$RC_BA, display = "sites", 
               #kind = "se", conf = 0.95, label = T)+
@@ -385,31 +453,6 @@ Surfgrassplot
 ggsave("Output/surfgrassprocrustesswtich.pdf",useDingbats = FALSE, width=40, height=30,dpi=600, unit="cm")
 
 
-
-
-#create dataframe that has both before (baseline so low number in this case 1) and after
-#surfgrass loss that can be used in plot later as color/size variable 
-MFunsppcover<-Funsppcover%>%
-  filter(Foundation_spp =="Mytilus") 
-MFunsppafter<-MFunsppcover[c(1,4)]
-MFunsppafter$Before_After<- "After"
-MBeforespploss<-MytiluscommunitynMDS%>%
-  select(PoolID,Before_After) %>%
-  filter(Before_After =='Before')
-MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
-Musselloss<-rbind(MBeforespploss,MFunsppafter) #combine before and after together
-MytiluscommunitynMDS$PoolID<-as.character(MytiluscommunitynMDS$PoolID)
-MytiluscommunitynMDS<-left_join(Musselloss,MytiluscommunitynMDS) #combine with rest of dataframe by pool id
-
-Myilussessspplist<-MytiluscommunitynMDS[-c(1:10,72:73)] 
-
-McombinednMDS<-metaMDS(log(Myilussessspplist+1),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
-McombinednMDS$stress  #0.166
-
-set.seed(267)
-permanovaSessilemodel<-adonis(formula=pro~SurfgrassLoss +SAV +TideHeight, phyllocommgraph, permutations = 999, 
-                              method="bray")
-permanovaSessilemodel
 
 ###procrustes####
 
@@ -621,7 +664,221 @@ SessilesnMDSplot<- ggplot(PSessilesnMDS, aes(x = MDS1 , y= MDS2, shape=Before_Af
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
   #ggsave("Output/CommonsppSessileplot.pdf",useDingbats = FALSE, width=40, height=30,dpi=300, unit="cm")
 SessilesnMDSplot
-######nMDS Mussel######
+######Mobile nMDS######
+library(janitor)
+SurfgrassMobiles <-Mobiles %>%
+  filter(Before_After !="Immediate" & Foundation_spp =="Phyllospadix")
+
+
+MusselMobiles <-Mobiles %>%
+  filter(Before_After !="Immediate" & Foundation_spp =="Mytilus") 
+  
+
+SurfgrassMobiles$PoolID<-as.character(SurfgrassMobiles$PoolID)
+PhyllomobnMDS<-left_join(Phylloloss,SurfgrassMobiles) #combine with rest of dataframe by pool id
+
+PhyllomoblistnMDS<-PhyllomobnMDS[-c(1:5)]  
+
+Phyllomoblist<-PhyllomoblistnMDS%>%
+  select_if(colSums(.) != 0) #remove columns with 0s (spp found in mussel pools)
+
+set.seed(267)
+Phyllomob<-metaMDS(sqrt(sqrt(Phyllomoblist)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
+
+Phyllomob$stress #0.2304031
+
+#nMDS of surgrass
+#ordplot in ggplot
+pmdata.scores <- as.data.frame(scores(Phyllomob))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+pmdata.scores$site <- rownames(pmdata.scores)  # create a column of site names, from the rownames of data.scores
+pmspecies.scores <- as.data.frame(scores(Phyllomob, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+pmspecies.scores$species <- rownames(pmspecies.scores)  # create a column of species, from the rownames of species.scores
+
+ordMobSurf<-ggplot() + 
+  geom_text(data=pmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
+  theme_classic()+
+  labs(x= "nMDS1")+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_blank()) # remove y-axis labels
+
+phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$SAVav,phyllopp$THav)
+
+phyllomobgraph<-phyllomobgraph%>%
+  rename(SAV="phyllopp$SAVav",TH="phyllopp$THav")
+
+pmobperm<-adonis(sqrt(sqrt(Phyllomoblist))~Phyllodelta+SAV+TH,phyllomobgraph, permutations = 999, 
+                  method="bray")
+pmobperm
+####Phyllo mobile nMDS graph####
+PmobnMDSpts<-data.frame(Phyllomob$points)
+
+PmobnMDSgraph<-cbind(phyllomobgraph,
+                     PmobnMDSpts)
+
+PmobnMDSgraph$MDS1<-as.numeric(PmobnMDSgraph$MDS1)
+PmobnMDSgraph$MDS2<-as.numeric(PmobnMDSgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+pmcentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                         PmobnMDSgraph,median)
+
+#for arrows fucnction:
+a0 <- pmcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+a0<-as.matrix(a0)
+
+b0 <- pmcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+b0<-as.matrix(b0)
+
+a1<-pmcentroids %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+a1<-as.matrix(a1)
+
+b1<-pmcentroids %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+b1<-as.matrix(b1)
+
+
+Surfgrassmobplot<-ggplot(PmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Greens",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=pmcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(pgroupings))+
+  geom_segment(aes(x = a0[1], y = b0[1], xend = (a1[1]), yend = (b1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = a0[2], y = b0[2], xend = (a1[2]), yend = (b1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='nMDS1', y = 'Mobile community nMDS2', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
+  annotate("text",  size=14, x=0.45, y=0.75, label= "2D stress = 0.23") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        axis.ticks = element_blank(),  # remove axis ticks
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+Surfgrassmobplot
+#####Mussel mobile nMDS#####
+MusselMobiles$PoolID<-as.character(MusselMobiles$PoolID)
+MytilusmobnMDS<-left_join(Musselloss,MusselMobiles) #combine with rest of dataframe by pool id
+
+Mytilusmob<-MytilusmobnMDS[-c(1:5)] 
+Mytilusmobspplist<-Mytilusmob%>%
+  select_if(colSums(.) != 0) #remove columns with 0s (spp found in surfgrass pools)
+set.seed(267)
+MmobnMDS<-metaMDS(sqrt(sqrt(Mytilusmobspplist)),k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
+MmobnMDS$stress  #.1962671
+
+
+#ordiplot in ggplot
+mmdata.scores <- as.data.frame(scores(MmobnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+mmdata.scores$site <- rownames(mmdata.scores)  # create a column of site names, from the rownames of data.scores
+mmspecies.scores <- as.data.frame(scores(MmobnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+mmspecies.scores$species <- rownames(mmspecies.scores)  # create a column of species, from the rownames of species.scores
+ordMobMussel<-ggplot() + 
+  geom_text(data=mmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  labs(x= "nMDS1")+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_blank()) # remove y-axis labels
+
+mmobgraph<-cbind(MytilusmobnMDS,mpp$SAVav,mpp$THav)
+
+mmobgraph<-mmobgraph%>%
+  rename(SAV="mpp$SAVav",TH="mpp$THav")
+set.seed(267)
+mmobperm<-adonis(sqrt(sqrt(Mytilusmobspplist))~Removal_Control*Mytilusdelta+SAV+TH,mmobgraph, permutations = 999, 
+                 method="bray")
+mmobperm
+######Mussel mobile nMDS graph#####
+MmobnMDSpts<-data.frame(MmobnMDS$points)
+
+MmobnMDSgraph<-cbind(mmobgraph,
+                     MmobnMDSpts)
+
+MmobnMDSgraph$MDS1<-as.numeric(MmobnMDSgraph$MDS1)
+
+MmobnMDSgraph$MDS2<-as.numeric(MmobnMDSgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+mmcentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                         MmobnMDSgraph,median)
+
+#for arrows fucnction:
+c0 <- mmcentroids %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+c0<-as.matrix(c0)
+
+d0 <- mmcentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+d0<-as.matrix(d0)
+
+c1<-mmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+c1<-as.matrix(c1)
+
+d1<-mmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+d1<-as.matrix(d1)
+
+Musselmobplot<-ggplot(MmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=mmcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = c0[1], y = d0[1], xend = (c1[1]), yend = (d1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = c0[2], y = d0[2], xend = (c1[2]), yend = (d1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='nMDS1', y = 'Mobile community nMDS2', shape='', color='Mussel loss',size='Mussel loss', linetype ='Before or after') +
+  annotate("text",  size=14, x=0.45, y=0.6, label= "2D stress = 0.20") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        axis.ticks = element_blank(),  # remove axis ticks
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+Musselmobplot
+
+#patchwork of ord plots and nMDS per foudnation spp
+
+Mcommgraphs<-Musselsessilesplot+ordSesMussel+Musselmobplot+ordMobMussel+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+Mcommgraphs
+ggsave("Output/McommnMDS.pdf",useDingbats = FALSE, width=70, height=60,dpi=600, unit="cm")
+
+Pcommgraphs<-Surfgrasssessilesplot+ordSesSurf+Surfgrassmobplot+ordMobSurf+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+ggsave("Output/ScommnMDS.pdf",useDingbats = FALSE, width=70, height=60,dpi=600, unit="cm")
+
 ####Species Richness and diversity anovas#####
 
 Sessilesall<-Communitymetrics%>%
@@ -651,11 +908,11 @@ phyllosessrich<-deltasessrichfunpp %>%
 mytilusessrich<-deltasessrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
 #richness and diversity phyllo
-phyllosessrichmod<-lm(DeltaRich~Phyllodelta +SAav+THav, data=phyllosessrich)
+phyllosessrichmod<-lm(DeltaRich~Phyllodelta +SAVav+THav, data=phyllosessrich)
 #plot(phyllosessrichmod) #good
 qqp(resid(phyllosessrichmod),"norm") #good
 
-anova(phyllosessrichmod)
+summary(phyllosessrichmod)
 
 library(ggeffects)
 phyllospp<-ggpredict(phyllosessrichmod, c("Phyllodelta")) #predict marginal effects from model for foundation spp. loss
@@ -669,21 +926,21 @@ phyllospp<-left_join(phyllospp,phyllosessrich) #rejoin with main dataframe for g
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phyllospp<-ggplot(phyllospp, aes(x =Phyllodelta, y=DeltaRich)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  #geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2,linetype=2)+
+  #geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Delta Species Richness') 
+  labs(x ='', y = 'Change in sessile species richness') 
 phyllospp
 
 
-phyllosessrichdiv<-lm(DeltaDiversity~Phyllodelta +SAav+THav, data=phyllosessrich)
+phyllosessrichdiv<-lm(DeltaDiversity~Phyllodelta +SAVav+THav, data=phyllosessrich)
 #plot(phyllosessrichdiv) #good
 qqp(resid(phyllosessrichdiv),"norm") #good
 
@@ -699,7 +956,7 @@ phyllosppd<-left_join(phyllosppd,phyllosessrich) #rejoin with main dataframe for
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phyllosppd<-ggplot(phyllosppd, aes(x =Phyllodelta, y=DeltaDiversity)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
@@ -714,10 +971,11 @@ phyllosppd
 #richness and diversity mytilus
 mytilusessrich$logrichness<-sign(mytilusessrich$DeltaRich)*log(abs(mytilusessrich$DeltaRich))
 
-mytilussessrichmod<-lm(logrichness~Mytilusdelta +SAav+THav, data=mytilusessrich)
+mytilussessrichmod<-lm(logrichness~Mytilusdelta +SAVav+THav, data=mytilusessrich)
 #plot(mytilussessrichmod) #good
 qqp(resid(mytilussessrichmod),"norm") #one point out log to meet normality
 anova(mytilussessrichmod)
+summary(mytilussessrichmod)
 mytilussppr<-ggpredict(mytilussessrichmod, c("Mytilusdelta")) #predict marginal effects from model for foundation spp. loss
 plot(mytilussppr) #plot output 
 mytilussppr<-as.data.frame(mytilussppr) #create dataframe 
@@ -726,20 +984,22 @@ mytilussppr<-mytilussppr%>% #output for values gives you an x for variable. rena
   rename(Mytilusdelta=x) #rename to join to rest of dataframe
 
 mytilussppr<-left_join(mytilussppr,mytilusessrich) #rejoin with main dataframe for ggplot
+mytilussppr<-mytilussppr%>%
+  mutate(transpredict=exp(predicted),rich=exp(logrichness),md=exp(Mytilusdelta), trancl= exp(conf.low),tranch=exp(conf.high))
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 mspr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=logrichness)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Mytilusdelta, y=predicted), color="#006d2c",size =2)+
+  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Mussel Loss', y = 'Delta Species richness') 
+  labs(x ='', y = 'Change in log sessile species richness') 
 mspr
 
 mytilussessdivmod<-lm(DeltaDiversity~Mytilusdelta +SAav+THav, data=mytilusessrich)
@@ -795,6 +1055,218 @@ SessilesphylloFun<-Communitymetrics %>%
 SessilesMytilusStacked<-left_join(SessilesMytilusFun,SessilesGroupings) #combine with fun groups 
 SessilesPhylloStacked<-left_join(SessilesphylloFun,SessilesGroupings) #combine with fun groups 
 
+Musselfunmds<-SessilesMytilusStacked %>%
+  dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Functional_Group) %>%
+  summarise(SumCover = sum(Cover))
+
+Phyllofunmds<-SessilesPhylloStacked%>%
+  dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Functional_Group, Before_After) %>%
+  summarise(SumCover = sum(Cover)) 
+
+Musselfunmds$PoolID<-as.character(Musselfunmds$PoolID)
+Phyllofunmds$PoolID<-as.character(Phyllofunmds$PoolID)
+Phyllofunmds<-left_join(Phyllofunmds,Funsppandpp)
+Musselfunmds<-left_join(Musselfunmds,Funsppandpp)
+Phyllofunmds<-Phyllofunmds%>%
+  filter(Foundation_spp =='Phyllospadix')
+Musselfunmds<-Musselfunmds%>%
+  filter(Foundation_spp =='Mytilus')
+
+#pivot wider 
+Phyllofunmds<-Phyllofunmds%>%
+  pivot_wider(
+    names_from ="Functional_Group",
+    values_from ="SumCover")
+
+Phyllofunmds$Phyllodelta[Phyllofunmds$Before_After =="Before"]<-0 #make beofre phyllo delta 0s
+
+phyllofunspp<-Phyllofunmds[11:20]
+
+set.seed(267)
+phyllosfunnMDS<-metaMDS(phyllofunspp,k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
+phyllosfunnMDS$stress  #0.16
+
+#ordiplot in ggplot
+pfsdata.scores <- as.data.frame(scores(phyllosfunnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+pfsdata.scores$site <- rownames(pfsdata.scores)  # create a column of site names, from the rownames of data.scores
+pfsspecies.scores <- as.data.frame(scores(phyllosfunnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+pfsspecies.scores$species <- rownames(pfsspecies.scores)  # create a column of species, from the rownames of species.scores
+ordPFunsess<-ggplot() + 
+  geom_text(data=pfsspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_blank(), # remove x-axis labels
+        axis.title.y = element_blank()) # remove y-axis labels
+set.seed(267)
+adonis(phyllofunspp~Phyllodelta+SAVav+THav, Phyllofunmds, permutations = 999, 
+                  method="bray")
+
+PFunSessnMDSpts<-data.frame(phyllosfunnMDS$points)
+
+Phyllofunsessmdsgraph<-cbind(Phyllofunmds,
+                          PFunSessnMDSpts)
+
+Phyllofunsessmdsgraph$MDS1<-as.numeric(Phyllofunsessmdsgraph$MDS1)
+
+Phyllofunsessmdsgraph$MDS2<-as.numeric(Phyllofunsessmdsgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+pfscentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                          Phyllofunsessmdsgraph,median)
+
+#for arrows fucnction:
+v0 <- pfscentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+v0<-as.matrix(v0)
+
+z0 <- pfscentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+z0<-as.matrix(z0)
+
+v1<-pfscentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+v1<-as.matrix(v1)
+
+z1<-pfscentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+z1<-as.matrix(z1)
+
+mgroupings<-c("After" = 2,"Before" = 17)
+
+PFunSessplot<-ggplot(Phyllofunsessmdsgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Greens",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=pfscentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='', y = 'Sessile fun community nMDS2', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
+  annotate("text",  size=14, x=-1.2, y=0.6, label= "2D stress = 0.16") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        axis.ticks = element_blank(),
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+PFunSessplot
+
+Psess<-PFunSessplot+ordPFunsess
+Psess
+ggsave(filename = "Output/phyllosessfunnmds.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
+
+###Musselfun####
+
+#pivot wider 
+Musselfunmds<-Musselfunmds%>%
+  pivot_wider(
+    names_from ="Functional_Group",
+    values_from ="SumCover")
+Musselfunmds$Mytilusdelta[Musselfunmds$Before_After =="Before"]<-0 #make before musseldelta 0s
+
+musselfunspp<-Musselfunmds[11:20]
+
+set.seed(267)
+musselsfunnMDS<-metaMDS(musselfunspp,k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
+musselsfunnMDS$stress  #0.16
+
+#ordiplot in ggplot
+mfsdata.scores <- as.data.frame(scores(musselsfunnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+mfsdata.scores$site <- rownames(mfsdata.scores)  # create a column of site names, from the rownames of data.scores
+mfsspecies.scores <- as.data.frame(scores(musselsfunnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+mfsspecies.scores$species <- rownames(mfsspecies.scores)  # create a column of species, from the rownames of species.scores
+ordMFunsess<-ggplot() + 
+  geom_text(data=mfsspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_blank(), # remove x-axis labels
+        axis.title.y = element_blank()) # remove y-axis labels
+set.seed(267)
+adonis(musselfunspp~Mytilusdelta+SAVav+THav, Musselfunmds, permutations = 999, 
+       method="bray")
+
+MFunSessnMDSpts<-data.frame(musselsfunnMDS$points)
+
+Musselfunsessmdsgraph<-cbind(Musselfunmds,
+                             MFunSessnMDSpts)
+
+Musselfunsessmdsgraph$MDS1<-as.numeric(Musselfunsessmdsgraph$MDS1)
+
+Musselfunsessmdsgraph$MDS2<-as.numeric(Musselfunsessmdsgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+mfscentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                          Musselfunsessmdsgraph,median)
+
+#for arrows fucnction:
+a0 <- mfscentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+a0<-as.matrix(a0)
+
+b0 <- mfscentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+b0<-as.matrix(b0)
+
+a1<-mfscentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+a1<-as.matrix(a1)
+
+b1<-mfscentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+b1<-as.matrix(b1)
+
+mgroupings<-c("After" = 2,"Before" = 17)
+
+MFunSessplot<-ggplot(Musselfunsessmdsgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=mfscentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = a0[1], y = b0[1], xend = (a1[1]), yend = (b1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = a0[2], y = b0[2], xend = (a1[2]), yend = (b1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='', y = 'Sessile fun community nMDS2', shape='', color='Mussel loss',size='Mussel loss', linetype ='Before or after') +
+  #annotate("text",  size=14, x=-0.75, y=1.2, label= "2D stress = 0.16") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        axis.ticks = element_blank(),
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+MFunSessplot
+
+Msess<-MFunSessplot+ordMFunsess
+Msess
+ggsave(filename = "Output/musselsessfunnmds.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
+
+
+###log ratio plots####
 deltaMV<-SessilesMytilusStacked %>%
   dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Functional_Group) %>%
   summarise(SumCover = sum(Cover)) %>%
@@ -974,9 +1446,10 @@ phyllomobrich<-deltamobrichfunpp %>%
 mytilusmobrich<-deltamobrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
 #richness and diversity phyllo
-phyllomobrichmod<-lm(DeltaRich~Phyllodelta +SAav+THav, data=phyllomobrich)
+phyllomobrichmod<-lm(DeltaRich~Phyllodelta +SAVav+THav, data=phyllomobrich)
 #plot(phyllomobrichmod) #good
 qqp(resid(phyllomobrichmod),"norm") #good
+summary(phyllomobrichmod)
 
 phyllosppmobr<-ggpredict(phyllomobrichmod, c("Phyllodelta")) #predict marginal effects from model for foundation spp. loss
 #plot(phyllosppmobr) #plot output 
@@ -989,17 +1462,17 @@ phyllosppmobr<-left_join(phyllosppmobr,phyllomobrich) #rejoin with main datafram
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phyllospprm<-ggplot(phyllosppmobr, aes(x =Phyllodelta, y=DeltaRich)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  #geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2,linetype=2)+
+ # geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Delta Species richness') 
+  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Change in moblie species richness') 
 phyllospprm
 anova(phyllomobrichmod)
 
@@ -1033,9 +1506,10 @@ phyllosppdm
 anova(phyllomobrichdiv)
 
 #richness and diversity mytilus
-mytilusmobrichmod<-lm(DeltaRich~Mytilusdelta +SAav+THav, data=mytilusmobrich)
+mytilusmobrichmod<-lm(DeltaRich~Mytilusdelta +SAVav+THav, data=mytilusmobrich)
 #plot(mytilusmobrichmod) #good
 qqp(resid(mytilusmobrichmod),"norm") #good
+summary(mytilusmobrichmod)
 mytilussppmr<-ggpredict(mytilusmobrichmod, c("Mytilusdelta")) #predict marginal effects from model for foundation spp. loss
 plot(mytilussppmr) #plot output 
 mytilussppmr<-as.data.frame(mytilussppmr) #create dataframe 
@@ -1047,19 +1521,25 @@ mytilussppr<-left_join(mytilussppmr,mytilusmobrich) #rejoin with main dataframe 
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 mspmr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=DeltaRich)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Mytilusdelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  #geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2, linetype=2)+
+  #geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_blank())+
   theme(legend.position="none")+
-  labs(x ='Mussel Loss', y = 'Delta Species richness') 
+  labs(x ='CA mussel loss \n (Mytilus californianus)', y = '') 
 mspmr
 anova(mytilusmobrichmod)
+
+richpm<-phyllospp+mspr+phyllospprm+mspmr+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+richpm
+ggsave(filename = "Output/richnessplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 45, height = 35)
 
 mytilusmobrich$logdiversity<-sign(mytilusmobrich$DeltaDiversity)*log(abs(mytilusmobrich$DeltaDiversity))
 mytilusmobdivmod<-lm(logdiversity~Mytilusdelta +SAav+THav, data=mytilusmobrich)
@@ -1105,6 +1585,194 @@ Mobstacked$PoolID<-as.factor(Mobstacked$PoolID)
 Mobdata<-left_join(Mobstacked,Funsppandpp)
 
 Mobdata$Std.Count<-Mobdata$Count/Mobdata$SAav #std counts by SA Count/m^2
+MobnMDS<-Mobdata%>%
+  dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Functional_Group) %>%
+  summarise(SumDensity = sum(Std.Count))
+MobnMDS<-left_join(MobnMDS,Funsppandpp)
+
+MobnMDS<-MobnMDS%>%
+  pivot_wider(names_from=Functional_Group,
+              values_from =SumDensity)
+Phyllomobfun<-MobnMDS%>%
+  filter(Foundation_spp =="Phyllospadix")
+Musselmobfun<-MobnMDS%>%
+  filter(Foundation_spp =="Mytilus")
+Phyllomobfun$Phyllodelta[Phyllomobfun$Before_After =="Before"]<-0 #make before musseldelta 0s
+Musselmobfun$Mytilusdelta[Musselmobfun$Before_After =="Before"]<-0 #make before musseldelta 0s
+
+Phyllomobfunspp<-Phyllomobfun[11:13]
+Musselmobfunspp<-Musselmobfun[11:13]
+
+set.seed(267)
+phyllomobfunnMDS<-metaMDS(Phyllomobfunspp,k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
+phyllomobfunnMDS$stress  #0.06
+set.seed(267)
+adonis(Phyllomobfunspp~Phyllodelta+SAVav+THav, Phyllomobfun, permutations = 999, 
+       method="bray")
+#ordiplot in ggplot
+pfmdata.scores <- as.data.frame(scores(phyllomobfunnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+pfmdata.scores$site <- rownames(pfmdata.scores)  # create a column of site names, from the rownames of data.scores
+pfmspecies.scores <- as.data.frame(scores(phyllomobfunnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+pfmspecies.scores$species <- rownames(pfmspecies.scores)  # create a column of species, from the rownames of species.scores
+ordPFunmob<-ggplot() + 
+  geom_text(data=pfmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_blank(), # remove x-axis labels
+        axis.title.y = element_blank()) # remove y-axis labels
+
+phyllomobfunnMDSpts<-data.frame(phyllomobfunnMDS$points)
+
+phyllomobfunnMDSgraph<-cbind(Phyllomobfun,
+                             phyllomobfunnMDSpts)
+
+phyllomobfunnMDSgraph$MDS1<-as.numeric(phyllomobfunnMDSgraph$MDS1)
+
+phyllomobfunnMDSgraph$MDS2<-as.numeric(phyllomobfunnMDSgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+pfmcentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                          phyllomobfunnMDSgraph,median)
+
+#for arrows fucnction:
+j0 <- pfmcentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+j0<-as.matrix(j0)
+
+k0 <- pfmcentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+k0<-as.matrix(k0)
+
+j1<-pfmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+j1<-as.matrix(j1)
+
+k1<-pfmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+k1<-as.matrix(k1)
+
+mgroupings<-c("After" = 2,"Before" = 17)
+
+PFunMobplot<-ggplot(phyllomobfunnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Greens",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=pfmcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = j0[1], y = k0[1], xend = (j1[1]), yend = (k1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = j0[2], y = k0[2], xend = (j1[2]), yend = (k1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='', y = 'Mobile functional community nMDS2', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
+  annotate("text",  size=14, x=-1.65, y=1.0, label= "2D stress = 0.06") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        axis.ticks = element_blank(),
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+PFunMobplot
+
+Pmob<-PFunMobplot+ordPFunmob
+Pmob
+ggsave(filename = "Output/phyllomobfunnmds.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
+
+set.seed(267)
+musselmobfunnMDS<-metaMDS(Musselmobfunspp,k=2, distance='bray', trymax = 100, autotransform  = FALSE) #add more iterations
+musselmobfunnMDS$stress  #0.02
+set.seed(267)
+adonis(Musselmobfunspp~Mytilusdelta+SAVav+THav, Musselmobfun, permutations = 999, 
+       method="bray")
+
+#ordiplot in ggplot
+mfmdata.scores <- as.data.frame(scores(musselmobfunnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
+mfmdata.scores$site <- rownames(mfmdata.scores)  # create a column of site names, from the rownames of data.scores
+mfmspecies.scores <- as.data.frame(scores(musselmobfunnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
+mfmspecies.scores$species <- rownames(mfmspecies.scores)  # create a column of species, from the rownames of species.scores
+ordMFunmob<-ggplot() + 
+  geom_text(data=mfmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+  theme_classic()+
+  theme(axis.text.x = element_blank(),  # remove x-axis text
+        axis.text.y = element_blank(), # remove y-axis text
+        axis.ticks = element_blank(),  # remove axis ticks
+        axis.title.x = element_blank(), # remove x-axis labels
+        axis.title.y = element_blank()) # remove y-axis labels
+
+MFunmobnMDSpts<-data.frame(musselmobfunnMDS$points)
+
+Musselfunmobmdsgraph<-cbind(Musselmobfun,
+                             MFunmobnMDSpts)
+
+Musselfunmobmdsgraph$MDS1<-as.numeric(Musselfunmobmdsgraph$MDS1)
+
+Musselfunmobmdsgraph$MDS2<-as.numeric(Musselfunmobmdsgraph$MDS2)
+
+#create dataframe for centroids with median from x and y axes
+mfmcentroids <- aggregate(cbind(MDS1,MDS2)~Before_After*Removal_Control,
+                          Musselfunmobmdsgraph,median)
+
+#for arrows fucnction:
+h0 <- mfmcentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS1)
+h0<-as.matrix(h0)
+
+g0 <- mfmcentroids  %>%
+  filter(Before_After == "Before") %>%
+  select(MDS2)
+g0<-as.matrix(g0)
+
+h1<-mfmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS1)
+h1<-as.matrix(h1)
+
+g1<-mfmcentroids  %>%
+  filter(Before_After == "After") %>%
+  select(MDS2)
+g1<-as.matrix(g1)
+
+mgroupings<-c("After" = 2,"Before" = 17)
+
+MFunMobplot<-ggplot(Musselfunmobmdsgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
+  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
+  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_size(range = c(1,15)) +
+  geom_point(data=mfmcentroids, size=10, stroke = 2.75) +
+  theme_classic() +
+  scale_shape_manual(values = c(mgroupings))+
+  geom_segment(aes(x = h0[1], y = g0[1], xend = (h1[1]), yend = (g1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = h0[2], y = g0[2], xend = (h1[2]), yend = (g1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  labs(x ='', y = 'Mobile functional community nMDS2', shape='', color='Mussel loss',size='Mussel loss', linetype ='Before or after') +
+  annotate("text",  size=14, x=-1.3, y=0.2, label= "2D stress = 0.02") +
+  theme(axis.text = element_blank(), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        axis.ticks = element_blank(),
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  guides(shape = "none", alpha = "none")+
+  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+MFunMobplot
+
+Mmob<-MFunMobplot+ordMFunmob
+Mmob
+ggsave(filename = "Output/Musselfunnmds.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
 
 
 LRMobdata<- Mobdata%>%

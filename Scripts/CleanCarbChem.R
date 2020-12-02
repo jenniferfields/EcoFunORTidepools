@@ -610,9 +610,9 @@ MytilusBiogeochemPCAmodel<-prcomp(MytilusBiogeochemPCA, center = TRUE, scale. = 
 summary(PhylloBiogeochemPCAmodel)#shows amount of variance explained by each axis
 #This is actually a big wide table, with all 38 Principle Components
 #It tell us the amount of variance explained by each axis, and the cumulative proportion of variance explained
-#PC1  0.3288PC2 0.2790total 0.6079
+#PC1  0.3536 PC2 0.2669total 0.6205
 summary(MytilusBiogeochemPCAmodel)
-#pc1 0.3808 pc2 0.2383 0.6191
+#pc1 0.3734 pc2  0.2440 0.6174
 
 
 PhylloPCAscores<- data.frame(PhylloBiogeochemPCAmodel$x[,c(1,2)])#asks for first rows (PC1 and PC2) of table
