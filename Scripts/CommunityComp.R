@@ -26,6 +26,7 @@ library(effects) #for ggeffect
 library(ggeffects) #marginal effects on complex models
 library(margins)
 library(emmeans)
+library(ggrepel)
 library(parameters)
 library(tidyverse)
 
@@ -163,76 +164,62 @@ PhyllocommunitynMDS$PoolID<-as.character(PhyllocommunitynMDS$PoolID)
 PhyllocommunitynMDS<-left_join(Phylloloss,PhyllocommunitynMDS) #combine with rest of dataframe by pool id
 
 PhyllonMDS<-PhyllocommunitynMDS[-c(1:10,72:73)]  
-sppabunphyllo<-PhyllocommunitynMDS[-c(1:10,72:73)]#keep before after
 
 PhyllonMDS<-PhyllonMDS%>%
   dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
 
-sppabunphyllo<-sppabunphyllo%>%
-  dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
-sppabunphyllo<-cbind(PhyllocommunitynMDS$Before_After,sppabunphyllo) #combineback with before after for abun sum
-sppabunphyllo<-sppabunphyllo%>% #rename before after column
-  rename(Before_After="PhyllocommunitynMDS$Before_After")
 
 set.seed(267)
 PhylloSessiles<-metaMDS(sqrt(sqrt(PhyllonMDS)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
 
 PhylloSessiles$stress #0.17
-as.data.frame(colSums(sppabunphyllo))
 
-#gives you change in abundance for n= 56 spp between before and after period
-sppabunphyllolong<- sppabunphyllo%>%
-  tidyr::pivot_longer(
-    cols = Diatoms:Anthopleura.artemisia,
-    names_to = "Species", #creates column with species in longformat
-    values_to = "Cover", #adds column for % cover
-    values_drop_na = TRUE
-  ) %>%
-  group_by(Before_After,Species) %>%
-  summarise(abundance = sum(Cover)+1) %>%
-  group_by(Species)%>%
-  summarise(diffabun = abundance[Before_After =="After"]/abundance[Before_After=="Before"])
-sppabunphyllolong$logratioabun<-log(sppabunphyllolong$diffabun)
+
 #ordplot in ggplot
 psdata.scores <- as.data.frame(scores(PhylloSessiles))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 psdata.scores$labels <- rownames(psdata.scores)  # create a column of site names, from the rownames of data.scores
 psspecies.scores <- as.data.frame(scores(PhylloSessiles, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
 psspecies.scores$Species <- rownames(psspecies.scores)  # create a column of species, from the rownames of species.scores
 
-psspecies.scores<-left_join(psspecies.scores,sppabunphyllolong) #combine with sum abundance data
-
-phyllospp<-left_join(psspecies.scores,SessilesGroupings) #combine with functional groups
+#colors for all sesssile spp graphs
 Colors<-c(
   Anemone="#54278f",
   ArticulatedCorallines="#c51b8a",
   Crustose="#d4b9da",
   SuspensionFeeder="#636363",
   Microalgae = "#6baed6",
-  Filamentous = "#edf8e9", 
+  Filamentous = "#c7e9c0", 
   FoiloseAlgae="#a1d99b",
   CorticatedFoliose="#31a354",
   CorticatedMacro="#a50f15",
   LeatheryMacro="#006d2c")
+
+phyllospp<-left_join(psspecies.scores,SessilesGroupings) #combine with functional groups
+
+#label for geom_label function
 subset<-phyllospp%>%
   filter(Species =="Algae.film"|Species == "Diatoms" | Species == "Chaetomorpha.linum"| Species == "Ptilota.spp"|Species == "Analipus.japonicus") 
-subset$Species<-c("Algae film","Diatoms","C. linum","Ptilota spp","A. japonicus")
+subset$Species<-c("Diatoms","Algae film","A. japonicus","C. linum","Ptilota spp") #rename to easier labels
 
 ordSesSurf<-ggplot(phyllospp)+
-                   geom_point(aes(x=NMDS1,y=NMDS2,size =logratioabun, color=Functional_Group)) + 
-  geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),nudge_y=-0.5, segment.size= 0.2,color="#006d2c",size = 10) +  # add the species labels
+                   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group,size=12)) + 
+  geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),
+                   direction=c("both"),nudge_y=0.4,color="#006d2c",size = 10) +  # add the species labels
   #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
-  scale_color_manual(values=Colors,guide = "legend")+
-  scale_size(range = c(5,15)) +
-  labs(color="Functional group",size="Log ratio abundance (After/Before)")+
+  scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
+                                                              "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
+  labs(color="Functional group")+
   theme_classic()+
-  guides(colour = guide_legend(override.aes = list(size=6)))+
-  theme(axis.text.x = element_blank(),  # remove x-axis text
-                    axis.text.y = element_blank(), # remove y-axis text
-                    axis.ticks = element_blank(),  # remove axis ticks
+  guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
+  theme(#axis.text.x = element_blank(),  # remove x-axis text
+                    #axis.text.y = element_blank(), # remove y-axis text
+                    #axis.ticks = element_blank(),  # remove axis ticks
                     axis.title.x = element_blank(), # remove x-axis labels
                     axis.title.y = element_blank(),
-        legend.title = element_text(color="black", size=25), 
-        legend.text = element_text(color = "black", size = 25))
+        legend.title = element_blank(), 
+        legend.text = element_text(color = "black", size = 25),
+        legend.position = c(0.9,0.85), #legend inside the panel by specifying a vector with relative x and y coordinates ranging from 0 (left or bottom) to 1 (right or top)
+        legend.background = element_rect(fill="transparent")) #fill of legend transparent
 ordSesSurf       
 
 phyllopp<-Funsppandpp%>%
@@ -339,16 +326,31 @@ McombinednMDS$stress  #0.1736432
 msdata.scores <- as.data.frame(scores(McombinednMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 msdata.scores$site <- rownames(msdata.scores)  # create a column of site names, from the rownames of data.scores
 msspecies.scores <- as.data.frame(scores(McombinednMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-msspecies.scores$species <- rownames(msspecies.scores)  # create a column of species, from the rownames of species.scores
-ordSesMussel<-ggplot() + 
-  geom_text(data=msspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+msspecies.scores$Species <- rownames(msspecies.scores)  # create a column of species, from the rownames of species.scores
+
+musselspp<-left_join(msspecies.scores,SessilesGroupings)
+labels<-musselspp%>%
+  filter(Species =="Diatoms")
+
+ordSesMussel<-ggplot(musselspp) + 
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group,size=12)) + 
+  #geom_text(data=msspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add all species labels
+  geom_label_repel(data=labels,aes(x=NMDS1,y=NMDS2,label=Species),
+                   direction=c("both"),nudge_y=0.1,color="#045a8d",size = 10) +  # add the species labels
+  scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
+                                                              "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
+  labs(color="Functional group")+
   theme_classic()+
+  guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
         axis.text.y = element_blank(), # remove y-axis text
         axis.ticks = element_blank(),  # remove axis ticks
         axis.title.x = element_blank(), # remove x-axis labels
-        axis.title.y = element_blank()) # remove y-axis labels
-  
+        axis.title.y = element_blank(),
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35),
+        legend.position = "top")
+ordSesMussel
 
 mpp<-Funsppandpp%>%
   filter(Foundation_spp =="Mytilus")
@@ -738,7 +740,7 @@ SessilesnMDSplot<- ggplot(PSessilesnMDS, aes(x = MDS1 , y= MDS2, shape=Before_Af
   #ggsave("Output/CommonsppSessileplot.pdf",useDingbats = FALSE, width=40, height=30,dpi=300, unit="cm")
 SessilesnMDSplot
 ######Mobile nMDS######
-library(janitor)
+
 SurfgrassMobiles <-Mobiles %>%
   filter(Before_After !="Immediate" & Foundation_spp =="Phyllospadix")
 
@@ -753,7 +755,7 @@ PhyllomobnMDS<-left_join(Phylloloss,SurfgrassMobiles) #combine with rest of data
 PhyllomoblistnMDS<-PhyllomobnMDS[-c(1:5)]  
 
 Phyllomoblist<-PhyllomoblistnMDS%>%
-  select_if(colSums(.) != 0) #remove columns with 0s (spp found in mussel pools)
+  select_if(colSums(.) != 0) %>%#remove columns with 0s (spp found in mussel pools)
 
 set.seed(267)
 Phyllomob<-metaMDS(sqrt(sqrt(Phyllomoblist)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
@@ -765,18 +767,33 @@ Phyllomob$stress #0.2304031
 pmdata.scores <- as.data.frame(scores(Phyllomob))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 pmdata.scores$site <- rownames(pmdata.scores)  # create a column of site names, from the rownames of data.scores
 pmspecies.scores <- as.data.frame(scores(Phyllomob, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-pmspecies.scores$species <- rownames(pmspecies.scores)  # create a column of species, from the rownames of species.scores
+pmspecies.scores$Species <- rownames(pmspecies.scores)  # create a column of species, from the rownames of species.scores
 
-ordMobSurf<-ggplot() + 
-  geom_text(data=pmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
+#mobile functional group colors
+MobColors<-c(
+  Carnivore = "#c6dbef",
+  Herbivore = "#67a9cf",
+  Omnivores ="#016c59")
+phyllomobspp<-left_join(pmspecies.scores,MobileGroupings)
+phyllomobspp<-phyllomobspp%>%
+  filter(Functional_Group != "SuspensionFeeder")
+
+ordMobSurf<-ggplot(phyllomobspp) + 
+  #geom_text(data=pmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group,size=12)) +
+  scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
+  labs(x= "nMDS1",color="Functional group")+
   theme_classic()+
-  labs(x= "nMDS1")+
+  guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
         axis.text.y = element_blank(), # remove y-axis text
         axis.ticks = element_blank(),  # remove axis ticks
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_blank()) # remove y-axis labels
-
+        axis.title.x = element_text(color="black", size=40),
+        axis.title.y = element_blank(),
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35))
+        #legend.position = "top")
+ordMobSurf
 phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$SAVav,phyllopp$THav)
 
 phyllomobgraph<-phyllomobgraph%>%
@@ -860,16 +877,25 @@ MmobnMDS$stress  #.1962671
 mmdata.scores <- as.data.frame(scores(MmobnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 mmdata.scores$site <- rownames(mmdata.scores)  # create a column of site names, from the rownames of data.scores
 mmspecies.scores <- as.data.frame(scores(MmobnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-mmspecies.scores$species <- rownames(mmspecies.scores)  # create a column of species, from the rownames of species.scores
-ordMobMussel<-ggplot() + 
-  geom_text(data=mmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+mmspecies.scores$Species <- rownames(mmspecies.scores)  # create a column of species, from the rownames of species.scores
+
+musselmobspp<-left_join(mmspecies.scores,MobileGroupings)
+
+ordMobMussel<-ggplot(musselmobspp) + 
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group,size=12)) +
+  scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
+  labs(x= "nMDS1",color="Functional group")+
   theme_classic()+
-  labs(x= "nMDS1")+
+  guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
         axis.text.y = element_blank(), # remove y-axis text
         axis.ticks = element_blank(),  # remove axis ticks
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_blank()) # remove y-axis labels
+        axis.title.x = element_text(color="black", size=40),
+        axis.title.y = element_blank(),
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35),
+        legend.position = "top")
+ordMobMussel
 
 mmobgraph<-cbind(MytilusmobnMDS,mpp$SAVav,mpp$THav)
 
@@ -1261,15 +1287,23 @@ musselsfunnMDS$stress  #0.16
 mfsdata.scores <- as.data.frame(scores(musselsfunnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
 mfsdata.scores$site <- rownames(mfsdata.scores)  # create a column of site names, from the rownames of data.scores
 mfsspecies.scores <- as.data.frame(scores(musselsfunnMDS, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-mfsspecies.scores$species <- rownames(mfsspecies.scores)  # create a column of species, from the rownames of species.scores
-ordMFunsess<-ggplot() + 
-  geom_text(data=mfsspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add the species labels
+mfsspecies.scores$Species <- rownames(mfsspecies.scores)  # create a column of species, from the rownames of species.scores
+
+musselmobspp<-left_join(mfsspecies.scores,MobileGroupings)
+
+ordMFunmob<-ggplot(musselmobspp) + 
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group,size=12)) +
+  scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
+  labs(x= "nMDS1",color="Functional group")+
   theme_classic()+
+  guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
         axis.text.y = element_blank(), # remove y-axis text
         axis.ticks = element_blank(),  # remove axis ticks
         axis.title.x = element_blank(), # remove x-axis labels
-        axis.title.y = element_blank()) # remove y-axis labels
+        axis.title.y = element_blank(),
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40))
 set.seed(267)
 adonis(musselfunspp~Mytilusdelta+SAVav+THav, Musselfunmds, permutations = 999, 
        method="bray")
