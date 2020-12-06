@@ -120,6 +120,28 @@ PP$PoolID<-as.factor(PP$PoolID)
 Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
 Funsppandpp<-left_join(Funsppcover,PP)
 
+SessilesMytilusFun<-Communitymetrics %>%
+  dplyr::filter(Before_After != 'Immediate') %>%
+  dplyr::group_by(PoolID, Foundation_spp, Before_After, Removal_Control) %>%
+  tidyr::pivot_longer(
+    cols = Phyllospadix.spp:Stylantheca.spp,
+    names_to = "Species", #creates column with species in longformat
+    values_to = "Cover", #adds column for % cover
+    values_drop_na = TRUE
+  ) 
+
+SessilesphylloFun<-Communitymetrics %>%
+  dplyr::filter(Before_After != 'Immediate') %>%
+  dplyr::group_by(PoolID, Foundation_spp, Before_After, Removal_Control) %>%
+  tidyr::pivot_longer(
+    cols = c(8,10:70), #excluding phyllo since taking delta cover
+    names_to = "Species", #creates column with species in longformat
+    values_to = "Cover", #adds column for % cover
+    values_drop_na = TRUE
+  ) 
+####Functional group log ratio graphs#####
+SessilesMytilusStacked<-left_join(SessilesMytilusFun,SessilesGroupings) #combine with fun groups 
+SessilesPhylloStacked<-left_join(SessilesphylloFun,SessilesGroupings) #combine with fun groups 
 
 #####nMDS Surfgrass######
 PhyllocommunitynMDS<-Communitymetrics%>%
@@ -141,27 +163,78 @@ PhyllocommunitynMDS$PoolID<-as.character(PhyllocommunitynMDS$PoolID)
 PhyllocommunitynMDS<-left_join(Phylloloss,PhyllocommunitynMDS) #combine with rest of dataframe by pool id
 
 PhyllonMDS<-PhyllocommunitynMDS[-c(1:10,72:73)]  
+sppabunphyllo<-PhyllocommunitynMDS[-c(1:10,72:73)]#keep before after
+
 PhyllonMDS<-PhyllonMDS%>%
   dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
+
+sppabunphyllo<-sppabunphyllo%>%
+  dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
+sppabunphyllo<-cbind(PhyllocommunitynMDS$Before_After,sppabunphyllo) #combineback with before after for abun sum
+sppabunphyllo<-sppabunphyllo%>% #rename before after column
+  rename(Before_After="PhyllocommunitynMDS$Before_After")
+
 set.seed(267)
 PhylloSessiles<-metaMDS(sqrt(sqrt(PhyllonMDS)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
 
-PhylloSessiles$stress #0.1182824
+PhylloSessiles$stress #0.17
+as.data.frame(colSums(sppabunphyllo))
 
+#gives you change in abundance for n= 56 spp between before and after period
+sppabunphyllolong<- sppabunphyllo%>%
+  tidyr::pivot_longer(
+    cols = Diatoms:Anthopleura.artemisia,
+    names_to = "Species", #creates column with species in longformat
+    values_to = "Cover", #adds column for % cover
+    values_drop_na = TRUE
+  ) %>%
+  group_by(Before_After,Species) %>%
+  summarise(abundance = sum(Cover)+1) %>%
+  group_by(Species)%>%
+  summarise(diffabun = abundance[Before_After =="After"]/abundance[Before_After=="Before"])
+sppabunphyllolong$logratioabun<-log(sppabunphyllolong$diffabun)
 #ordplot in ggplot
 psdata.scores <- as.data.frame(scores(PhylloSessiles))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
-psdata.scores$site <- rownames(psdata.scores)  # create a column of site names, from the rownames of data.scores
+psdata.scores$labels <- rownames(psdata.scores)  # create a column of site names, from the rownames of data.scores
 psspecies.scores <- as.data.frame(scores(PhylloSessiles, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
-psspecies.scores$species <- rownames(psspecies.scores)  # create a column of species, from the rownames of species.scores
-ordSesSurf<-ggplot() + 
-  geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
+psspecies.scores$Species <- rownames(psspecies.scores)  # create a column of species, from the rownames of species.scores
+
+psspecies.scores<-left_join(psspecies.scores,sppabunphyllolong) #combine with sum abundance data
+
+phyllospp<-left_join(psspecies.scores,SessilesGroupings) #combine with functional groups
+Colors<-c(
+  Anemone="#54278f",
+  ArticulatedCorallines="#c51b8a",
+  Crustose="#d4b9da",
+  SuspensionFeeder="#636363",
+  Microalgae = "#6baed6",
+  Filamentous = "#edf8e9", 
+  FoiloseAlgae="#a1d99b",
+  CorticatedFoliose="#31a354",
+  CorticatedMacro="#a50f15",
+  LeatheryMacro="#006d2c")
+subset<-phyllospp%>%
+  filter(Species =="Algae.film"|Species == "Diatoms" | Species == "Chaetomorpha.linum"| Species == "Ptilota.spp"|Species == "Analipus.japonicus") 
+subset$Species<-c("Algae film","Diatoms","C. linum","Ptilota spp","A. japonicus")
+
+ordSesSurf<-ggplot(phyllospp)+
+                   geom_point(aes(x=NMDS1,y=NMDS2,size =logratioabun, color=Functional_Group)) + 
+  geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),nudge_y=-0.5, segment.size= 0.2,color="#006d2c",size = 10) +  # add the species labels
+  #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
+  scale_color_manual(values=Colors,guide = "legend")+
+  scale_size(range = c(5,15)) +
+  labs(color="Functional group",size="Log ratio abundance (After/Before)")+
   theme_classic()+
+  guides(colour = guide_legend(override.aes = list(size=6)))+
   theme(axis.text.x = element_blank(),  # remove x-axis text
                     axis.text.y = element_blank(), # remove y-axis text
                     axis.ticks = element_blank(),  # remove axis ticks
                     axis.title.x = element_blank(), # remove x-axis labels
-                    axis.title.y = element_blank()) # remove y-axis labels
-            
+                    axis.title.y = element_blank(),
+        legend.title = element_text(color="black", size=25), 
+        legend.text = element_text(color = "black", size = 25))
+ordSesSurf       
+
 phyllopp<-Funsppandpp%>%
   filter(Foundation_spp =="Phyllospadix")
 phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$SAVav,phyllopp$THav)
@@ -169,7 +242,7 @@ phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$SAVav,phyllopp$THav)
 phyllograph<-phyllograph%>%
   rename(SAV="phyllopp$SAVav",TH="phyllopp$THav")
 
-psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+SAV+TH, phyllograph, permutations = 999, 
+psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+SAV+TH+Phyllodelta*Removal_Control, phyllograph, permutations = 999, 
                                method="bray")
 psessperm
 
@@ -392,9 +465,9 @@ phyllocommgraph<-phyllocommgraph %>%
 
 #unsure how to add procrustes analysis to permanova
 set.seed(267)
-permanovaSessilemodel<-adonis(cbind(PsessnMDSbefore,PsessnMDSafter),sqrt(PsessnMDSbefore))~SurfgrassLoss +SAV +TideHeight, phyllocommgraph, permutations = 999, 
+#permanovaSessilemodel<-adonis(cbind(PsessnMDSbefore,PsessnMDSafter),sqrt(PsessnMDSbefore))~SurfgrassLoss +SAV +TideHeight, phyllocommgraph, permutations = 999, 
                               method="bray")
-permanovaSessilemodel
+#permanovaSessilemodel
 
 
 #create dataframe for centroids with median from x and y axes
@@ -986,7 +1059,8 @@ mytilussppr<-mytilussppr%>% #output for values gives you an x for variable. rena
 mytilussppr<-left_join(mytilussppr,mytilusessrich) #rejoin with main dataframe for ggplot
 mytilussppr<-mytilussppr%>%
   mutate(transpredict=exp(predicted),rich=exp(logrichness),md=exp(Mytilusdelta), trancl= exp(conf.low),tranch=exp(conf.high))
-
+library(confidence)
+confidence::backtransform(-0.02305,type=c("log"))
 #display raw data but prediction line and confidence intervals are from ggpredict model
 mspr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=logrichness)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
@@ -999,7 +1073,7 @@ mspr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=logrichness)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='', y = 'Change in log sessile species richness') 
+  labs(x ='', y = '') 
 mspr
 
 mytilussessdivmod<-lm(DeltaDiversity~Mytilusdelta +SAav+THav, data=mytilusessrich)
@@ -1529,17 +1603,18 @@ mspmr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=DeltaRich)) +
   theme(axis.title.x=element_text(color="black", size=50), 
         axis.title.y=element_text(color="black", size=50),
         axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_blank())+
+        axis.text.y =element_text(color="black", size=40))+
   theme(legend.position="none")+
   labs(x ='CA mussel loss \n (Mytilus californianus)', y = '') 
 mspmr
+
 anova(mytilusmobrichmod)
 
 richpm<-phyllospp+mspr+phyllospprm+mspmr+
   plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size = 40, face = "bold"))   #edit the lettered text
 richpm
-ggsave(filename = "Output/richnessplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 45, height = 35)
+ggsave(filename = "Output/richnessplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf",width = 28, height = 30)
 
 mytilusmobrich$logdiversity<-sign(mytilusmobrich$DeltaDiversity)*log(abs(mytilusmobrich$DeltaDiversity))
 mytilusmobdivmod<-lm(logdiversity~Mytilusdelta +SAav+THav, data=mytilusmobrich)
@@ -1918,6 +1993,7 @@ Phyllodist<-Funsppcover %>%
         axis.title.x = element_text(face="italic",size = 30, color = "black"))+
   theme(legend.position="none")+
   labs(y = 'Density of cover', x ='Surfgrass percent loss \n (Phyllospadix spp.)')
+
 
 Mytilusdist<-Funsppcover %>%
   filter(Foundation_spp =='Mytilus') %>%
