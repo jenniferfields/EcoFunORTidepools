@@ -34,7 +34,7 @@ SEMdata<-as.data.frame(SEMdata)
 SEMdata$NtoP<-(SEMdata$NNmean +SEMdata$NH4mean)/SEMdata$POmean
 
 #only average day par values
-SEMDataDL<-SEMdata%>%
+SEMDataDL<-SEMdata%>%  #should just show up as na in Day, case_when if DayNight=Night 0 or NA
   filter(Day_Night =="Day") %>%
   select(PoolID, Foundation_spp, Removal_Control, Before_After, Par.mean,Par.max) %>%
   group_by(PoolID, Foundation_spp, Removal_Control, Before_After) %>%
@@ -62,7 +62,7 @@ SEMdaynightAvg<- SEMdata %>%
 SEMdaynightAvg<-left_join(SEMdaynightAvg,SEMDataDL)
 
 SEMdaynightAvg<-SEMdaynightAvg%>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control)  %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
   dplyr::summarise(NEPdeltaAvg = AvgNEP[Before_After == 'After'] - AvgNEP[Before_After == 'Before'],
                    NECdeltaAvg = AvgNEC[Before_After == 'After'] - AvgNEC[Before_After == 'Before'],
                    pHdeltaAvg = AvgpH[Before_After == 'After'] - AvgpH[Before_After == 'Before'],
@@ -89,6 +89,33 @@ SEMdaynightAvg<-SEMdaynightAvg%>%
                    THav = mean(AvgTH)) #tide height didn't change 
 
 SEMdaynightAvg<-as.data.frame(SEMdaynightAvg)
+SEMdata<-left_join(SEMdata,SEMDataDL)
+SEMdaynightseparate<-SEMdata %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
+  dplyr::summarise(NEPdeltaAvg = AvgNEP[Before_After == 'After'] - AvgNEP[Before_After == 'Before'],
+                   NECdeltaAvg = AvgNEC[Before_After == 'After'] - AvgNEC[Before_After == 'Before'],
+                   pHdeltaAvg = AvgpH[Before_After == 'After'] - AvgpH[Before_After == 'Before'],
+                   NNdeltaAvg = AvgNN[Before_After == 'After'] - AvgNN[Before_After == 'Before'],
+                   NH4deltaAvg = AvgNH4[Before_After == 'After'] - AvgNH4[Before_After == 'Before'],
+                   POdeltaAvg = AvgPO[Before_After == 'After'] - AvgPO[Before_After == 'Before'],
+                   NtoPdeltaAvg = AvgNtoP[Before_After == 'After'] - AvgNtoP[Before_After == 'Before'],
+                   TempmeandeltaAvg = AvgTempmean[Before_After == 'After'] - AvgTempmean[Before_After == 'Before'],
+                   Tempmaxdeltaavg = AvgTempmax[Before_After == 'After'] - AvgTempmax[Before_After == 'Before'],
+                   Parmaxdeltaavg = AvgParmax[Before_After == 'After'] -AvgParmax[Before_After == 'Before'],
+                   Percentmaxlightavg =100 * (AvgParmax[Before_After == 'After'] - AvgParmax[Before_After == 'Before']) /  AvgParmax[Before_After == 'Before'],
+                   ParmeandeltaAvg = AvgPar[Before_After == 'After'] - AvgPar[Before_After == 'Before'],
+                   Mytiluscover =AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before'],
+                   MytilusdeltaAvg = -1*(AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before']),
+                   PhyllodeltaAvg = -1*(AvgPhyllo[Before_After == 'After'] - AvgPhyllo[Before_After == 'Before']),
+                   #multiply delta of mytilus and phyllospadix by -1 to change to Percent loss
+                   micromacroalgaedeltaAvg = (AvgFleshyalgae[Before_After == 'After'] - AvgFleshyalgae[Before_After == 'Before']), 
+                   #only micro/acroalgae cover
+                   CCAdeltaAvg = (AvgCCA[Before_After == 'After'] - AvgCCA[Before_After == 'Before']), 
+                   #crustose CCA and articulated CA
+                   prodomdeltaAvg = (Avgproddom[Before_After == 'After'] -  Avgproddom[Before_After == 'Before']), 
+                   #macroalgae cover - sessile consumers (including Mytilus)
+                   SAVav = mean(AvgSAV), #ave between before and after since SA/V changed with fspp removal
+                   THav = mean(AvgTH)) #tide height didn't change 
 
 #####Surfgrass SEM model#####
 Phyllounscaled<-SEMdaynightAvg %>%
@@ -99,15 +126,24 @@ Phyllounscaled<-SEMdaynightAvg %>%
                 MytilusLoss=MytilusdeltaAvg,PhyllospadixLoss=PhyllodeltaAvg, MicroMacroAlgaeCover=micromacroalgaedeltaAvg,
                 SAtoVRatio=SAVav,TideHeight=THav, RawTemp=TempmeandeltaAvg) #rename cols to match sem
 #check collinearity
-#ggpairs(Phyllounscaled[c(4:6,10,12,15,18:19,22:23)]) #good
+#ggpairs(Phyllounscaled[c(4:6,10,12,15,18:19,22:23)]) 
+#items collinear so cannot be predictors within same model:
+#NEP: NEC,pH, Max Temp, Light and NEP, Surfgrass Loss
+#NEC: pH, Maxtemp & light, surfgrass loss
+#pH: maxtemp, light, surfgrass loss, sa to v ratio
+#NtoP ratio--none
+#max temp: light, surfgrass loss
+#light: surfgrass loss and temp
+#surfgrass loss and algae cover
+
 
 
 PAvgMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = Phyllounscaled)
 PAvgLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=Phyllounscaled)
 PAvgTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = Phyllounscaled)
 PAvgNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =Phyllounscaled)
-PAvgNEC<- lm(NEC~pH + MaxTemp +PhyllospadixLoss +SAtoVRatio+TideHeight,data =Phyllounscaled)
-PAvgpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = Phyllounscaled)
+PAvgNEC<- lm(NEC~ pH +PhyllospadixLoss+ MaxTemp+ SAtoVRatio+TideHeight,data =Phyllounscaled) #removed max temp and surfgrass loss because collinear with pH 
+PAvgpH<- lm(pH ~ MicroMacroAlgaeCover+NEP + SAtoVRatio+TideHeight, data = Phyllounscaled) #no surfgrass loss
 PAvgNEP<-lm(NEP ~Light+ MicroMacroAlgaeCover
             + NtoPRatio+SAtoVRatio +TideHeight, data = Phyllounscaled) 
 
@@ -147,7 +183,7 @@ PhylloSEM<-psem(PAvgMMAlgae,
 
 PhylloSEMsum<-summary(PhylloSEM,standardize = 'scale',center = "TRUE") #scale data in sum
 plot(PhylloSEM) #test plot to see what is significant
-
+#Fisher's C = 37.568 with P-value = 0.229
 #output csvs
 PhylloModels<-as.data.frame(PhylloSEMsum$call)
 Pvalue<-as.data.frame(PhylloSEMsum$dTable)
@@ -172,17 +208,29 @@ Mytilusunscaled<-SEMdaynightAvg %>%
                 MytilusLoss=MytilusdeltaAvg,PhyllospadixLoss=PhyllodeltaAvg, MicroMacroAlgaeCover=micromacroalgaedeltaAvg,
                 SAtoVRatio=SAVav,TideHeight=THav, RawTemp=TempmeandeltaAvg) #rename cols to match sem
 #check collinearity
-#ggpairs(Mytilusunscaled[c(4:6,10,12,15,17,19,22:23)]) #good
+#ggpairs(Mytilusunscaled[c(4:6,10,12,15,17,19,22:23)])
+#items collinear so cannot be same predictors in model:
+#NEP with NEC and algae cover
+#NEC with algae cover
+#pH with N to p ratio, mytilus loss, algae cover
+#Nto p ratio with sa v ratio
+#max temp and light
+#light and mytilus loss
+#mytilus loss and algae cover
 
 #models based on hypotheses
 MAvgMMalgae<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = Mytilusunscaled)
 MAvgTemp<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = Mytilusunscaled)
 MAvgLight<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusunscaled)
 MAvgNtoP<-lm(NtoPRatio ~  MytilusLoss+SAtoVRatio+TideHeight,  data = Mytilusunscaled)
-MAvgNEC<- lm(NEC~ MytilusLoss + pH +SAtoVRatio+MaxTemp+TideHeight, data = Mytilusunscaled)
+MAvgNEC<- lm(NEC~ pH +SAtoVRatio+MaxTemp+TideHeight, data = Mytilusunscaled) #removed mytilus loss since collinear with pH
 MAvgpH<- lm(pH ~ MytilusLoss+NEP+ SAtoVRatio+TideHeight, data = Mytilusunscaled)
 MAvgNEP<-lm(NEP ~Light+MicroMacroAlgaeCover +
-              NtoPRatio +SAtoVRatio +TideHeight,data = Mytilusunscaled)
+              NtoPRatio +TideHeight,data = Mytilusunscaled) #removed sa to v ratio since collinear with ntopratio
+#same model structure as paper
+#remove light in night model  remove correlated error
+
+#temp at night
 
 MytilusSEM<-psem(MAvgMMalgae,
                    MAvgLight,
@@ -193,6 +241,10 @@ MytilusSEM<-psem(MAvgMMalgae,
                    MAvgNEC,
                    MaxTemp%~~%Light)
 MytilusSEMSum<-summary(MytilusSEM,standardize = "scale",center = "TRUE")
+#three missing links excluded since not ecological casual (could be correlated)
+#algae cover predictor for light
+#n:p ratio as predictor for pH
+#NEP as predictor for NEC (mechanism through NEP-->pH-->NEC)
 plot(MytilusSEM) 
 
 #output into dataframes

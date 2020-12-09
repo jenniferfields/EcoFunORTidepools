@@ -135,68 +135,68 @@ Control.period<-temp.data %>%
 Removal.period<-temp.data %>%
   filter(!(PoolID == "1" & Date.Time < "2019-07-18 0:00:00")) %>%
   filter(!(PoolID == "1" & Date.Time > "2019-08-16 0:00:00")) %>%
-  filter(!(PoolID == "2" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "2" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "3" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "3" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "4" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "4" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "5" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "5" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "6" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "6" & Date.Time >"2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "7" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "7" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "2" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "2" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "3" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "3" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "4" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "4" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "5" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "5" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "6" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "6" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "7" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "7" & Date.Time > "2019-08-16 00:00:00")) %>%
   filter(!(PoolID == "8" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "8" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "9" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "9" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "10" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "10" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "11" & Date.Time < "2019-07-18 4:30:00")) %>%
-  filter(!(PoolID == "11" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "12" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "12" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "13" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "13" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "14" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "14" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "15" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "15" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "16" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "16" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "17" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "17" & Date.Time > "2019-08-16 4:30:00")) %>% 
-  filter(!(PoolID == "18" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "18" & Date.Time > "2019-08-16 4:30:00")) %>% 
-  filter(!(PoolID == "19" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "19" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "20" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "20" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "21" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "21" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "22" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "22" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "23" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "23" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "24" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "24" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "25" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "25" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "26" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "26" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "27" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "27" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "28" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "28" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "29" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "29" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "30" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "30" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "31" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "31" & Date.Time > "2019-08-16 4:30:00")) %>%
-  filter(!(PoolID == "32" & Date.Time < "2019-07-18 10:00:00")) %>%
-  filter(!(PoolID == "32" & Date.Time > "2019-08-16 4:30:00"))
+  filter(!(PoolID == "8" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "9" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "9" & Date.Time > "2019-08-16 00:00:000")) %>%
+  filter(!(PoolID == "10" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "10" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "11" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "11" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "12" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "12" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "13" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "13" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "14" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "14" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "15" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "15" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "16" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "16" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "17" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "17" & Date.Time > "2019-08-16 00:00:00")) %>% 
+  filter(!(PoolID == "18" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "18" & Date.Time > "2019-08-16 00:00:00")) %>% 
+  filter(!(PoolID == "19" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "19" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "20" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "20" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "21" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "21" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "22" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "22" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "23" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "23" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "24" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "24" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "25" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "25" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "26" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "26" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "27" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "27" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "28" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "28" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "29" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "29" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "30" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "30" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "31" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "31" & Date.Time > "2019-08-16 00:00:00")) %>%
+  filter(!(PoolID == "32" & Date.Time < "2019-07-18 00:00:00")) %>%
+  filter(!(PoolID == "32" & Date.Time > "2019-08-16 00:00:00"))
 #View(Removal.period)
 
 #convert lux to par
@@ -264,20 +264,7 @@ RemovalDailyMax$Before_After<-"After"
 
 MaxTempLightData<-rbind(ControlDailyMax,RemovalDailyMax)
 
-tp2025<-MaxTempLightData%>%
-  filter(PoolID == 20 | PoolID ==25)
-
-ggplot(tp2025, aes(x=ymd(Day),y=Par.max))+
-  geom_line()+
-  facet_wrap(~PoolID)
-#tp29<-MaxTempLightData %>%
-  #filter(PoolID ==29)
-#ggplot(tp29, aes(x=Temp.max,group=Before_After, color=Before_After))+
-  #geom_histogram(bins=10)
-#View(LightData)
-#temperature
-
-
+#####Time series plot#####
 TemptimeseriesC<-Control.period %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control)
 TemptimeseriesC$Before_After<-"Before"
@@ -287,12 +274,11 @@ TemptimeseriesR<-Removal.period %>%
 TemptimeseriesR$Before_After<-"After"
 Temptimeseries<-rbind(TemptimeseriesC,TemptimeseriesR)
 
-
-
 Temptimeseries$PoolID<-as.character(Temptimeseries$PoolID)
 #before mean and after mean and see if the
 #before an
-###Look at differences between daily max, mean, variances of temp and light
+
+###Look at differences between daily max, mean, variances of temp and light####
 DeltaLightandTempdata<- MaxTempLightData %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Before_After)  %>%
   dplyr::summarise(Par.maxav = mean(Par.max),Temp.maxav=mean(Temp.max),Parmeanav= mean(Par.mean)) %>%
@@ -303,6 +289,11 @@ DeltaLightandTempdata<- MaxTempLightData %>%
                    DeltaTempMax = Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before'],
                    PercentTempMax = 100 * (Temp.maxav[Before_After == 'After'] - Temp.maxav[Before_After == 'Before']) /  Temp.maxav[Before_After == 'Before'])
 
+Changesummary<-DeltaLightandTempdata %>%
+  group_by(Foundation_spp,Removal_Control)%>%
+  summarise(PLMaxmean=mean(PercentLightMax),PLMaxse= std.error(PercentLightMax),
+            Maxtempmean=mean(DeltaTempMax),Maxtempse=std.error(DeltaTempMax)) 
+
 
 #taking mean because the volume and surface changed in removal pools in after period
 #View(DeltaLightandTempdata)
@@ -310,6 +301,7 @@ DeltaLightandTempdata <-as.data.frame(DeltaLightandTempdata)
 DeltaLightandTempdata$PoolID <- as.factor(DeltaLightandTempdata$PoolID)
 
 DeltaLightandTempdata<-left_join(DeltaLightandTempdata,Funsppandpp)
+####Time series temp####
 Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
 
 Phyllotimeseries<-Temptimeseries%>%
@@ -372,6 +364,7 @@ ggsave(filename = "Output/musselTHupdated.pdf", useDingbats =FALSE,dpi=600,devic
 Musseltimeseries<-Temptimeseries%>%
   filter(Foundation_spp =="Mytilus" & PoolID  != '30')
 
+####temp and light analyses####
 #separate datasets for surfgrass and mussels
 DeltaLightandTempPhyllo<-DeltaLightandTempdata %>%
   filter(Foundation_spp =="Phyllospadix")
@@ -382,12 +375,12 @@ DeltaLightandTempMytilus<-DeltaLightandTempdata %>%
 #check collinearity between f spp. loss and size of pool and tide height
 #ggpairs(DeltaLightandTempPhyllo[c(9:11)]) #good
 #ggpairs(DeltaLightandTempMytilus[c(9:11)]) #good
-notp29<-DeltaLightandTempPhyllo%>%
-  filter(PoolID !=29)
 
+notp29<-DeltaLightandTempPhyllo%>%
+  filter(PoolID !=29) #remove outlier ~3 SD from mean
 #stats for light/temp plots & ggpredict function for regression line
 
-phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = DeltaLightandTempPhyllo) 
+phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = notp29) 
 #model of temp with foundation spp loss and tide pool size and tide height as covariates
 plot(phyllomaxtempmod)#good
 qqp(resid(phyllomaxtempmod),"norm") #good
@@ -404,29 +397,26 @@ pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main datafram
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=DeltaTempMax)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=45), 
+        axis.title.y=element_text(color="black", size=45),
+        axis.text.x =element_text(color="black", size=35),
+        axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Change in average daily max temperature (°C)') 
+  labs(x ='', y = 'Change in average daily max temperature (°C)') 
 phyllotemp 
 
-notp26<-DeltaLightandTempPhyllo%>%
-  filter(PoolID !=26)
-phyllopercentlightmodall<-lm(Percentlightmean~Phyllodelta +SAVav +THav,data =notp26)
-plot(phyllopercentlightmodall) #two outliers 
+
 DeltaLightandTempPhyllonooutliers<- DeltaLightandTempPhyllo %>%
   filter(PercentLightMax <= 200) #remove outlier pools >3 SD from mean or greater than 1 cook's distances
-phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllo)
+phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllonooutliers)
 
-plot(phyllopercentlightmod)
-qqp(resid(phyllopercentlightmodal),"norm")#good
+#plot(phyllopercentlightmod)
+qqp(resid(phyllopercentlightmod),"norm")#good
 summary(phyllopercentlightmod)
 
 plightgg<-ggpredict(phyllopercentlightmod, c("Phyllodelta"))
@@ -439,21 +429,21 @@ plight<-plight %>%
 plight<-left_join(plight,DeltaLightandTempPhyllo)
 
 phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=PercentLightMax)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
-  theme(axis.title.x=element_text(color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=45), 
+        axis.title.y=element_text(color="black", size=45),
+        axis.text.x =element_text(color="black", size=35),
+        axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+ 
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Percent change in daily max light') 
+  labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Change in average daily percent max light') 
 phyllolight
 
 mytilusmaxtempmod<-lm(DeltaTempMax ~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilus)
-plot(mytilusmaxtempmod)#good two points outside...ugh
+#plot(mytilusmaxtempmod)
 qqp(resid(mytilusmaxtempmod),"norm")#good
 summary(mytilusmaxtempmod)
 
@@ -467,25 +457,25 @@ mmaxtemp<-mmaxtemp %>%
 mmaxtemp<-left_join(mmaxtemp,DeltaLightandTempMytilus)
 
 mytilustemp<-ggplot(mmaxtemp, aes(x =Mytilusdelta, y=DeltaTempMax)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
-  theme(axis.title.x =element_text(color="black", size=40),
-        axis.title.y=element_text(color="black", size=30),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x =element_text(color="black", size=45),
+        axis.title.y=element_text(color="black", size=45),
+        axis.text.x =element_text(color="black", size=35),
+        axis.text.y =element_text(color="black", size=35)) +
   ylim(-5,10)+
   theme(legend.position="none") + 
-  labs(x='CA mussel loss \n (Mytilus californianus)', y="")
+  labs(x='', y="")
 
 
 DeltaLightandTempMytilusNoTP25<-DeltaLightandTempMytilus%>%
   filter(PercentLightMax >= -60)  #filter out pt less than 60 (Tidepool 25) since 3 SD away from average
 mytiluspercentlightmod<-lm(PercentLightMax~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilusNoTP25)
-plot(mytiluspercentlightmod) #good
-qqp(resid(mytiluspercentlightmod),"norm")#good with quadroot light value
+#plot(mytiluspercentlightmod) #good
+qqp(resid(mytiluspercentlightmod),"norm")#good 
 summary(mytiluspercentlightmod)
 
 mlightgg<-ggpredict(mytiluspercentlightmod, c("Mytilusdelta"))
@@ -495,20 +485,20 @@ mlight<-as.data.frame(mlightgg)
 mlight<-mlight %>%
   rename(Mytilusdelta=x)
 
-mlight<-left_join(mlight,DeltaLightandTempMytilus)
+mlight<-left_join(mlight,DeltaLightandTempMytilusNoTP25)
 
 mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=PercentLightMax)) +
-  geom_point(size=5,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2,linetype=2)+
+  geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic() +
   theme(legend.position="none")+ 
-  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
-  xlab('CA mussel loss \n (Mytilus californianus)')+ ylab('') 
+  theme(axis.title.x=element_text(color="black", size=45), 
+        axis.title.y=element_text(color="black", size=45),
+        axis.text.x =element_text(color="black", size=35),
+        axis.text.y =element_text(color="black", size=35)) +
+  xlab('CA mussel percent loss \n (Mytilus californianus)')+ ylab('') 
 mytiluslight
 
 temp<-phyllotemp+mytilustemp
@@ -521,7 +511,7 @@ ggsave(filename = "Output/light.pdf", useDingbats =FALSE,dpi=600,device = "pdf",
 #patchwork figs together
 figure <-phyllotemp + mytilustemp + phyllolight+ mytiluslight +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 26, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size =40, face = "bold"))   #edit the lettered text
 
 figure
-ggsave(filename = "Output/LightandTempgraphs.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 17, height = 19)
+ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 30)
