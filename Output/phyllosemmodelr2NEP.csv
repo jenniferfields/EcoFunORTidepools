@@ -1,5 +1,5 @@
 "","Response","family","link","method","R.squared"
-"1","MicroMacroAlgaeCover","gaussian","identity","none",0.15
+"1","MicroMacroAlgaeCover","gaussian","identity","none",0.35
 "2","Light","gaussian","identity","none",0.6
 "3","MaxTemp","gaussian","identity","none",0.53
 "4","NtoPRatio","gaussian","identity","none",0.12

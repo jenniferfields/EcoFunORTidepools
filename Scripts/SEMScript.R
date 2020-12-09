@@ -106,8 +106,8 @@ PAvgMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  
 PAvgLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=Phyllounscaled)
 PAvgTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = Phyllounscaled)
 PAvgNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =Phyllounscaled)
-PAvgNEC<- lm(NEC~pH +MaxTemp +PhyllospadixLoss +SAtoVRatio+TideHeight,data =Phyllounscaled)
-PAvgpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight , data = Phyllounscaled)
+PAvgNEC<- lm(NEC~pH + MaxTemp +PhyllospadixLoss +SAtoVRatio+TideHeight,data =Phyllounscaled)
+PAvgpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = Phyllounscaled)
 PAvgNEP<-lm(NEP ~Light+ MicroMacroAlgaeCover
             + NtoPRatio+SAtoVRatio +TideHeight, data = Phyllounscaled) 
 
@@ -124,7 +124,7 @@ qqp(resid(PAvgLight),"norm")
 #okay, one point out
 plot(PAvgNtoP)
 qqp(resid(PAvgNtoP),"norm")
-#good
+#okay,two points barely out
 plot(PAvgNEP)
 qqp(resid(PAvgNEP),"norm")
 #good
@@ -180,8 +180,8 @@ MAvgTemp<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = Mytilusunscaled
 MAvgLight<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusunscaled)
 MAvgNtoP<-lm(NtoPRatio ~  MytilusLoss+SAtoVRatio+TideHeight,  data = Mytilusunscaled)
 MAvgNEC<- lm(NEC~ MytilusLoss + pH +SAtoVRatio+MaxTemp+TideHeight, data = Mytilusunscaled)
-MAvgpH<- lm(pH ~MytilusLoss + NEP+ SAtoVRatio+TideHeight, data = Mytilusunscaled)
-MAvgNEP<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover +
+MAvgpH<- lm(pH ~ MytilusLoss+NEP+ SAtoVRatio+TideHeight, data = Mytilusunscaled)
+MAvgNEP<-lm(NEP ~Light+MicroMacroAlgaeCover +
               NtoPRatio +SAtoVRatio +TideHeight,data = Mytilusunscaled)
 
 MytilusSEM<-psem(MAvgMMalgae,
@@ -226,15 +226,15 @@ pmmagg<-left_join(pmmagg,Phyllounscaled) #rejoin with main dataframe for ggplot
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phylloMMA<-ggplot(pmmagg, aes(x =PhyllospadixLoss, y=MicroMacroAlgaeCover)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs( x= '', y='Change micro/macroalgae cover') 
 phylloMMA
@@ -249,18 +249,41 @@ plightgg<-plightgg %>% #output for values gives you an x for variable. rename va
 plightgg<-left_join(plightgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 
 phyllolight<-ggplot(plightgg, aes(x =PhyllospadixLoss, y=Light)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x ='Surfgrass loss \n (Phyllospadix spp.)',y=expression('Average light' (PFD~µmol~photons~m^{-2}~s^{-1})))
 phyllolight
+
+#temp and phyllo
+ptempgg<-ggpredict(PAvgTemp, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
+ptempgg<-as.data.frame(ptempgg) #create dataframe 
+
+ptempgg<-ptempgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
+
+ptempgg<-left_join(ptempgg,Phyllounscaled) #rejoin with main dataframe for ggplot
+
+phyllotemp<-ggplot(ptempgg, aes(x =PhyllospadixLoss, y=MaxTemp)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(x ='Surfgrass loss \n (Phyllospadix spp.)',y="Maximum Temperature (°C)")
+phyllotemp
 
 #SA/V and pH
 savphgg<-ggpredict(PAvgpH, c("SAtoVRatio")) #predict marginal effects from model for foundation spp. loss
@@ -272,7 +295,7 @@ savphgg<-savphgg %>% #output for values gives you an x for variable. rename vari
 savphgg<-left_join(savphgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 
 SAVpH<-ggplot(savphgg, aes(x =SAtoVRatio, y=pH)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=SAtoVRatio, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
@@ -286,18 +309,18 @@ SAVpH<-ggplot(savphgg, aes(x =SAtoVRatio, y=pH)) +
 SAVpH
 
 #NEP and pH
-nepphgg<-ggpredict(PAvgpH, c("NEP")) #predict marginal effects from model for foundation spp. loss
-nepphgg<-as.data.frame(nepphgg) #create dataframe 
+phyllophgg<-ggpredict(PAvgpH, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
+phyllophgg<-as.data.frame(phyllophgg) #create dataframe 
 
-nepphgg<-nepphgg %>% #output for values gives you an x for variable. rename variable to match
-  rename(NEP=x) #rename to join to rest of dataframe
+phyllophgg<-phyllophgg %>% #output for values gives you an x for variable. rename variable to match
+  rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
 
-nepphgg<-left_join(nepphgg,Phyllounscaled) #rejoin with main dataframe for ggplot
+phyllophgg<-left_join(phyllophgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 
-neppH<-ggplot(nepphgg, aes(x =NEP, y=pH)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+phyllopH<-ggplot(phyllophgg, aes(x =PhyllospadixLoss, y=pH)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=NEP, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=45), 
@@ -305,8 +328,8 @@ neppH<-ggplot(nepphgg, aes(x =NEP, y=pH)) +
         axis.text.x =element_text(color="black", size=30),
         axis.text.y =element_text(color="black", size=30)) +
   theme(legend.position="none")+
-  labs(y ='pH',x=expression(Average~NEP~(mmol~C/m^"2"*hr))) 
-neppH
+  labs(y ='pH',x='Surfgrass loss \n (Phyllospadix spp.)')
+phyllopH
 
 #SA to V and NEC
 savnecgg<-ggpredict(PAvgNEC, c("SAtoVRatio")) #predict marginal effects from model for foundation spp. loss
@@ -317,15 +340,15 @@ savnecgg<-savnecgg%>% #output for values gives you an x for variable. rename var
 
 savnecgg<-left_join(savnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 SAVNEC<-ggplot(savnecgg, aes(x =SAtoVRatio, y=NEC)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=SAtoVRatio, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30))+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
   theme(legend.position="none")+
   labs(x ='SA to V ratio',y='')
 SAVNEC
@@ -339,17 +362,17 @@ tempnecgg<-tempnecgg%>% #output for values gives you an x for variable. rename v
 
 tempnecgg<-left_join(tempnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 tempNEC<-ggplot(tempnecgg, aes(x =MaxTemp, y=NEC)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=MaxTemp, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30))+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
   theme(legend.position="none")+
-  labs(x ='Max temperature (°C)',y='')
+  labs(x ='Maximum temperature (°C)',y='')
 tempNEC
 
 #pH and NEC
@@ -362,15 +385,15 @@ pHnecgg<-pHnecgg%>% #output for values gives you an x for variable. rename varia
 
 pHnecgg<-left_join(pHnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 pHNEC<-ggplot(pHnecgg, aes(x =pH, y=NEC)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=pH, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x ='pH',y=expression(Average~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
 pHNEC
@@ -384,15 +407,15 @@ THnecgg<-THnecgg%>% #output for values gives you an x for variable. rename varia
 
 THnecgg<-left_join(THnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 THNEC<-ggplot(THnecgg, aes(x =TideHeight, y=NEC)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=TideHeight, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x ='Tide height (m)',y='')
 THNEC
@@ -406,72 +429,29 @@ lightnepgg<-lightnepgg%>% #output for values gives you an x for variable. rename
 
 lightnepgg<-left_join(lightnepgg,Phyllounscaled) #rejoin with main dataframe for ggplot
 lightnep<-ggplot(lightnepgg, aes(x =Light, y=NEP)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Light, y=predicted), color="#006d2c",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x =expression('Average light' (PFD~µmol~photons~m^{-2}~s^{-1})),y=expression(Average~NEP~(mmol~C/m^"2"*hr)))
 lightnep
 
 #patchwork everything together
 phyllosig<-(phyllolight | phylloMMA | lightnep)/
-  (neppH|SAVpH)/
+  (phyllopH|SAVpH)/
   (pHNEC|tempNEC|THNEC|SAVNEC) +
-  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 35, face = "bold"))   #edit the lettered text
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
 phyllosig
 ggsave(filename = "Output/phyllosigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 45)
 
 ####Mytilus mussel SEM#####
-#SA to V and NEC
-mytlightgg<-ggpredict(MAvgLight, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
-mytlightgg<-as.data.frame(mytlightgg) #create dataframe 
-
-mytlightgg<-mytlightgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(MytilusLoss=x) #rename to join to rest of dataframe
-
-mytlightgg<-left_join(mytlightgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
-mytlight<-ggplot(mytlightgg, aes(x =MytilusLoss, y=Light)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
-  theme(legend.position="none")+
-  labs(x ='CA mussel loss \n (Mytilus californianus)',y=expression('Average light' (PFD~µmol~photons~m^{-2}~s^{-1})))
-
-
-#temp and mytilus
-myttempgg<-ggpredict(MAvgTemp, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
-myttempgg<-as.data.frame(myttempgg) #create dataframe 
-
-myttempgg<-myttempgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(MytilusLoss=x) #rename to join to rest of dataframe
-
-myttempgg<-left_join(myttempgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
-myttemp<-ggplot(myttempgg, aes(x =MytilusLoss, y=MaxTemp)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
-  theme(legend.position="none")+
-  labs(x ='',y='Max temperature (°C)')
-myttemp
 
 #mma and mytilus
 mytmmagg<-ggpredict(MAvgMMalgae, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
@@ -482,17 +462,17 @@ mytmmagg<-mytmmagg%>% #output for values gives you an x for variable. rename var
 
 mytmmagg<-left_join(mytmmagg,Mytilusunscaled) #rejoin with main dataframe for ggplot
 mytmma<-ggplot(mytmmagg, aes(x =MytilusLoss, y=MicroMacroAlgaeCover)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='',y='Change in micro/macroalgae cover')
+  labs(x ='CA mussel loss \n (Mytilus californianus)',y='Change in micro/macroalgae cover')
 mytmma
 
 #mytilus and pH
@@ -505,15 +485,15 @@ mytpHgg<-mytpHgg%>% #output for values gives you an x for variable. rename varia
 
 mytpHgg<-left_join(mytpHgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
 mytpH<-ggplot(mytpHgg, aes(x =MytilusLoss, y=pH)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x ='',y='pH')
 
@@ -526,15 +506,15 @@ mmanepgg<-mmanepgg%>% #output for values gives you an x for variable. rename var
 
 mmanepgg<-left_join(mmanepgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
 mmanep<-ggplot(mmanepgg, aes(y =NEP, x=MicroMacroAlgaeCover)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=MicroMacroAlgaeCover, y=predicted), color="#045a8d",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(y=expression(Average~NEP~(mmol~C/m^"2"*hr)),x='Change in micro/macroalgae cover')
 
@@ -548,15 +528,15 @@ thmmagg<-thmmagg%>% #output for values gives you an x for variable. rename varia
 
 thmmagg<-left_join(thmmagg,Mytilusunscaled) #rejoin with main dataframe for ggplot
 thmma<-ggplot(thmmagg, aes(x =TideHeight, y=MicroMacroAlgaeCover)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=TideHeight, y=predicted), color="#045a8d",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x='Tide height (m)',y='Change in micro/macroalgae cover')
 
@@ -569,25 +549,25 @@ nutsavgg<-nutsavgg%>% #output for values gives you an x for variable. rename var
 
 nutsavgg<-left_join(nutsavgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
 nutsav<-ggplot(nutsavgg, aes(x =SAtoVRatio, y=NtoPRatio)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=SAtoVRatio, y=predicted), color="#045a8d",size =1.5)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
   labs(x='SA to V ratio',y='N to P ratio')
 
 #patchwork mytilus figs
-mytilussig<-(myttemp | mytlight | mytmma|mytpH)/
+mytilussig<-(mytmma|mytpH)/
   (mmanep|thmma|nutsav) +
-  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 35, face = "bold"))   #edit the lettered text
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
 mytilussig
-ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 45, height = 45)
+ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 45)
 
 ####Light and temp correlation#####
 #supplemental figure
@@ -602,32 +582,32 @@ cor.test(Mytilusunscaled$MaxTemp, Mytilusunscaled$Light,  method = "pearson")
 #cor 0.8509753 
 #graphs
 phyllolightandtemp<-ggplot(Phyllounscaled, aes(x =MaxTemp, y=Light)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_smooth(method = 'lm',color ="#006d2c",size =1.5,alpha =0.3)+
   theme_sleek() +
-  theme(axis.title.x=element_text(face="italic", color="black", size=35), 
-        axis.title.y=element_text(color="black", size=26),
-        axis.text.x =element_text(color="black", size=18),
-        axis.text.y =element_text(color="black", size=18)) +
+  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=35),
+        axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
   labs( x= '', y='Change in daily max temp (°C)')
 
 mytiluslightandtemp<-ggplot(Mytilusunscaled, aes(x =MaxTemp, y=Light)) +
-  geom_point(size=4,aes(shape=Removal_Control),stroke=2) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_smooth(method = 'lm',color ="#045a8d",size =1.5,alpha =0.3)+
   theme_sleek() +
-  theme(axis.title.x=element_text(face="italic", color="black", size=26), 
+  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
         axis.title.y=element_blank(),
-        axis.text.x =element_text(color="black",size=18),
-        axis.text.y =element_text(color="black", size=18)) +
+        axis.text.x =element_text(color="black",size=35),
+        axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
   labs(x=expression('Average change in light' (PFD~µmol~photons~m^{-2}~s^{-1})), y='Change in daily max temp (°C)')
 
 lighttempsem<-phyllolightandtemp+mytiluslightandtemp +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 26, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
 
 lighttempsem
 ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 20, height = 20)

@@ -63,7 +63,7 @@ temp.data$Par[is.na(temp.data$Par)]<- 0
 temp.data<-as.data.frame(temp.data)
 
 
-#Control period data before removal of foundation spp
+#Control period data before removal of foundation spp n=29 days
 Control.period<-temp.data %>%
   filter(!(PoolID == "1" & Date.Time < "2019-06-16 00:00:00")) %>%
   filter(!(PoolID == "1" & Date.Time > "2019-07-15 0:00:00")) %>%
@@ -131,72 +131,72 @@ Control.period<-temp.data %>%
   filter(!(PoolID == "32" & Date.Time > "2019-07-15 0:00:00"))
 #View(Control.period)
 
-#Temp data after removal of foundation spp
+#Temp data after removal of foundation spp n= 29 days
 Removal.period<-temp.data %>%
-  filter(!(PoolID == "1" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "1" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "2" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "2" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "3" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "3" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "4" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "4" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "5" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "5" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "6" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "6" & Date.Time >"2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "7" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "7" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "8" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "8" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "9" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "9" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "10" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "10" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "11" & Date.Time < "2019-07-17 4:30:00")) %>%
-  filter(!(PoolID == "11" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "12" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "12" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "13" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "13" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "14" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "14" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "15" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "15" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "16" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "16" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "17" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "17" & Date.Time > "2019-08-17 4:30:00")) %>% 
-  filter(!(PoolID == "18" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "18" & Date.Time > "2019-08-17 4:30:00")) %>% 
-  filter(!(PoolID == "19" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "19" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "20" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "20" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "21" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "21" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "22" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "22" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "23" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "23" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "24" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "24" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "25" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "25" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "26" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "26" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "27" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "27" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "28" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "28" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "29" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "29" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "30" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "30" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "31" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "31" & Date.Time > "2019-08-17 4:30:00")) %>%
-  filter(!(PoolID == "32" & Date.Time < "2019-07-17 10:00:00")) %>%
-  filter(!(PoolID == "32" & Date.Time > "2019-08-17 4:30:00"))
+  filter(!(PoolID == "1" & Date.Time < "2019-07-18 0:00:00")) %>%
+  filter(!(PoolID == "1" & Date.Time > "2019-08-16 0:00:00")) %>%
+  filter(!(PoolID == "2" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "2" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "3" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "3" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "4" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "4" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "5" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "5" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "6" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "6" & Date.Time >"2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "7" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "7" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "8" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "8" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "9" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "9" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "10" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "10" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "11" & Date.Time < "2019-07-18 4:30:00")) %>%
+  filter(!(PoolID == "11" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "12" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "12" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "13" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "13" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "14" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "14" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "15" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "15" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "16" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "16" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "17" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "17" & Date.Time > "2019-08-16 4:30:00")) %>% 
+  filter(!(PoolID == "18" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "18" & Date.Time > "2019-08-16 4:30:00")) %>% 
+  filter(!(PoolID == "19" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "19" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "20" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "20" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "21" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "21" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "22" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "22" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "23" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "23" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "24" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "24" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "25" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "25" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "26" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "26" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "27" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "27" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "28" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "28" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "29" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "29" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "30" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "30" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "31" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "31" & Date.Time > "2019-08-16 4:30:00")) %>%
+  filter(!(PoolID == "32" & Date.Time < "2019-07-18 10:00:00")) %>%
+  filter(!(PoolID == "32" & Date.Time > "2019-08-16 4:30:00"))
 #View(Removal.period)
 
 #convert lux to par

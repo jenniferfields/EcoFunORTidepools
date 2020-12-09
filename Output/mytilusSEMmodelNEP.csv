@@ -3,7 +3,7 @@
   Light ~ MytilusLoss + SAtoVRatio + TideHeight
   MaxTemp ~ MytilusLoss + SAtoVRatio + TideHeight
   NtoPRatio ~ MytilusLoss + SAtoVRatio + TideHeight
-  NEP ~ MaxTemp + MicroMacroAlgaeCover + NtoPRatio + SAtoVRatio + TideHeight
+  NEP ~ Light + MicroMacroAlgaeCover + NtoPRatio + SAtoVRatio + TideHeight
   pH ~ MytilusLoss + NEP + SAtoVRatio + TideHeight
   NEC ~ MytilusLoss + pH + SAtoVRatio + MaxTemp + TideHeight
   MaxTemp ~~ Light"
