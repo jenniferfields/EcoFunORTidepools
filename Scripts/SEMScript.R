@@ -62,7 +62,7 @@ SEMdaynightAvg<- SEMdata %>%
 SEMdaynightAvg<-left_join(SEMdaynightAvg,SEMDataDL)
 
 SEMdaynightAvg<-SEMdaynightAvg%>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control)  %>%
   dplyr::summarise(NEPdeltaAvg = AvgNEP[Before_After == 'After'] - AvgNEP[Before_After == 'Before'],
                    NECdeltaAvg = AvgNEC[Before_After == 'After'] - AvgNEC[Before_After == 'Before'],
                    pHdeltaAvg = AvgpH[Before_After == 'After'] - AvgpH[Before_After == 'Before'],
@@ -92,30 +92,251 @@ SEMdaynightAvg<-as.data.frame(SEMdaynightAvg)
 SEMdata<-left_join(SEMdata,SEMDataDL)
 SEMdaynightseparate<-SEMdata %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
-  dplyr::summarise(NEPdeltaAvg = AvgNEP[Before_After == 'After'] - AvgNEP[Before_After == 'Before'],
-                   NECdeltaAvg = AvgNEC[Before_After == 'After'] - AvgNEC[Before_After == 'Before'],
-                   pHdeltaAvg = AvgpH[Before_After == 'After'] - AvgpH[Before_After == 'Before'],
-                   NNdeltaAvg = AvgNN[Before_After == 'After'] - AvgNN[Before_After == 'Before'],
-                   NH4deltaAvg = AvgNH4[Before_After == 'After'] - AvgNH4[Before_After == 'Before'],
-                   POdeltaAvg = AvgPO[Before_After == 'After'] - AvgPO[Before_After == 'Before'],
-                   NtoPdeltaAvg = AvgNtoP[Before_After == 'After'] - AvgNtoP[Before_After == 'Before'],
-                   TempmeandeltaAvg = AvgTempmean[Before_After == 'After'] - AvgTempmean[Before_After == 'Before'],
-                   Tempmaxdeltaavg = AvgTempmax[Before_After == 'After'] - AvgTempmax[Before_After == 'Before'],
-                   Parmaxdeltaavg = AvgParmax[Before_After == 'After'] -AvgParmax[Before_After == 'Before'],
-                   Percentmaxlightavg =100 * (AvgParmax[Before_After == 'After'] - AvgParmax[Before_After == 'Before']) /  AvgParmax[Before_After == 'Before'],
-                   ParmeandeltaAvg = AvgPar[Before_After == 'After'] - AvgPar[Before_After == 'Before'],
-                   Mytiluscover =AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before'],
-                   MytilusdeltaAvg = -1*(AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before']),
-                   PhyllodeltaAvg = -1*(AvgPhyllo[Before_After == 'After'] - AvgPhyllo[Before_After == 'Before']),
+  dplyr::summarise(NEPdelta = NEP.mmol.m2.hr[Before_After == 'After'] - NEP.mmol.m2.hr[Before_After == 'Before'],
+                   NECdelta = NEC.mmol.m2.hr[Before_After == 'After'] - NEC.mmol.m2.hr[Before_After == 'Before'],
+                   pHdelta= pHmean[Before_After == 'After'] - pHmean[Before_After == 'Before'],
+                   NNdelta = NNmean[Before_After == 'After'] - NNmean[Before_After == 'Before'],
+                   NH4delta = NH4mean[Before_After == 'After'] - NH4mean[Before_After == 'Before'],
+                   POdelta= POmean[Before_After == 'After'] - POmean[Before_After == 'Before'],
+                   NtoPdelta = NtoP[Before_After == 'After'] - NtoP[Before_After == 'Before'],
+                   Tempmeandelta = Temp.mean[Before_After == 'After'] - Temp.mean[Before_After == 'Before'],
+                   Tempmaxdelta = Temp.max[Before_After == 'After'] - Temp.max[Before_After == 'Before'],
+                   Parmaxdelta = AvgParmax[Before_After == 'After'] -AvgParmax[Before_After == 'Before'],
+                   Percentmaxlight =100 * (AvgParmax[Before_After == 'After'] - AvgParmax[Before_After == 'Before']) /  AvgParmax[Before_After == 'Before'],
+                   Parmeandelta = AvgPar[Before_After == 'After'] - AvgPar[Before_After == 'Before'],
+                   Mytiluscover =MusselCover[Before_After == 'After'] - MusselCover[Before_After == 'Before'],
+                   Mytilusdelta = -1*(MusselCover[Before_After == 'After'] - MusselCover[Before_After == 'Before']),
+                   Phyllodelta= -1*(SurfgrassCover[Before_After == 'After'] - SurfgrassCover[Before_After == 'Before']),
                    #multiply delta of mytilus and phyllospadix by -1 to change to Percent loss
-                   micromacroalgaedeltaAvg = (AvgFleshyalgae[Before_After == 'After'] - AvgFleshyalgae[Before_After == 'Before']), 
+                   micromacroalgaedelta = (macroalgae[Before_After == 'After'] - macroalgae[Before_After == 'Before']), 
                    #only micro/acroalgae cover
-                   CCAdeltaAvg = (AvgCCA[Before_After == 'After'] - AvgCCA[Before_After == 'Before']), 
+                   CCAdelta = (allCCA[Before_After == 'After'] - allCCA[Before_After == 'Before']), 
                    #crustose CCA and articulated CA
-                   prodomdeltaAvg = (Avgproddom[Before_After == 'After'] -  Avgproddom[Before_After == 'Before']), 
+                   prodomdelta= (prodphyllodom[Before_After == 'After'] -  prodphyllodom[Before_After == 'Before']), 
                    #macroalgae cover - sessile consumers (including Mytilus)
-                   SAVav = mean(AvgSAV), #ave between before and after since SA/V changed with fspp removal
-                   THav = mean(AvgTH)) #tide height didn't change 
+                   SAVav = mean(SAtoV), #ave between before and after since SA/V changed with fspp removal
+                   THav = mean(TideHeight)) #tide height didn't change 
+
+SEMdaynightseparate$Parmeandelta[SEMdaynightseparate$Day_Night == "Night"] <- 0
+SEMdaynightseparate<-SEMdaynightseparate%>%
+  dplyr::mutate(DN = case_when(Day_Night == "Day" ~ 1,
+                        Day_Night == "Night"~ 0,
+                              TRUE ~ as.numeric(NA))) #make column of 0s and 1s
+
+#####Surfgrass day night separate#####
+PhylloDayNight<-SEMdaynightseparate %>%
+  filter(Foundation_spp == 'Phyllospadix') %>%
+  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NitriteNitrate =NNdelta, 
+                Ammonium =NH4delta,Phosphate =POdelta,NtoPRatio=NtoPdelta,
+                MaxLight =Parmaxdelta, MaxTemp = Tempmaxdelta, Light=Parmeandelta, 
+                MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
+                SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
+
+PhylloDayNight$DN<-as.factor(PhylloDayNight$DN)
+
+
+PDNMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloDayNight)
+PDNLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=PhylloDayNight)
+PDNTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = PhylloDayNight)
+PDNNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloDayNight)
+PDNNEC<- lm(NEC~ pH +PhyllospadixLoss+ MaxTemp+ SAtoVRatio+TideHeight,data =PhylloDayNight) 
+PDNpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = PhylloDayNight)
+PDNNEP<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover
+            + NtoPRatio+SAtoVRatio +TideHeight, data = PhylloDayNight) 
+
+
+
+PhylloDNSEM<-psem(
+  PDNMMAlgae,
+  PDNLight,
+  PDNTemp,
+  PDNNtoP,
+  PDNNEP,
+  PDNpH,
+  PDNNEC,
+  MaxTemp%~~%Light)
+summary(PhylloDNSEM,standardize = 'scale',center = "TRUE") #scale data in sum
+multigroup(PhylloDNSEM, group ="Day_Night")
+
+PhylloDay<-PhylloDayNight%>%
+  filter(Day_Night =="Day")
+
+PDayMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloDay)
+PDayLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=PhylloDay)
+PDayTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = PhylloDay)
+PDayNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloDay)
+PDayNEC<- lm(NEC~ pH +PhyllospadixLoss+ MaxTemp+ SAtoVRatio+TideHeight,data =PhylloDay) 
+PDaypH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = PhylloDay)
+PDayNEP<-lm(NEP ~Light+ MicroMacroAlgaeCover
+            + NtoPRatio+SAtoVRatio +TideHeight, data = PhylloDay) 
+
+qqp(resid(PDayMMAlgae),"norm")
+
+qqp(resid(PDayLight),"norm")
+
+qqp(resid(PDayTemp),"norm")
+
+qqp(resid(PDayNtoP),"norm")
+
+qqp(resid(PDayNEC),"norm") #one point out
+plot(PDayNEC)
+
+qqp(resid(PDaypH),"norm") 
+qqp(resid(PDayNEP),"norm") 
+
+PhyllodaySEM<-psem(
+  PDayMMAlgae,
+  PDayLight,
+  PDayTemp,
+  PDayNtoP,
+  PDayNEP,
+  PDaypH,
+  PDayNEC,
+  MaxTemp%~~%Light)
+
+summary(PhyllodaySEM,standardize = 'scale',center = "TRUE") #scale data in sum
+#check collinearity
+
+PhylloNight<-PhylloDayNight%>%
+  filter(Day_Night =="Night")
+
+PNightMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloNight)
+PNightTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = PhylloNight)
+PNightNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloNight)
+PNightNEC<- lm(NEC~ pH +PhyllospadixLoss+ MaxTemp+ SAtoVRatio+TideHeight,data =PhylloNight) 
+PNightpH<- lm(pH ~ MaxTemp+MicroMacroAlgaeCover+PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = PhylloNight)
+PNightNEP<-lm(NEP ~MaxTemp+ MicroMacroAlgaeCover
+            + NtoPRatio+SAtoVRatio +TideHeight, data = PhylloNight) 
+
+qqp(resid(PNightMMAlgae),"norm")
+
+
+qqp(resid(PNightTemp),"norm")
+qqp(resid(PNightNtoP),"norm")
+
+qqp(resid(PNightNEC),"norm") #one point out
+#plot(PDayNEC)
+
+qqp(resid(PNightpH),"norm") 
+qqp(resid(PNightNEP),"norm") 
+
+PhylloNightSEM<-psem(
+  PNightMMAlgae,
+  PNightTemp,
+  PNightNtoP,
+  PNightNEP,
+  PNightpH,
+  PNightNEC)
+
+summary(PhylloNightSEM,standardize = 'scale',center = "TRUE") #scale data in sum
+
+#####Mussel day night separate######
+Mytilusdaynight<-SEMdaynightseparate%>%
+  filter(Foundation_spp == 'Mytilus') %>%
+  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NitriteNitrate =NNdelta, 
+                Ammonium =NH4delta,Phosphate =POdelta,NtoPRatio=NtoPdelta,
+                MaxLight =Parmaxdelta, MaxTemp = Tempmaxdelta, Light=Parmeandelta, 
+                MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
+                SAtoVRatio=SAVav,TideHeight=THav, RawTemp=Tempmeandelta) #rename cols to match sem
+
+Mytilusdaynight$Day_Night<-as.factor(Mytilusdaynight$Day_Night)
+#models based on hypotheses
+MDNMMalgae<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = Mytilusdaynight)
+MDNTemp<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = Mytilusdaynight)
+MDNLight<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusdaynight)
+MDNNtoP<-lm(NtoPRatio ~ MytilusLoss+SAtoVRatio+TideHeight,  data = Mytilusdaynight)
+MDNNEC<- lm(NEC~ pH +MytilusLoss+SAtoVRatio+MaxTemp+TideHeight, data = Mytilusdaynight) 
+MDNpH<- lm(pH ~ MytilusLoss+NEP+ SAtoVRatio+TideHeight, data =Mytilusdaynight)
+MDNNEP<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover+
+              NtoPRatio +TideHeight,data = Mytilusdaynight) #removed sa to v ratio since collinear with ntopratio
+#same model structure as paper
+#remove light in night model  remove correlated error
+
+#temp at night
+
+MytilusDNSEM<-psem(MDNMMalgae,
+                    MDNLight,
+                    MDNTemp,
+                    MDNNtoP,
+                    MDNNEP,
+                    MDNpH,
+                    MDNNEC)
+
+multigroup(MytilusDNSEM, group ="Day_Night")
+
+summary(MytilusDNSEM,standardize = "scale",center = "TRUE")
+
+
+
+MytilusDay<-Mytilusdaynight%>%
+  filter(Day_Night =="Day")
+
+
+
+#models based on hypotheses
+MDayMMalgae<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = MytilusDay)
+MDayTemp<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = MytilusDay)
+MDayLight<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = MytilusDay)
+MDayNtoP<-lm(NtoPRatio ~  MytilusLoss+SAtoVRatio+TideHeight,  data = MytilusDay)
+MDayNEC<- lm(NEC~ pH +MytilusLoss+SAtoVRatio+MaxTemp+TideHeight, data = MytilusDay) 
+MDaypH<- lm(pH ~ MytilusLoss+NEP+ SAtoVRatio+TideHeight, data =MytilusDay)
+MDayNEP<-lm(NEP ~Light+MicroMacroAlgaeCover+
+              NtoPRatio +TideHeight,data = MytilusDay) #removed sa to v ratio since collinear with ntopratio
+#same model structure as paper
+#remove light in night model  remove correlated error
+
+#temp at night
+
+MytilusDaySEM<-psem(MDayMMalgae,
+                 MDayLight,
+                 MDayTemp,
+                 MDayNtoP,
+                 MDayNEP,
+                 MDaypH,
+                 MDayNEC,
+                 MaxTemp%~~%Light)
+summary(MytilusDaySEM,standardize = "scale",center = "TRUE")
+
+MytilusNight<-Mytilusdaynight%>%
+  filter(Day_Night =="Night")
+#models based on hypotheses
+MNightMMalgae<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = MytilusNight)
+MNightTemp<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = MytilusNight)
+MNightNtoP<-lm(NtoPRatio ~  MytilusLoss+SAtoVRatio+TideHeight,  data = MytilusNight)
+MNightNEC<- lm(NEC~ pH+MytilusLoss+SAtoVRatio+MaxTemp+TideHeight, data = MytilusNight) 
+MNightpH<- lm(pH ~MaxTemp+ MicroMacroAlgaeCover+NtoPRatio+MytilusLoss+NEP+ SAtoVRatio+TideHeight, data =MytilusNight)
+MNightNEP<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover +
+              NtoPRatio +TideHeight,data = MytilusNight) #removed sa to v ratio since collinear with ntopratio
+#same model structure as paper
+#remove light in night model  remove correlated error
+
+#temp at night
+
+MytilusNightSEM<-psem(MNightMMalgae,
+                    MNightTemp,
+                    MNightNtoP,
+                    MNightNEP,
+                    MNightpH,
+                    MNightNEC)
+summary(MytilusNightSEM,standardize = "scale",center = "TRUE")
+
+
+pHM<-ggplot(MytilusNight, aes(x =MytilusLoss, y=pH)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_smooth(method="lm")+
+  theme_classic()
+
+TempM<-ggplot(MytilusNight, aes(x =MytilusLoss, y=MaxTemp)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_smooth(method="lm")+
+  theme_classic()
+TempM<-ggplot(MytilusNight, aes(x =MaxTemp, y=NEP)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_smooth(method="lm")+
+  theme_classic()
 
 #####Surfgrass SEM model#####
 Phyllounscaled<-SEMdaynightAvg %>%
