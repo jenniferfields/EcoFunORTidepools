@@ -11,6 +11,7 @@ library(ggeffects)
 library(patchwork)
 library(MASS)
 library(car)
+library(lavaan)
 devtools::install_github("seananderson/ggsidekick")
 library(ggsidekick) #for theme sleek
 library(tidyverse)
@@ -133,30 +134,41 @@ PhylloDayNight<-SEMdaynightseparate %>%
                 SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
 
 PhylloDayNight$DN<-as.factor(PhylloDayNight$DN)
+PhylloDayNight$Day_Night<-as.factor(PhylloDayNight$Day_Night)
+#ggpairs(PhylloDayNight[c(5:7,11,13,16,19:20,23:24)]) 
+#items collinear so cannot be predictors within same model:
+#NEP: NEC,pH, Max Temp, Light and NEP, Surfgrass Loss
+#NEC: pH, Maxtemp & light, surfgrass loss
+#pH: maxtemp, light, surfgrass loss, sa to v ratio
+#NtoP ratio--none
+#max temp: light, surfgrass loss
+#light: surfgrass loss and temp
+#surfgrass loss & sa to V ratio
+#SAtoVRatio +TideHeight
 
 
 PDNMMAlgae<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloDayNight)
-PDNLight<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=PhylloDayNight)
-PDNTemp<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio+TideHeight  ,data = PhylloDayNight)
-PDNNtoP<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloDayNight)
-PDNNEC<- lm(NEC~ pH +PhyllospadixLoss+ MaxTemp+ SAtoVRatio+TideHeight,data =PhylloDayNight) 
-PDNpH<- lm(pH ~ PhyllospadixLoss+NEP + SAtoVRatio+TideHeight, data = PhylloDayNight)
-PDNNEP<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover
+PDNLightC<-lm(Light ~PhyllospadixLoss+SAtoVRatio +TideHeight,data=PhylloDayNight)
+PDNTempC<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio +TideHeight, data = PhylloDayNight)
+PDNNtoPC<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloDayNight)
+PDNNECC<- lm(NEC~ pH + MaxTemp+ PhyllospadixLoss+SAtoVRatio +TideHeight,data =PhylloDayNight) 
+PDNpHC<- lm(pH ~ PhyllospadixLoss+NEP+SAtoVRatio +TideHeight,data = PhylloDayNight)
+PDNNEPC<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover
             + NtoPRatio+SAtoVRatio +TideHeight, data = PhylloDayNight) 
-
-
 
 PhylloDNSEM<-psem(
   PDNMMAlgae,
-  PDNLight,
-  PDNTemp,
-  PDNNtoP,
-  PDNNEP,
-  PDNpH,
-  PDNNEC,
+  PDNLightC,
+  PDNTempC,
+  PDNNtoPC,
+  PDNNEPC,
+  PDNpHC,
+  PDNNECC,
   MaxTemp%~~%Light)
+
 summary(PhylloDNSEM,standardize = 'scale',center = "TRUE") #scale data in sum
-multigroup(PhylloDNSEM, group ="Day_Night")
+
+multigroup(PhylloDNSEM,standardize = 'scale', group ="Day_Night")
 
 PhylloDay<-PhylloDayNight%>%
   filter(Day_Night =="Day")
@@ -262,7 +274,7 @@ MytilusDNSEM<-psem(MDNMMalgae,
                     MDNpH,
                     MDNNEC)
 
-multigroup(MytilusDNSEM, group ="Day_Night")
+multigroup(MytilusDNSEM, group ="Day_Night",test.type = "III")
 
 summary(MytilusDNSEM,standardize = "scale",center = "TRUE")
 
