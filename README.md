@@ -15,7 +15,9 @@ This repository includes data, analysis, and methods for the following manuscrip
 **Contents:** There are four folders, R project, and a README.md file.
 
 **Folders:**
-[Data/Clean Data](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Data)
+&nbsp;
+&nbsp;
+**[Data/Clean Data](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Data)**
 
 Contains all clean and raw data from project. Within this folder there are four folders for data from 
 1. Tide pool physical parameters
