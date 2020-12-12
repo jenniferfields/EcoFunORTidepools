@@ -26,7 +26,8 @@ Contains all clean and raw data from project. Within this folder there are four 
 
 **[Coding scripts](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Scripts)**
 
-Contains all code for project. Within this folder there are six files
+Contains all code for project. Within this folder there are six files:
+
 [Tide pool physical parameters script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/tidepoolphysicalparameters.R) 
 
 Contains calculations for tide pools volumes of n=16 surfgrass and n=16 mussel tide pools at Otter Rock, OR utilizing methods and code from [Silbiger Lab Volume Dye Method](https://github.com/SilbigerLab/Protocols/tree/master/Environmental_Parameter_Protocols/Protocols/Volume_Dye_Method)
