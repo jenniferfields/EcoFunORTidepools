@@ -16,6 +16,7 @@ This repository includes data, analysis, and methods for the following manuscrip
 
 **Folders:**
 [Data/Clean Data](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Data)
+
 Contains all clean and raw data from project. Within this folder there are four folders for data from 
 1. Tide pool physical parameters
 2. Community composition
