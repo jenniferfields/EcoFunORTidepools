@@ -26,11 +26,25 @@ Contains all clean and raw data from project. Within this folder there are four 
 Contains all code for project. Within this folder there are six files
 1. [Tide pool physical parameters script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/tidepoolphysicalparameters.R) including calcuations for tide pools volumes 
 2. [Community compositon script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CommunityComp.R) including nMDS plot code and PERMANOVA analysis and community composition supplemental material plots
-3. [Temperature and light script] (https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/TemperatureandLight.R) including temperature and light logger data cleaning and month-long temperature and light analyses
-4. [Carbonate and biogeochemistry script] (https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CleanCarbChem.R) including carbonate chemistry and ecosystem metabolism (NEC and NEP) calculations as well as biogeochemistry Principal Component Analyses of tide pools and adjacent ocean
-5. [Structural Equation Model script] (https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/SEMScript.R) including structural equation model input data, PiecewiseSEM model framework, and significant marginal effect plots. Note: This script ultilizes output from both carbonate and biogeochemistry and community composition scripts
-6. [DAG of Structural Equation Model script] (https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/DAGSEMscript.R) including code using DiagrammeR to create SEM figures
+3. [Temperature and light script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/TemperatureandLight.R) including temperature and light logger data cleaning and month-long temperature and light analyses
+4. [Carbonate and biogeochemistry script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CleanCarbChem.R) including carbonate chemistry and ecosystem metabolism (NEC and NEP) calculations as well as biogeochemistry Principal Component Analyses of tide pools and adjacent ocean
+5. [Structural Equation Model script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/SEMScript.R) including structural equation model input data, PiecewiseSEM model framework, and significant marginal effect plots. Note: This script ultilizes output from both carbonate and biogeochemistry and community composition scripts
+6. [DAG of Structural Equation Model script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/DAGSEMscript.R) including code using DiagrammeR to create SEM figures
 
+[Output](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Output)
+Contains all figures of manuscript
+
+[Protocols](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Protocols)
+Contains protocols from field experiment including:
+
+[Tide pool dye method](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/Dye_Method_Protocol)
+
+
+[General biogeochemical sampling protocol](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/TidePoolSampling_SOP.md)
+
+Group biogeochemical sampling protocol
+
+Community composition surveys
 
 
 
