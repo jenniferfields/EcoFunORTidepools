@@ -14,7 +14,7 @@ This repository includes data, analysis, and methods for the following manuscrip
 
 **Contents:** There are four folders, R project, and a README.md file.
 
-**Folders:**\
+**Folders:**
 
 **[Data/Clean Data](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Data)**
 
@@ -25,6 +25,7 @@ Contains all clean and raw data from project. Within this folder there are four 
 4. Biogeochemistry sampling
 
 **[Coding scripts](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Scripts)**
+
 Contains all code for project. Within this folder there are six files
 1. [Tide pool physical parameters script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/tidepoolphysicalparameters.R) 
 including calcuations for tide pools volumes 
