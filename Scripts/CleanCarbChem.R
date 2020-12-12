@@ -121,14 +121,23 @@ StartandStop<-left_join(StartandStop,temp.data) #join with temp data
 
 TempandLightSum<-StartandStop %>% #create new data frame finding temp and light at start and stop time of water sampling
   dplyr::filter(!(Date_Time >= StopTime | Date_Time <= StartTime)) %>%
-  dplyr::group_by(PoolID,Before_After,Day_Night) %>%
+  dplyr::group_by(PoolID,Before_After,Day_Night)%>% 
   dplyr::summarise(Temp.max = max(Temp.C, na.rm=T), 
                    Temp.mean = mean(Temp.C, na.rm = T),
-                   Temp.var = var(Temp.C, na.rm = T),
-                   Temp.range = (max(Temp.C, na.rm=T)-min(Temp.C, na.rm=T)),
                    Par.mean = mean(Par, na.rm = T),
                    Par.max = max(Par,na.rm = T),
                    Par.sum = sum(Par,na.rm = T))
+
+TempandLightSumall<-StartandStop %>% #create new data frame finding temp and light at start and stop time of water sampling
+  dplyr::filter(!(Date_Time >= StopTime | Date_Time <= StartTime)) %>%
+  dplyr::group_by(PoolID,Before_After,Day_Night,by60=cut(Date_Time, "60 min")) %>% #hourly means of pools per ~time point
+  dplyr::summarise(Temp.max = max(Temp.C, na.rm=T), 
+                   Temp.mean = mean(Temp.C, na.rm = T),
+                   Par.mean = mean(Par, na.rm = T),
+                   Par.max = max(Par,na.rm = T),
+                   Par.sum = sum(Par,na.rm = T))
+
+
 
 ###########Nutrient Data Cleaning##########
 #Missing 8 samples from nutritent analysis out of 612 samples
@@ -543,6 +552,267 @@ DeltaSamples$NEC.mmol.m2.hr<-as.numeric(DeltaSamples$NEC.mmol.m2.hr)
 DeltaSamples$NEP.mmol.m2.hr<-as.numeric(DeltaSamples$NEP.mmol.m2.hr)
 
 DeltaSamples<-left_join(DeltaSamples,TempandLightSum)
+
+####All time points#####
+
+#for TA, DIC, Sampling Time to find change over time
+Allsamples<- CarbChem %>%
+  filter(Foundation_spp != 'Ocean') %>%
+  dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
+  dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
+  dplyr::filter(Id_code != 'D_24_2_BC'|Id_code != 'D_24_3_BC'| Id_code != 'D_24_4_BC'|
+                Id_code != 'N_24_2_BC'|Id_code != 'N_24_3_BC'| Id_code != 'N_24_4_BC'|
+                Id_code != 'D_1_2_AI'|Id_code != 'D_16_2_AI'|Id_code != 'D_4_3_AI'| 
+                Id_code != 'N_20_3_AI') %>% #remove samples that don't have nutrients
+  #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
+  dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 1&2,2&3,3&4
+                DICDeltaTime = DIC_Norm-lag(DIC_Norm, default = first(DIC_Norm)),
+                DeltaTime = (difftime(Date_Time,lag(Date_Time,default = first(Date_Time)))/3600), #sampling diff btwn time pts into hrs
+                DeltaTime = ifelse(DeltaTime < 0 , DeltaTime + 24, DeltaTime), #if Delta Time is less than 0 then +24 hrs
+                #converted to account from time went from 23/24 to 0:00 and added 24 hrs %>%
+                DeltaNN = NN_umol_L - lag(NN_umol_L, default = first(NN_umol_L)),
+                DeltaNH4 = NH4_umol_L - lag(NH4_umol_L, default = first (NH4_umol_L)),
+                DeltaPO = PO_umol_L - lag(PO_umol_L, default =first(PO_umol_L)),
+                DeltapH = pH_insitu -lag(pH_insitu, default = first (pH_insitu)),
+                DeltapCO2 = pCO2 - lag(pCO2, default = first(pCO2)),
+                DeltaDO = DO_mg_L - lag(DO_mg_L, default = first(DO_mg_L))) %>%
+  dplyr::filter(TADeltaTime != 0) %>% #filters out row where deltas = 0
+  dplyr::select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,TADeltaTime, DICDeltaTime,
+                DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
+
+#because tp 24 in Before period did not have time pt 1 so took differences btw time point 2,3 and 4
+TP24all <- CarbChem %>%
+  #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
+  filter(Foundation_spp != 'Ocean') %>%
+  dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
+  dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
+  dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+  dplyr::filter(Time_Point == 2 | Time_Point == 3 | Time_Point == 4) %>%
+  #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
+  dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 2&3,3&4
+                DICDeltaTime = DIC_Norm-lag(DIC_Norm, default = first(DIC_Norm)),
+                DeltaTime = (difftime(Date_Time,lag(Date_Time,default = first(Date_Time)))/3600), #sampling diff btwn time pts into hrs
+                DeltaTime = ifelse(DeltaTime < 0 , DeltaTime + 24, DeltaTime), #if Delta Time is less than 0 then +24 hrs
+                #converted to account from time went from 23/24 to 0:00 and added 24 hrs %>%
+                DeltaNN = NN_umol_L - lag(NN_umol_L, default = first(NN_umol_L)),
+                DeltaNH4 = NH4_umol_L - lag(NH4_umol_L, default = first (NH4_umol_L)),
+                DeltaPO = PO_umol_L - lag(PO_umol_L, default =first(PO_umol_L)),
+                DeltapH = pH_insitu -lag(pH_insitu, default = first (pH_insitu)),
+                DeltapCO2 = pCO2 - lag(pCO2, default = first(pCO2)),
+                DeltaDO = DO_mg_L - lag(DO_mg_L, default = first(DO_mg_L))) %>%
+  filter(TADeltaTime != 0) %>% #filters out row where deltas = 0
+  select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,TADeltaTime, DICDeltaTime,
+         DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
+
+#combine dataframes
+Allsamples<-rbind(Allsamples,TP24all)
+
+#bring in physical parameters for nec and nep calculations
+PhysicalParameters<-TidePooldes[, c("PoolID", "Before_After", "SurfaceArea", "Vol", "SAtoV", "TideHeight")] #pull out the necessary columns and treatment 
+PhysicalParameters$PoolID<-as.character(PhysicalParameters$PoolID)
+PhysicalParameters$Before_After<-as.character(PhysicalParameters$Before_After)
+
+#join with delta samples
+Allsamples<-left_join(Allsamples,PhysicalParameters)
+
+
+#create an ifelse statement for sampling volumes
+#Each time point more water was taken out of each pool and need to account for change in volume
+#for NEC calculation
+Allsamples <- Allsamples %>%
+  mutate(SamplingVolume = ifelse(Time_Point == '2',Vol - 0.00055, #took out 550mL-->0.00055m3 
+           #at time point 1 so volume at time pt 2 is -0.00055 m3
+           ifelse(Time_Point == '3', Vol - 0.00095,
+           #took out 400mL at time point 2 so now volume @time3
+           #is - 950mL-->0.00095m3
+           ifelse(Time_Point == '4', Vol - 0.00135, Vol)))) %>%
+  #took out 400 mL at time point 3 so volume @time4
+  #is 550+400+400-->0.00135m3
+  #Some sampling times volume wasn't exact these are take from the note section in the data set 
+  #note: these are for the time point after the note was taken
+  mutate(AdjSamplingVolume = ifelse(Id_code == 'D_4_2_BC', SamplingVolume - 0.00055,
+ifelse(Id_code == 'D_18_2_BC', SamplingVolume - 0.00004,
+ifelse(Id_code == 'D_20_2_BC', SamplingVolume - 0.00008,
+ifelse(Id_code == 'D_28_2_BC', SamplingVolume -0.0001,
+ifelse(Id_code == 'D_5_3_BC', SamplingVolume -0.00005,
+ifelse(Id_code == 'D_6_3_BC', SamplingVolume-0.00001,
+ifelse(Id_code == 'D_17_3_BC', SamplingVolume-0.00015,
+ifelse(Id_code == 'D_7_3_AI', SamplingVolume-0.00004,
+ifelse(Id_code == 'D_9_3_AI', SamplingVolume-0.00004,
+ifelse(Id_code == 'N_2_3_AI', SamplingVolume-0.0005,
+ifelse(Id_code == 'N_9_2_AI', SamplingVolume + 0.00001,
+ifelse(Id_code == 'N_1_3_AI', SamplingVolume - 0.00002,
+ifelse(Id_code == 'N_2_3_AI', SamplingVolume -0.000018,
+ifelse(Id_code == 'N_4_3_AI', SamplingVolume -0.000015,
+ifelse(Id_code == 'N_5_3_AI',SamplingVolume -0.00001,
+ifelse(Id_code == 'N_6_3_AI',SamplingVolume -0.00004,
+ifelse(Id_code == 'N_12_3_AI', SamplingVolume -0.000035,
+ifelse(Id_code == 'D_4_4_BC', SamplingVolume - 0.00055,
+ifelse(Id_code == 'D_18_4_BC', SamplingVolume - 0.00004,
+ifelse(Id_code == 'D_20_4_BC', SamplingVolume - 0.00008,
+ifelse(Id_code == 'D_28_4_BC', SamplingVolume -0.0001,
+ifelse(Id_code == 'D_5_4_BC', SamplingVolume -0.00005,
+ifelse(Id_code == 'D_6_4_BC', SamplingVolume-0.00001,
+ifelse(Id_code == 'D_17_4_BC', SamplingVolume-0.00015,
+ifelse(Id_code == 'D_7_4_AI', SamplingVolume-0.00004,
+ifelse(Id_code == 'D_9_4_AI', SamplingVolume-0.00004,
+ifelse(Id_code == 'N_2_4_AI', SamplingVolume-0.0005,
+ifelse(Id_code == 'N_9_4_AI', SamplingVolume + 0.00001,
+ifelse(Id_code == 'N_1_4_AI', SamplingVolume - 0.00002,
+ifelse(Id_code == 'N_2_4_AI', SamplingVolume -0.000018,
+ifelse(Id_code == 'N_4_4_AI', SamplingVolume -0.000015,
+ifelse(Id_code == 'N_5_4_AI',SamplingVolume -0.00001,
+ifelse(Id_code == 'N_6_4_AI',SamplingVolume -0.00004,
+ifelse(Id_code == 'N_12_4_AI', SamplingVolume -0.000035,
+ifelse(Id_code == 'N_5_4_AI', SamplingVolume -0.00002,
+ifelse(Id_code == 'N_9_4_AI', SamplingVolume -0.00001, SamplingVolume)))))))))))))))))))))))))))))))))))))
+
+
+
+#Normalizing change in TA to change in nutrients based on Wolf-Gladrow et al. 2007
+Allsamples$DeltaTA_N_Norm<-Allsamples$TADeltaTime - (Allsamples$DeltaNN) - (2*Allsamples$DeltaPO) + (Allsamples$DeltaNH4)
+#for every mol Nitrate and phosophate--increases TA by one and two moles respectively
+#so subtract to normalise TA where as TA decreases with every mole of Nh4 so + Nh4 back
+
+Allsamples$DeltaTA_N_Norm<- -1 * Allsamples$DeltaTA_N_Norm #to change to positive calcification and negative dissolution
+Allsamples$DICDeltaTime <- -1 * (Allsamples$DICDeltaTime) #to change to positive photosynthesis and neg respiration 
+
+
+Allsamples$DeltaTime<-as.numeric(Allsamples$DeltaTime) #as numeric since attributes from difftime function were interferring 
+#with NEC/NEP calcs
+
+#Equation for NEC rates
+#NEC delta TA/2 * seawater density * (volume/ surface area) / time  Divided by 1000 so mmols m2 hr 
+Allsamples$NEC.mmol.m2.hr<- ((Allsamples$DeltaTA_N_Norm)/2) * (1023) * (Allsamples$AdjSamplingVolume/Allsamples$SurfaceArea) * (1/Allsamples$DeltaTime) * (1/1000)
+#without nutrients:
+#DeltaSamples$NECnotNNorm<- ((DeltaSamples$TADeltaTime)/2) * (1023) * (DeltaSamples$AdjSamplingVolume/DeltaSamples$SurfaceArea) * (1/DeltaSamples$DeltaTime) * (1/1000)
+#Function for calculation of air-sea CO2 flux
+#adapted from MatLab Code by Cecilia Chapa Balcorta copyright @ 2015
+
+#input:
+#pCO2_agua= seawater pCO2 (uatm)
+#pCO2_atm=  atmospheric pCO2 (uatm)
+#T=  Temperature (Celsius)
+#S=  Salinity 
+#u = Wind speed (m/s)
+
+#get average salinity, temp and pco2 between time points
+AirSeaFluxall<- CarbChem %>%
+  #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
+  filter(Foundation_spp != 'Ocean') %>%
+  dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
+  dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
+  #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
+  dplyr::filter(Id_code != 'D_24_2_BC'|Id_code != 'D_24_3_BC'| Id_code != 'D_24_4_BC'|
+                Id_code != 'N_24_2_BC'|Id_code != 'N_24_3_BC'| Id_code != 'N_24_4_BC'|
+                Id_code != 'D_1_2_AI' |Id_code != 'D_16_2_AI'|Id_code != 'D_4_3_AI'| 
+                Id_code != 'N_20_3_AI') %>% #take out these ids since not following 4-1 rule
+  #dplyr::filter(Time_Point == 1 | Time_Point == 4) %>%
+  dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
+                pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 1 & 2, time 2&3 etc. 
+                Salinitymean = rollmean(Salinity,2, na.pad=TRUE, align="right"),
+                Windmean = rollmean(Wind_Speed.m.s,2, na.pad=TRUE, align="right"),
+                pHmean = rollmean(pH_insitu, 2, na.pad=TRUE, align="right"),
+                DOmean = rollmean(DO_mg_L, 2, na.pad=TRUE, align="right"),
+                NNmean = rollmean(NN_umol_L, 2, na.pad=TRUE, align="right"),
+                NH4mean = rollmean(NH4_umol_L, 2, na.pad=TRUE, align="right"),
+                POmean = rollmean(PO_umol_L, 2, na.pad=TRUE, align="right")) %>% 
+  filter(Tempmean != 'NA') %>% #removes row that values are NA (time 1:time1) 
+  select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,
+         Tempmean,pCO2mean,Salinitymean,Windmean,pHmean,DOmean, NNmean, NH4mean,POmean) #selects the columns needed for air-sea flux equation
+
+#TP24
+TP24Airseafluxall<- CarbChem %>%
+  #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
+  filter(Foundation_spp != 'Ocean') %>%
+  dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
+  dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
+  #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
+  dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+  dplyr::filter(Time_Point == 2 |Time_Point == 3| Time_Point == 4) %>% #no time point 1
+  dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
+                pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 2& 3, time 3&4 etc. 
+                Salinitymean = rollmean(Salinity,2, na.pad=TRUE, align="right"),
+                Windmean = rollmean(Wind_Speed.m.s,2, na.pad=TRUE, align="right"),
+                pHmean = rollmean(pH_insitu, 2, na.pad=TRUE, align="right"),
+                DOmean = rollmean(DO_mg_L, 2, na.pad=TRUE, align="right"),
+                NNmean = rollmean(NN_umol_L, 2, na.pad=TRUE, align="right"),
+                NH4mean = rollmean(NH4_umol_L, 2, na.pad=TRUE, align="right"),
+                POmean = rollmean(PO_umol_L, 2, na.pad=TRUE, align="right")) %>% 
+  filter(Tempmean != 'NA') %>% #removes row that values are NA (time 1:time1) 
+  select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,
+         Tempmean,pCO2mean,Salinitymean,Windmean,pHmean,DOmean,NNmean, NH4mean,POmean) #selects the columns needed for air-sea flux equation
+
+
+#combine dataframes
+AirSeaFluxall<-rbind(AirSeaFluxall,TP24Airseafluxall)
+
+#combine with delta samples dataframe
+Allsamples<-left_join(Allsamples,AirSeaFluxall)
+
+#Setting parameters to make it easier in functions
+T<-Allsamples$Tempmean
+S<-Allsamples$Salinitymean
+u<-Allsamples$Windmean
+
+pCO2_water<-Allsamples$pCO2mean
+pCO2_atm<- 410.86 #average uatm CO2 in atms btween July (411.77) and August 2019 (409.95) from Mauna Loa Station
+
+
+#Air-sea CO2 is calculated as follows:
+
+#FCO2 = K * a * (dpCO2) 
+
+#Where K=is the transfer velocity according to Wanninkhof (1992).
+#a = CO2 solibility constant according to Weiss (1974)
+#dpCO2 is the difference of air and seawater pCO2 
+
+
+#Schmidt Number function
+#For water of salinity=35 and temperature range 0-30deg C
+# A,B,C,D are constants
+Sc<-function(T) {
+  A <- 2073.1
+  B <- 125.62
+  C <- 3.6276
+  D <- 0.043219
+  Sc <- A - (B * T) + (C *(T^2)) - (D * (T^3))
+  return(Sc)
+}
+
+#Solibuility constant (Weiss, 1974) 
+Ko_weiss<- function(T,S) {
+  A <- c(-60.2409, 93.4517, 23.3585) #mol/kg.atm
+  B <- c(0.023517, -0.023656, 0.0047036)  #mol/kg.atm
+  T <- T + 273.15 #Conversion from Celsius degrees to Kelvins
+  Ln_Ko = A[1] + (A[2] * (100/T)) + (A[3] * (log(T/100))) + S * (B[1] + (B[2] * (T/100)) + (B[3] * (T/100)^2))
+  Ko <- exp(Ln_Ko)
+  return(Ko)
+}
+
+#CO2 Transfer velocity calculation 
+slowwind<-0.31*(u^2) * ((Sc(T)/660)^-0.5) #for wind <=6 m/s
+highwind<-0.39*(u^2) * ((Sc(T)/660)^-0.5) #for wind > 6 m/s
+
+Allsamples$K<- ifelse(u <= 6, slowwind, highwind) #if else statement for K [transfer velocity according to Wanninkhof (1992)]
+
+Allsamples$dpCO2 <- pCO2_water - pCO2_atm #difference of air and seawater pCO2
+
+Allsamples$a <- Ko_weiss(T,S) #CO2 solibility constant according to Weiss (1974) solubility in mmol L^-1 atm^-1 or mmol m^-3 uatm^-1
+
+Allsamples$F_CO2 <- ((0.24 * Allsamples$K * Allsamples$a * Allsamples$dpCO2)/ 24) #CO2 flux (mmol m^-2 hr^-1) (rate is by day so divide by 24 to convert per hour)
+
+
+#NEP with FCO2
+# NEP = (delta DIC) * SW density * (volume/SA) / time  -  NEC - Fugosity of CO2) *1000 to convert to mmol 
+Allsamples$NEP.mmol.m2.hr<-((Allsamples$DICDeltaTime) * (1023) * (Allsamples$AdjSamplingVolume/Allsamples$SurfaceArea) * (1/Allsamples$DeltaTime) * (1/1000)) - (Allsamples$NEC.mmol.m2.hr) - (Allsamples$F_CO2)
+
+Allsamples$NEC.mmol.m2.hr<-as.numeric(Allsamples$NEC.mmol.m2.hr) 
+Allsamples$NEP.mmol.m2.hr<-as.numeric(Allsamples$NEP.mmol.m2.hr)
+
+Allsamples<-left_join(Allsamples,TempandLightSumall)
 
 ######PCA of biogeochem########
 CarbChem$Sampling_Day<-as.factor(CarbChem$Sampling_Day)
