@@ -28,16 +28,22 @@ Contains all clean and raw data from project. Within this folder there are four 
 
 Contains all code for project. Within this folder there are six files
 1. [Tide pool physical parameters script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/tidepoolphysicalparameters.R) 
+
 contains calculations for tide pools volumes of n=16 surfgrass and n=16 mussel tide pools at Otter Rock, OR utilizing methods and code from [Silbiger Lab Volume Dye Method](https://github.com/SilbigerLab/Protocols/tree/master/Environmental_Parameter_Protocols/Protocols/Volume_Dye_Method)
 2. [Community compositon script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CommunityComp.R)
+
 Code to investigate how tide pool sessile and mobile communities were altered by surfgrass and mussel removal. Contains non-Metric Dimensional Scale plot code and PERMANOVA analysis of community structure and community composition supplemental material plots
 3. [Temperature and light script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/TemperatureandLight.R) 
+
 Code to test how surfgrass and mussel loss affected maximum temperature and percent light values of tide pools. Contains temperature and light logger data cleaning and month-long temperature and light analyses
 4. [Carbonate and biogeochemistry script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CleanCarbChem.R) 
+
 Code to characterize differences between time points (before and after foundation species removal) of local tide pool and adjacent ocean biogeochemistry and temperature. Contains carbonate chemistry and ecosystem metabolism (Net ecosystem calcification and production) calculations. Includes Principal Component Analyses and plots of maximum, average, and variance values of biogeochemistry (dissolved oxygen, pH, nutrients) and temperature tide pools and adjacent ocean
 5. [Structural Equation Model script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/SEMScript.R) 
+
 Code to test the direct and indirect effects of mussel and surfgrass foundation species removal on ecosystem metabolism mediated by changes in temperature, nutrients, algal cover, and pH. Contains structural equation model input data, PiecewiseSEM model framework, and significant marginal effect plots. Note: This script ultilizes output from both carbonate and biogeochemistry and community composition scripts
 6. [DAG of Structural Equation Model script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/DAGSEMscript.R) 
+
 including code using DiagrammeR to create SEM figures
 
 **[Output](https://github.com/jenniferfields/EcoFunORTidepools/tree/master/Output)**
