@@ -101,18 +101,37 @@ PhylloDayNightall<-SEMallavg %>%
   dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NtoPRatio=NtoPdelta,
                 MaxTemp = Tempmaxdelta,Light=Parmeandelta,MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
                 SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
+###problem children round 1000XX
+ggplot(noTP26, aes(x=NtoPRatio,y=NEP, color=Day_Night))+
+  geom_point()+
+  geom_smooth(method="lm")
+
+ggplot(PhylloDayNightall, aes(x=PhyllospadixLoss,y=SAtoVRatio))+
+  geom_point()+
+  geom_smooth(method="lm")
+
+ggpairs(noTP26[c(5:9,13:14,17:18)])
+##max temp and sa:v
+#surfgrass loss and sa to v ratio?
+
+ggpairs(PhylloDayNightall[c(5:9,13:14,17:18)])
+#surfgrass loss and sa to v ratio?
+##max temp and sa:v
+#max temp and pH
+#sav and pH
 
 #make day/night a factor for multigroup analysis
 PhylloDayNightall$Day_Night<-as.factor(PhylloDayNightall$Day_Night)
-TP26<-PhylloDayNightall%>%
-  filter(PoolID != 26)
+
+noTP26<-PhylloDayNightall%>%
+  filter(PoolID != 26) #removed tp 26 from n:p analysis and nep model since outlier within data (+4SD away)
 #models based off hypotheses
 PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloDayNightall)
 PDNTempall<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio +TideHeight, data = PhylloDayNightall)
-PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =TP26)
+PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =noTP26)
 PDNNECall<- lm(NEC~pH +PhyllospadixLoss+ MaxTemp+SAtoVRatio +TideHeight,data =PhylloDayNightall) 
 PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+SAtoVRatio+TideHeight,data = PhylloDayNightall)
-PDNNEPall<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio +TideHeight, data = TP26) 
+PDNNEPall<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio+TideHeight, data =noTP26) 
 
 Pdaynep<-PhylloDayNightall%>%
   filter(Day_Night=="Day")
@@ -127,7 +146,7 @@ qqp(resid(PDNpHall),"norm")
 qqp(resid(PDNTempall),"norm") 
 #plot(PDNTempall)
 qqp(resid(PDNNtoPall),"norm") 
-#plot(PDNNtoPall)
+plot(PDNNtoPall)
 qqp(resid(PDNNECall),"norm") 
 #plot(PDNNECall)
 qqp(resid(PDNNEPall),"norm") 
@@ -142,7 +161,7 @@ PhylloDNSEMall<-psem(
   PDNNECall)
 
 #type III anova
-OutputPhylloMGSEM<-multigroup(PhylloDNSEMall,standardize = 'scale', group ="Day_Night")
+OutputPhylloMGSEM<-multigroup(PhylloDNSEMall,standardize = 'scale', test.type = "III",group ="Day_Night")
 
 #summary(PhylloDNSEMall,standardize = 'scale',center = "TRUE") #scale data in sum
 
@@ -165,6 +184,14 @@ Mytilusdaynightall<-SEMallavg%>%
                 SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
 
 Mytilusdaynightall$Day_Night<-as.factor(Mytilusdaynightall$Day_Night)
+
+ggpairs(Mytilusdaynightall[c(5:9,12,14,17:18)])
+#ph and algae cover
+#mussel and tide hight...
+ggplot(Mytilusdaynightall, aes(x=MytilusLoss,y=TideHeight))+
+  geom_point()+
+  geom_smooth(method="lm")
+
 #models based on hypotheses
 MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio+TideHeight, data = Mytilusdaynightall)
 MDNTempall<-lm(MaxTemp~MytilusLoss +SAtoVRatio+TideHeight , data = Mytilusdaynightall)
