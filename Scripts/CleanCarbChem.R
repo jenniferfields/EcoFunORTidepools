@@ -812,7 +812,6 @@ Allsamples$NEP.mmol.m2.hr<-((Allsamples$DICDeltaTime) * (1023) * (Allsamples$Adj
 Allsamples$NEC.mmol.m2.hr<-as.numeric(Allsamples$NEC.mmol.m2.hr) 
 Allsamples$NEP.mmol.m2.hr<-as.numeric(Allsamples$NEP.mmol.m2.hr)
 
-Allsamples<-left_join(Allsamples,TempandLightSumall)
 
 ######PCA of biogeochem########
 CarbChem$Sampling_Day<-as.factor(CarbChem$Sampling_Day)

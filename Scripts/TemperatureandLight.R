@@ -382,7 +382,7 @@ notp29<-DeltaLightandTempPhyllo%>%
 
 phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = notp29) 
 #model of temp with foundation spp loss and tide pool size and tide height as covariates
-plot(phyllomaxtempmod)#good
+#plot(phyllomaxtempmod)#good
 qqp(resid(phyllomaxtempmod),"norm") #good
 summary(phyllomaxtempmod) #sum of mod
 

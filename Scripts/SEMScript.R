@@ -24,66 +24,63 @@ library(GGally)
 source("scripts/tidepoolphysicalparameters.R")
 source("scripts/CleanCarbChem.R") #sources both community comp and carb chem code
 source("scripts/plot.psemfun.R") #plot draft SEM
-#change poolid to character
 
+
+#change poolid to character
 SEMcommunitydata$PoolID<-as.character(SEMcommunitydata$PoolID)
 
-#combine community comp with biogeochem
-
+#combine community comp with NEC/NEP
 SEMall<-left_join(Allsamples,SEMcommunitydata)
+  
+#carb chem--averages of pH and nutrients
+#All samples--averages of nec and nep
+#TempandLightsumall --averages of temp and light
 
+#summariseaverage over all time points for pH and nutrients (usually n=4 day/n=4 night)
+#Missing values from one time point in before for tp 24 (both night/day) 
+#and one time point in after from tp 1,4,16 (day),& 20(night)
+Summarybiogeochem<-CarbChem%>%
+  filter(Foundation_spp != "Ocean") %>% 
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night,Before_After,Time_Point)  %>%
+  mutate(NtoP = (NH4_umol_L+NN_umol_L)/PO_umol_L) %>% #group by time point to get n:p ratio per tide pool per time point
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night,Before_After)  %>%
+  summarise(AvgpH =mean(pH_insitu),
+            AvgNtoP =mean(NtoP))
+
+#summarise average max temp over the low tide sample (n=3-4 values per tide pool/time period)
+SummaryTemp<-TempandLightSumall%>%
+  dplyr::group_by(PoolID, Day_Night,Before_After)  %>%
+  summarise(AvgTempmax = mean(Temp.max),
+            AvgPar = mean(Par.mean)) # to show light and temp correlation, not included in SEM model
+
+#leftjoin biogeochem and temp together
+Sumbiogeochemtemp<-left_join(Summarybiogeochem,SummaryTemp)
+
+#summarise average NEC and NEP values over the low tide period (n=2-3 samples per pool/time period) &
+#community metrics and physical parameters 
+SummaryNEPNECcommpp<-SEMall%>%
+  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night,Before_After)  %>%
+  summarise(AvgNEP = mean(NEP.mmol.m2.hr),
+            AvgNEC = mean(NEC.mmol.m2.hr),
+            AvgMytilus = mean(MusselCover),
+            AvgPhyllo = mean(SurfgrassCover),
+            AvgFleshyalgae = mean(macroalgae),
+            AvgCCA = mean(allCCA),
+            Avgproddom = mean(prodphyllodom),
+            AvgSAV = mean(SAtoV),
+            AvgTH = mean(TideHeight)) 
+
+SEMall<-left_join(SummaryNEPNECcommpp,Sumbiogeochemtemp)
 SEMall<-as.data.frame(SEMall)
 
-
-#Calculate N:P ratio since collinearity between nutrient spp
-
-SEMall$NtoP<-(SEMall$NNmean +SEMall$NH4mean)/SEMall$POmean
-
-
-#light values
-SEMDataDLall<-SEMall%>%  
-  select(PoolID, Foundation_spp, Removal_Control, Day_Night,Before_After,Time_Point, Par.mean,Par.max) %>%
-  group_by(PoolID, Foundation_spp, Removal_Control, Before_After,Day_Night) %>%
-  summarise(AvgPar = mean(Par.mean), AvgParmax = mean(Par.max)) #average light over low tide period (n=3/4 light values)
-
-
-#####all data####
-#NEC and NEP were calculated using the change in TA and DIC between time points so only n=3 values per pool
-#Average of rolling means for pH, nutrients of time points mirrored with NEP and NEC (n=3 for biogeochem/nec/nep and n=3/4 for temp values)
-SEMdaynightseparateallavg<-SEMall %>%
-  dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night,Before_After)  %>%
-  dplyr::summarise(AvgNEP = mean(NEP.mmol.m2.hr),
-                   AvgNEC = mean(NEC.mmol.m2.hr),
-                   AvgpH = mean(pHmean),
-                   AvgNN = mean(NNmean),
-                   AvgNH4 = mean(NH4mean),
-                   AvgPO = mean(POmean),
-                   AvgNtoP = mean(NtoP),
-                   AvgTempmean = mean(Temp.mean),
-                   AvgTempmax = mean(Temp.max),
-                   AvgMytilus = mean(MusselCover),
-                   AvgPhyllo = mean(SurfgrassCover),
-                   AvgFleshyalgae = mean(macroalgae),
-                   AvgCCA = mean(allCCA),
-                   Avgproddom = mean(prodphyllodom),
-                   AvgSAV = mean(SAtoV),
-                   AvgTH = mean(TideHeight)) 
-#join with light data
-SEMall<- left_join(SEMdaynightseparateallavg,SEMDataDLall)
 #Takes the delta between after-before period
 SEMallavg<-SEMall%>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
   dplyr::summarise(NEPdelta = AvgNEP[Before_After == 'After'] - AvgNEP[Before_After == 'Before'],
                    NECdelta = AvgNEC[Before_After == 'After'] - AvgNEC[Before_After == 'Before'],
                    pHdelta= AvgpH[Before_After == 'After'] - AvgpH[Before_After == 'Before'],
-                   NNdelta = AvgNN[Before_After == 'After'] - AvgNN[Before_After == 'Before'],
-                   NH4delta = AvgNH4[Before_After == 'After'] - AvgNH4[Before_After == 'Before'],
-                   POdelta= AvgPO[Before_After == 'After'] - AvgPO[Before_After == 'Before'],
                    NtoPdelta = AvgNtoP[Before_After == 'After'] - AvgNtoP[Before_After == 'Before'],
-                   Tempmeandelta = AvgTempmean[Before_After == 'After'] - AvgTempmean[Before_After == 'Before'],
                    Tempmaxdelta = AvgTempmax[Before_After == 'After'] - AvgTempmax[Before_After == 'Before'],
-                   Parmaxdelta = AvgParmax[Before_After == 'After'] -AvgParmax[Before_After == 'Before'],
-                   Percentmaxlight =100 * (AvgParmax[Before_After == 'After'] - AvgParmax[Before_After == 'Before']) /  AvgParmax[Before_After == 'Before'],
                    Parmeandelta = AvgPar[Before_After == 'After'] - AvgPar[Before_After == 'Before'],
                    Mytiluscover =AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before'],
                    Mytilusdelta = -1*(AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before']),
@@ -101,28 +98,26 @@ SEMallavg<-SEMall%>%
 ####Surfgrass SEM####
 PhylloDayNightall<-SEMallavg %>%
   filter(Foundation_spp == 'Phyllospadix') %>%
-  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NitriteNitrate =NNdelta, 
-                Ammonium =NH4delta,Phosphate =POdelta,NtoPRatio=NtoPdelta,
-                MaxLight =Parmaxdelta, MaxTemp = Tempmaxdelta, Light=Parmeandelta, 
-                MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
+  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NtoPRatio=NtoPdelta,
+                MaxTemp = Tempmaxdelta,Light=Parmeandelta,MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
                 SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
 
 #make day/night a factor for multigroup analysis
 PhylloDayNightall$Day_Night<-as.factor(PhylloDayNightall$Day_Night)
-
+TP26<-PhylloDayNightall%>%
+  filter(PoolID != 26)
 #models based off hypotheses
 PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+SAtoVRatio +TideHeight,  data = PhylloDayNightall)
-#PDNLightall<-lm(Light~PhyllospadixLoss+SAtoVRatio +TideHeight, data = PhylloDayNightall)
 PDNTempall<-lm(MaxTemp~ PhyllospadixLoss+SAtoVRatio +TideHeight, data = PhylloDayNightall)
-PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =PhylloDayNightall)
+PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+SAtoVRatio +TideHeight, data =TP26)
 PDNNECall<- lm(NEC~pH +PhyllospadixLoss+ MaxTemp+SAtoVRatio +TideHeight,data =PhylloDayNightall) 
 PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+SAtoVRatio+TideHeight,data = PhylloDayNightall)
-PDNNEPall<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio +TideHeight, data = PhylloDayNightall) 
+PDNNEPall<-lm(NEP ~MaxTemp+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio +TideHeight, data = TP26) 
 
 Pdaynep<-PhylloDayNightall%>%
   filter(Day_Night=="Day")
 phyllonep<-lm(NEP~Light+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio +TideHeight,data=Pdaynep)
-summary(phyllonep)
+#summary(phyllonep)
 
 qqp(resid(PDNMMAlgaeall),"norm")
 #plot(PDNMMAlgaeall)
@@ -140,7 +135,6 @@ qqp(resid(PDNNEPall),"norm")
 
 PhylloDNSEMall<-psem(
   PDNMMAlgaeall,
-  #PDNLightall,
   PDNTempall,
   PDNNtoPall,
   PDNNEPall,
@@ -153,23 +147,22 @@ OutputPhylloMGSEM<-multigroup(PhylloDNSEMall,standardize = 'scale', group ="Day_
 #summary(PhylloDNSEMall,standardize = 'scale',center = "TRUE") #scale data in sum
 
 PhylloModels<-as.data.frame(OutputPhylloMGSEM$global)
-Panovaoutput<-as.data.frame(OutputPhylloMGSEM$anovalnts)
+Panovaoutput<-as.data.frame(OutputPhylloMGSEM$anovaInts)
 PDayNightcoeffs<-as.data.frame(OutputPhylloMGSEM$group.coefs)
 PFisher<-as.data.frame(OutputPhylloMGSEM$Cstat)
 
-write.csv(PhylloModels, 'Output/Daynightphylloglobal.csv' )
-write.csv(Panovaoutput, 'Output/phylloanova.csv' )
-write.csv(PDayNightcoeffs, 'Output/phylloDNcoeff.csv' )
-write.csv(PFisher, 'Output/phyllodaynightfishers.csv' )
+write.csv(PhylloModels, 'Output/DaynightphylloglobalUPDATED.csv' )
+write.csv(Panovaoutput, 'Output/phylloanovaUPDATED.csv' )
+write.csv(PDayNightcoeffs, 'Output/phylloDNcoeffUPDATED.csv' )
+write.csv(PFisher, 'Output/phyllodaynightfishersUPDATED.csv' )
 
 ######mussels#####
 Mytilusdaynightall<-SEMallavg%>%
   filter(Foundation_spp == 'Mytilus') %>%
-  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NitriteNitrate =NNdelta, 
-                Ammonium =NH4delta,Phosphate =POdelta,NtoPRatio=NtoPdelta,
-                MaxLight =Parmaxdelta, MaxTemp = Tempmaxdelta, Light=Parmeandelta, 
+  dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta,NtoPRatio=NtoPdelta,
+                MaxTemp = Tempmaxdelta, Light=Parmeandelta, 
                 MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
-                SAtoVRatio=SAVav,TideHeight=THav, RawTemp=Tempmeandelta) #rename cols to match sem
+                SAtoVRatio=SAVav,TideHeight=THav) #rename cols to match sem
 
 Mytilusdaynightall$Day_Night<-as.factor(Mytilusdaynightall$Day_Night)
 #models based on hypotheses
@@ -200,7 +193,7 @@ qqp(resid(MDNNEPall),"norm")
 
 
 MytilusDNSEMall<-psem(MDNMMalgaeall,
-                      #MDNLightall,
+                  #MDNLightall,
                    MDNTempall,
                    MDNNtoPall,
                    MDNNEPall,
@@ -209,14 +202,14 @@ MytilusDNSEMall<-psem(MDNMMalgaeall,
 
 OutputMytilusSEM<-multigroup(MytilusDNSEMall, group ="Day_Night",standardize = 'scale',test.type = "III")
 MytilusModels<-as.data.frame(OutputMytilusSEM$global)
-Manovaoutput<-as.data.frame(OutputMytilusSEM$anovalnts)
+Manovaoutput<-as.data.frame(OutputMytilusSEM$anovaInts)
 MDayNightcoeffs<-as.data.frame(OutputMytilusSEM$group.coefs)
 MFisher<-as.data.frame(OutputMytilusSEM$Cstat)
 
-write.csv(MytilusModels, 'Output/Daynightmytilusglobal.csv' )
-write.csv(Manovaoutput, 'Output/mytilusanova.csv' )
-write.csv(MDayNightcoeffs, 'Output/mytilusDNcoeff.csv' )
-write.csv(MFisher, 'Output/mytilusdaynightfishers.csv' )
+write.csv(MytilusModels, 'Output/Daynightmytilusglobalupdated.csv' )
+write.csv(Manovaoutput, 'Output/mytilusanovaupdated.csv' )
+write.csv(MDayNightcoeffs, 'Output/mytilusDNcoeffupdated.csv' )
+write.csv(MFisher, 'Output/mytilusdaynightfishersupdated.csv' )
 
 #####Supplemental Info Figs#####
 #significant regression ggplot plots with ggeffects package
