@@ -301,6 +301,8 @@ DeltaLightandTempdata <-as.data.frame(DeltaLightandTempdata)
 DeltaLightandTempdata$PoolID <- as.factor(DeltaLightandTempdata$PoolID)
 
 DeltaLightandTempdata<-left_join(DeltaLightandTempdata,Funsppandpp)
+
+
 ####Time series temp####
 Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
 
@@ -369,12 +371,13 @@ Musseltimeseries<-Temptimeseries%>%
 DeltaLightandTempPhyllo<-DeltaLightandTempdata %>%
   filter(Foundation_spp =="Phyllospadix")
 
+
 DeltaLightandTempMytilus<-DeltaLightandTempdata %>%
   filter(Foundation_spp =="Mytilus" & PoolID  != '30')
 
 #check collinearity between f spp. loss and size of pool and tide height
-#ggpairs(DeltaLightandTempPhyllo[c(9:11)]) #good
-#ggpairs(DeltaLightandTempMytilus[c(9:11)]) #good
+ggpairs(DeltaLightandTempPhyllo[c(10:14)]) #good
+ggpairs(DeltaLightandTempMytilus[c(9:15)]) #good
 
 notp29<-DeltaLightandTempPhyllo%>%
   filter(PoolID !=29) #remove outlier ~3 SD from mean

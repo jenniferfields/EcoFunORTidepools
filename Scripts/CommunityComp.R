@@ -66,7 +66,7 @@ Communitymetrics<-cbind(Sessiles$PoolID, Sessiles$Foundation_spp, Sessiles$Remov
                         Sessiles$Before_After,StandardizedSessile,PercentSessile$Mytilus.californianus,PercentSessile$Phyllospadix.spp)
 Communitymetrics <- Communitymetrics %>%
   rename(PoolID = "Sessiles$PoolID", Foundation_spp = "Sessiles$Foundation_spp",Removal_Control ="Sessiles$Removal_Control",
-         Before_After ="Sessiles$Before_After", MusselCover = "PercentSessile$Mytilus.californianus",SurfgrassCover = "PercentSessile$Phyllospadix.spp")
+         Before_After ="Sessiles$Before_After", AdjMusselCover=Mytilus.californianus, AdjSurfgrassCover=Phyllospadix.spp, MusselCover = "PercentSessile$Mytilus.californianus",SurfgrassCover = "PercentSessile$Phyllospadix.spp")
 #rename joined columns
 
 
@@ -84,17 +84,17 @@ SEMcommunitydata<-Communitymetrics %>%
                                + Osmundea.spectabilis	+ Ulva.spp + Plocamium.pacificum + Smithura.naiadum + Mastocarpus	+ Farlowia.mollis	+
                                  Savoiea.robusta +	Palmaria.hecatensis	+ Melobesia.mediocris +	Leathesia.marina + Callithamnion.pikeanum	+
                                  Laminara.setchellii + Schizymenia.pacifica),
-                 macrophytes = (Phyllospadix.spp + macroalgae), #includes phyllospadix & macroalgae
+                 macrophytes = (AdjSurfgrassCover + macroalgae), #includes phyllospadix & macroalgae
                  macroCCA = (macroalgae + allCCA), #includes macroalgae and CCA
                  consumers = (Chthamalus +	Semibalanus.cariosus +	Balanus.nibulis	+ Balanus.glandula +
                                 Pollicipes.polymerus +	tube.worm	+ Ophlitaspongia.pennata + Halichondria +	
                                 Haliclona.permollis	+ Anthropluera.elegantissima	+ Anthropluera.xanthogrammica	+ 
                                 Urticina.coriacea	+ Epiactis.prolifera +Anthopleura.artemisia	+ Stylantheca.spp),
                  #includes all consumers (no mytilus)
-                 allconsumers = (consumers + Mytilus.californianus), #consumers and mytilus
-                 prodphyllodom = (macroalgae - (consumers + Mytilus.californianus)), #producer dominance for phyllo model (so subtract mytilus too)
+                 allconsumers = (consumers + AdjMusselCover), #consumers and mytilus
+                 prodphyllodom = (macroalgae - (consumers + AdjMusselCover)), #producer dominance for phyllo model (so subtract mytilus too)
                  allproddom = (macrophytes - allconsumers)) %>%#prod dominance with foundation spp
-  dplyr::select(PoolID,Foundation_spp,Removal_Control,Before_After,MusselCover, SurfgrassCover, Mytilus.californianus, Phyllospadix.spp,allCCA, macroalgae,macrophytes, macroCCA,
+  dplyr::select(PoolID,Foundation_spp,Removal_Control,Before_After,AdjMusselCover, AdjSurfgrassCover, MusselCover, SurfgrassCover,allCCA, macroalgae,macrophytes, macroCCA,
                 consumers,allconsumers,  prodphyllodom, allproddom)
 
 
@@ -108,18 +108,20 @@ Funsppcover<- Communitymetrics%>%
 #before then take avg of tide height and sa to v ratio
 PhysicalParameters<-TidePooldes[, c("PoolID","Removal_Control","MaxDepth","Perimeter","SurfaceArea", "Vol", "SAtoV", "TideHeight")] #pull out the necessary columns and treatment 
 
-PhysicalParameters$PoolID<-as.factor(PhysicalParameters$PoolID)
-Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
-Funsppandpp<-left_join(Funsppcover,PhysicalParameters)
 
 PP<-PhysicalParameters %>%
   dplyr::group_by(PoolID,Removal_Control) %>%
   dplyr::summarise(SAVav = mean(SAtoV), #ave between before and after since SA/V changed with fspp removal
-                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Depthav=mean(MaxDepth)) #tide height didn't change 
+                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol),Depthav=mean(MaxDepth)) #tide height didn't change 
 
 PP$PoolID<-as.factor(PP$PoolID)
 Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
 Funsppandpp<-left_join(Funsppcover,PP)
+
+ggpairs(Funsppandpp[c(4:9)])
+#mussel and surfgrass are not correlated with volume; t
+#take residuals of mussel loss and tide height 
+
 
 #####nMDS Surfgrass######
 PhyllocommunitynMDS<-Communitymetrics%>%
@@ -201,14 +203,16 @@ ordSesSurf
 
 phyllopp<-Funsppandpp%>%
   filter(Foundation_spp =="Phyllospadix")
-phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$SAVav,phyllopp$THav)
+phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$Vav,phyllopp$THav)
+
 
 phyllograph<-phyllograph%>%
-  rename(SAV="phyllopp$SAVav",TH="phyllopp$THav")
+  rename(Vol="phyllopp$Vav",TH="phyllopp$THav")
 
-psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+SAV+TH+Phyllodelta*Removal_Control, phyllograph, permutations = 999, 
+psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+Vol+TH, phyllograph, permutations = 999, 
                                method="bray")
 psessperm
+
 
 ####Phyllo Sessile nMDS graph####
 PSessilesnMDSpts<-data.frame(PhylloSessiles$points)
@@ -332,12 +336,18 @@ ordSesMussel
 
 mpp<-Funsppandpp%>%
   filter(Foundation_spp =="Mytilus")
-mgraph<-cbind(MytiluscommunitynMDS,mpp$SAVav,mpp$THav)
+mgraph<-cbind(MytiluscommunitynMDS,mpp$Vav,mpp$THav)
 
 mgraph<-mgraph%>%
-  rename(SAV="mpp$SAVav",TH="mpp$THav")
+  rename(Vol="mpp$Vav",TH="mpp$THav")
 
-msessperm<-adonis(sqrt(sqrt(Myilussessspplist))~Mytilusdelta+SAV+TH, mgraph, permutations = 999, 
+#tide height is correlated with mussel loss so take resids of tide height to get the effect above mussel loss
+MusselTideHeight<-lm(TH~Mytilusdelta,data=mgraph)
+summary(MusselTideHeight) #correlated
+TH.resid<-resid(MusselTideHeight)
+mgraph$TH.resid<-TH.resid
+
+msessperm<-adonis(sqrt(sqrt(Myilussessspplist))~Mytilusdelta+Vol+TH.resid, mgraph, permutations = 999, 
                   method="bray")
 msessperm
 
@@ -460,12 +470,13 @@ ordMobSurf<-ggplot(phyllomobspp) +
         legend.position = c(0.9,0.9), #legend in top right hand corner 0 (left or bottom) to 1 (right or top)
         legend.background = element_rect(fill="transparent")) #fill of legend transparent
 ordMobSurf
-phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$SAVav,phyllopp$THav)
+
+phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$Vav,phyllopp$THav)
 
 phyllomobgraph<-phyllomobgraph%>%
-  rename(SAV="phyllopp$SAVav",TH="phyllopp$THav")
+  rename(Vol="phyllopp$Vav",TH="phyllopp$THav")
 
-pmobperm<-adonis(sqrt(sqrt(Phyllomoblist))~Phyllodelta+SAV+TH,phyllomobgraph, permutations = 999, 
+pmobperm<-adonis(sqrt(sqrt(Phyllomoblist))~Phyllodelta+Vol+TH,phyllomobgraph, permutations = 999, 
                   method="bray")
 pmobperm
 ####Phyllo mobile nMDS graph####
@@ -564,12 +575,19 @@ ordMobMussel<-ggplot(musselmobspp) +
         legend.background = element_rect(fill="transparent")) #fill of legend transparent
 ordMobMussel
 
-mmobgraph<-cbind(MytilusmobnMDS,mpp$SAVav,mpp$THav)
+mmobgraph<-cbind(MytilusmobnMDS,mpp$Vav,mpp$THav)
 
 mmobgraph<-mmobgraph%>%
-  rename(SAV="mpp$SAVav",TH="mpp$THav")
+  rename(Vol="mpp$Vav",TH="mpp$THav")
+#tide height is correlated with mussel loss so take resids of tide height to get the effect above mussel loss
+MusselTideHeight<-lm(TH~Mytilusdelta,data=mmobgraph)
+summary(MusselTideHeight) #correlated
+TH.resid<-resid(MusselTideHeight)
+mmobgraph$TH.resid<-TH.resid
+
+
 set.seed(267)
-mmobperm<-adonis(sqrt(sqrt(Mytilusmobspplist))~Removal_Control*Mytilusdelta+SAV+TH,mmobgraph, permutations = 999, 
+mmobperm<-adonis(sqrt(sqrt(Mytilusmobspplist))~Mytilusdelta+Vol+TH.resid,mmobgraph, permutations = 999, 
                  method="bray")
 mmobperm
 ######Mussel mobile nMDS graph#####
@@ -671,8 +689,12 @@ phyllosessrich<-deltasessrichfunpp %>%
 
 mytilusessrich<-deltasessrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
+ggpairs(mytilusessrich[c(5:11)])
+
+cor.test(mytilusessrich$Mytilusdelta,mytilusessrich$THav) 
+ggpairs(phyllosessrich[c(6:11)])
 #richness and diversity phyllo
-phyllosessrichmod<-lm(DeltaRich~Phyllodelta +SAVav+THav, data=phyllosessrich)
+phyllosessrichmod<-lm(DeltaRich~Phyllodelta +Vav+THav, data=phyllosessrich)
 #plot(phyllosessrichmod) #good
 qqp(resid(phyllosessrichmod),"norm") #good
 
