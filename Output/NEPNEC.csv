@@ -1,0 +1,9 @@
+"","Foundation_spp","Removal_Control","Before_After","PoolID_min","Group_min","Day_Night_min","NEC.mmol.m2.hr_min","NEP.mmol.m2.hr_min","PoolID_max","Group_max","Day_Night_max","NEC.mmol.m2.hr_max","NEP.mmol.m2.hr_max"
+"1","Mytilus","Control","After","12","After_Control","Day",-4.3954972084907,-7.26443948119982,"9","After_Control","Night",4.37848097592222,8.00781686646104
+"2","Mytilus","Control","Before","12","Before_Control","Day",-7.55504306613056,-16.2544524971709,"9","Before_Control","Night",7.45147989050881,9.73657213244621
+"3","Mytilus","Removal","After","10","After_Removal","Day",-6.6287901801292,-8.33941976448607,"32","After_Removal","Night",4.4332887030348,15.7246160741819
+"4","Mytilus","Removal","Before","10","Before_Removal","Day",-5.51870610573537,-12.9345900955976,"32","Before_Removal","Night",4.74518427469052,5.43758116043387
+"5","Phyllospadix","Control","After","1","After_Control","Day",-7.60973959808882,-11.1703571081852,"8","After_Control","Night",3.65157073448573,10.9303422745644
+"6","Phyllospadix","Control","Before","1","Before_Control","Day",-7.04301350688504,-14.3769841031173,"8","Before_Control","Night",3.84518492136583,12.0141344735362
+"7","Phyllospadix","Removal","After","2","After_Removal","Day",-5.59884058764187,-11.521739683197,"7","After_Removal","Night",3.66615707436648,18.3697685294981
+"8","Phyllospadix","Removal","Before","2","Before_Removal","Day",-5.21376294762536,-10.4862797571141,"7","Before_Removal","Night",3.24743501055563,12.9742139294779

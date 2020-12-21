@@ -117,16 +117,7 @@ PhylloDayNightall<-SEMallavg %>%
   filter(Foundation_spp == 'Phyllospadix') %>%
   dplyr::rename(NEP =NEPdelta, NEC=NECdelta, pH=pHdelta, NtoPRatio=NtoPdelta,
                 MaxTemp = Tempmaxdelta,Light=Parmeandelta,MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
-                SAtoVRatio=SAVav,TideHeight=THav,SurfaceArea=SA,Volume=V, NN=NNdelta) #rename cols to match sem
-
-###problem children round 1000XX
-ggplot(noTP26, aes(x=Volume,y=MaxTemp, color=Day_Night))+
-  geom_point()+
-  geom_smooth(method="lm")
-
-ggplot(noTP26, aes(x=MicroMacroAlgaeCover,y=NEP))+
-  geom_point()+
-  geom_smooth(method="lm")
+                SAtoVRatio=SAVav,TideHeight=THav,SurfaceArea=SAav,Volume=Vav, NN=NNdelta) #rename cols to match sem
 
 
 noTP26<-PhylloDayNightall%>%
@@ -148,7 +139,7 @@ noTP26$Day_Night<-as.factor(noTP26$Day_Night)
 PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+Volume+TideHeight,  data = noTP26)
 PDNTempall<-lm(MaxTemp~ PhyllospadixLoss+Volume+TideHeight, data = noTP26)
 PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+Volume +TideHeight, data =noTP26)
-PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =noTP26)
+PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =noTP26) #removed surfgrass loss since very correlated with pH and maxTemp
 PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+Volume+TideHeight,data = noTP26)
 PDNNEPall<-lm(NEP ~MaxTemp +MicroMacroAlgaeCover+NtoPRatio+TideHeight, data =noTP26) 
 
@@ -198,45 +189,39 @@ Mytilusdaynightall<-SEMallavg%>%
                 MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
                 SAtoVRatio=SAVav,TideHeight=THav, SurfaceArea=SAav,Volume=Vav, NN=NNdelta) #rename cols to match sem
 
-Mytilusdaynightall$Day_Night<-as.factor(Mytilusdaynightall$Day_Night)
-
-#linear model with tide height and mussel loss 
-#get resids of tide height (so the effect of tide height above mussel loss since they are correlated)
-MusselTideHeight<-lm(TideHeight~MytilusLoss,data=Mytilusdaynightall)
-#summary(MusselTideHeight) #correlated
-TH.resid<-resid(MusselTideHeight)
-Mytilusdaynightall$TH.resid<-TH.resid
-x<-lm(TH.resid~MytilusLoss,data=Mytilusdaynightall)
-#summary(x) #not correlated
-
-ggpairs(Mytilusdaynightall[c(5:11,13,15,18:21)])
-
+ggplot(Mytilusdaynightall,aes(x=MytilusLoss,y=NEC,fill=Day_Night))+
+  geom_point()+
+  geom_smooth(method="lm")
+#ggpairs(Mytilusdaynightall[c(5:11,13,15,18:21)])
+#tide height and mussel loss are not correlated with day/night separately 
+#must be an artefact of having double values within the dataset
 
 #models based on hypotheses
-MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TH.resid, data = Mytilusdaynightall)
-MDNTempall<-lm(MaxTemp~MytilusLoss +Volume+TH.resid , data = Mytilusdaynightall)
+MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TideHeight, data = Mytilusdaynightall)
+MDNTempall<-lm(MaxTemp~MytilusLoss +Volume+TideHeight, data = Mytilusdaynightall)
 #Mytilusdaynightall$logLight<-sign(Mytilusdaynightall$Light)*log(abs(Mytilusdaynightall$Light+1))
 #MDNLightall<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusdaynightall)
-MDNtoPall<-lm(NtoPRatio ~ MytilusLoss+Volume+TH.resid,  data = Mytilusdaynightall)
-MDNNECall<- lm(NEC~ pH+MaxTemp+TH.resid, data = Mytilusdaynightall) #removed mussel loss since v related to pH
-MDNpHall<- lm(pH ~ MytilusLoss+NEP+ Volume+TH.resid, data =Mytilusdaynightall)
-MDNNEPall<-lm(NEP ~NtoPRatio+MicroMacroAlgaeCover+TH.resid,data = Mytilusdaynightall) 
-
-Mdaynep<-Mytilusdaynightall%>%
-  filter(Day_Night=="Day")
-mytilusnep<-lm(NEP~Light+MicroMacroAlgaeCover+NtoPRatio+SAtoVRatio +TideHeight,data=Mdaynep)
-summary(mytilusnep)
-
+MDNtoPall<-lm(NtoPRatio ~ MytilusLoss+Volume+TideHeight,  data = Mytilusdaynightall)
+MDNNECall<- lm(NEC~ pH+MaxTemp+TideHeight, data = Mytilusdaynightall) #removed mussel loss since v related to pH&maxtemp
+MDNpHall<- lm(pH ~ MytilusLoss+NEP+ Volume+TideHeight, data =Mytilusdaynightall)
+MDNNEPall<-lm(NEP ~NtoPRatio+MicroMacroAlgaeCover+TideHeight,data = Mytilusdaynightall) 
+#used ntoPratio instead of max temp since more background knowledge of how mussels affect nutrient envrionment
 
 qqp(resid(MDNMMalgaeall),"norm") 
+#plot(MDNMMalgaeall)
 qqp(resid(MDNTempall),"norm") 
+#plot(MDNTempall)
 #qqp(resid(MDNLightall),"norm") #log light data for normality
 #plot(MDNLightall) #one outlier with log light data
 qqp(resid(MDNtoPall),"norm") 
+#plot(MDNtoPall)
 qqp(resid(MDNNECall),"norm") 
+#plot(MDNNECall)
 qqp(resid(MDNpHall),"norm") 
+#plot(MDNpHall)
 qqp(resid(MDNNEPall),"norm") 
-
+#plot(MDNNEPall)
+help<-lm(NEC~MaxTemp*Day_Night,data=Mytilusdaynightall)
 
 MytilusDNSEMall<-psem(MDNMMalgaeall,
                    #MDNLightall,

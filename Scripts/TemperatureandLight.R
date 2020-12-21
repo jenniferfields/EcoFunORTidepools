@@ -376,14 +376,15 @@ DeltaLightandTempMytilus<-DeltaLightandTempdata %>%
   filter(Foundation_spp =="Mytilus" & PoolID  != '30')
 
 #check collinearity between f spp. loss and size of pool and tide height
-ggpairs(DeltaLightandTempPhyllo[c(10:14)]) #good
-ggpairs(DeltaLightandTempMytilus[c(9:15)]) #good
+#use volume and tide height
+#ggpairs(DeltaLightandTempPhyllo[c(10:14)]) 
+#ggpairs(DeltaLightandTempMytilus[c(9:15)]) 
 
-notp29<-DeltaLightandTempPhyllo%>%
-  filter(PoolID !=29) #remove outlier ~3 SD from mean
+
 #stats for light/temp plots & ggpredict function for regression line
+DeltaLightandTempPhyllo$logtemp<-sign(DeltaLightandTempPhyllo$DeltaTempMax)*log(abs(DeltaLightandTempPhyllo$DeltaTempMax))
 
-phyllomaxtempmod<-lm(DeltaTempMax ~Phyllodelta+SAVav +THav,data = notp29) 
+phyllomaxtempmod<-lm(logtemp~Phyllodelta+Vav +THav,data = DeltaLightandTempPhyllo) 
 #model of temp with foundation spp loss and tide pool size and tide height as covariates
 #plot(phyllomaxtempmod)#good
 qqp(resid(phyllomaxtempmod),"norm") #good
@@ -399,7 +400,7 @@ pmaxtemp<-pmaxtemp %>% #output for values gives you an x for variable. rename va
 pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main dataframe for ggplot
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
-phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=DeltaTempMax)) +
+phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=logtemp)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
@@ -410,16 +411,18 @@ phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=DeltaTempMax)) +
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs(x ='', y = 'Change in average daily max temperature (°C)') 
+  labs(x ='', y = 'Log change in average daily max temperature (°C)') 
 phyllotemp 
 
 
-DeltaLightandTempPhyllonooutliers<- DeltaLightandTempPhyllo %>%
-  filter(PercentLightMax <= 200) #remove outlier pools >3 SD from mean or greater than 1 cook's distances
-phyllopercentlightmod<-lm(PercentLightMax ~Phyllodelta +SAVav +THav,data = DeltaLightandTempPhyllonooutliers)
+
+DeltaLightandTempPhyllo$loglight<-sign(DeltaLightandTempPhyllo$PercentLightMax)*log(abs(DeltaLightandTempPhyllo$PercentLightMax))
+
+phyllopercentlightmod<-lm(loglight~Phyllodelta +Vav +THav,data = DeltaLightandTempPhyllo)
 
 #plot(phyllopercentlightmod)
 qqp(resid(phyllopercentlightmod),"norm")#good
+#plot(phyllopercentlightmod)
 summary(phyllopercentlightmod)
 
 plightgg<-ggpredict(phyllopercentlightmod, c("Phyllodelta"))
@@ -431,7 +434,7 @@ plight<-plight %>%
 
 plight<-left_join(plight,DeltaLightandTempPhyllo)
 
-phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=PercentLightMax)) +
+phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=loglight)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
@@ -442,12 +445,13 @@ phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=PercentLightMax)) +
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+ 
-  labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Change in average daily percent max light') 
+  labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Log change in average daily percent max light') 
 phyllolight
 
-mytilusmaxtempmod<-lm(DeltaTempMax ~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilus)
+mytilusmaxtempmod<-lm(DeltaTempMax ~Mytilusdelta +Vav +THav,data = DeltaLightandTempMytilus)
 #plot(mytilusmaxtempmod)
 qqp(resid(mytilusmaxtempmod),"norm")#good
+#plot(mytilusmaxtempmod)
 summary(mytilusmaxtempmod)
 
 mtempgg<-ggpredict(mytilusmaxtempmod, c("Mytilusdelta"))
@@ -471,12 +475,12 @@ mytilustemp<-ggplot(mmaxtemp, aes(x =Mytilusdelta, y=DeltaTempMax)) +
         axis.text.y =element_text(color="black", size=35)) +
   ylim(-5,10)+
   theme(legend.position="none") + 
-  labs(x='', y="")
+  labs(x='', y="Change in average daily max temperature (°C)")
+mytilustemp
 
 
-DeltaLightandTempMytilusNoTP25<-DeltaLightandTempMytilus%>%
-  filter(PercentLightMax >= -60)  #filter out pt less than 60 (Tidepool 25) since 3 SD away from average
-mytiluspercentlightmod<-lm(PercentLightMax~Mytilusdelta +SAVav +THav,data = DeltaLightandTempMytilusNoTP25)
+DeltaLightandTempMytilus$loglight<-sign(DeltaLightandTempMytilus$PercentLightMax)*log(abs(DeltaLightandTempMytilus$PercentLightMax))
+mytiluspercentlightmod<-lm(loglight~Mytilusdelta +Vav +THav,data =DeltaLightandTempMytilus)
 #plot(mytiluspercentlightmod) #good
 qqp(resid(mytiluspercentlightmod),"norm")#good 
 summary(mytiluspercentlightmod)
@@ -488,9 +492,9 @@ mlight<-as.data.frame(mlightgg)
 mlight<-mlight %>%
   rename(Mytilusdelta=x)
 
-mlight<-left_join(mlight,DeltaLightandTempMytilusNoTP25)
+mlight<-left_join(mlight,DeltaLightandTempMytilus)
 
-mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=PercentLightMax)) +
+mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=loglight)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_line(aes(x=Mytilusdelta, y=predicted), color="#045a8d",size =2)+
@@ -514,7 +518,7 @@ ggsave(filename = "Output/light.pdf", useDingbats =FALSE,dpi=600,device = "pdf",
 #patchwork figs together
 figure <-phyllotemp + mytilustemp + phyllolight+ mytiluslight +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =40, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size =40))   #edit the lettered text
 
 figure
 ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 30)

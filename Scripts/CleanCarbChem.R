@@ -1083,7 +1083,8 @@ Sumcarbchem<-Sumcarbchem %>%
 #write.csv(Sumcarbchem, file="Output/ChemdatanoNEPNEC.csv")
 
 #NEC and NEP
-necnepminmax<-DeltaSamples %>%
+necnepminmax<-Allsamples %>%
   select(Foundation_spp,Removal_Control, Before_After,Day_Night,NEC.mmol.m2.hr, NEP.mmol.m2.hr)%>%
-  group_by(Foundation_spp,Removal_Control, Before_After,Day_Night) %>%
+  group_by(Foundation_spp,Removal_Control, Before_After) %>%
   summarise_all(.funs=c("min","max")) 
+write.csv(necnepminmax, file="Output/NEPNEC.csv")

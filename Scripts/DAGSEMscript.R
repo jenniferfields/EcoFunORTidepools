@@ -31,7 +31,7 @@ MMC[label = 'Micro/macroalgae cover'];
 V[label = 'Volume']; 
 MaxTemp[label = 'Temperature']; 
 NtoPRatio[label = 'N:P']; 
-TH[label = 'Tide height residuals']
+TH[label = 'Tide height']
 
 #End statements
 # color red is significant negative; where as blue is significant positive; 
@@ -40,30 +40,30 @@ TH[label = 'Tide height residuals']
 # labels are significant standardized coefficients
 
 
-MytilusLoss-> MMC[color = SteelBlue3, penwidth =6.5, label = '0.65',fontsize = 15,
+MytilusLoss-> MMC[color = SteelBlue3, penwidth =7.9, label = '0.79',fontsize = 15,
 fontname = Helvetica, minlen = 1.5]
-MytilusLoss -> MaxTemp[color = grey, penwidth =3.0,fontsize = 15,
+MytilusLoss -> MaxTemp[color = grey, penwidth =3.4,fontsize = 15,
 fontname = Helvetica, minlen = 1.5]
-MytilusLoss-> NtoPRatio[color =  grey, penwidth = 5.1, minlen =1.5]
-MytilusLoss->pH[color = SteelBlue3, penwidth =5.1, label = '0.50',fontsize = 15, fontname = Helvetica, minlen = 1.5]
+MytilusLoss-> NtoPRatio[color =  grey, penwidth = 3.6, minlen =1.5]
+MytilusLoss->pH[color = SteelBlue3, penwidth =4.3, label = '0.43',fontsize = 15, fontname = Helvetica, minlen = 1.5]
 
 
-V-> MMC[color =grey, penwidth = 0.4, minlen = 1.5]
-TH-> MMC[color =OrangeRed2, penwidth = 3.6, label = '-0.36', fontsize = 15, fontname = Helvetica, minlen = 1.5]
-V->MaxTemp[color = grey, penwidth = 0.4, minlen =1.5] 
-TH->MaxTemp[color = grey, penwidth = 0.94, minlen =1.5]
-V-> NtoPRatio[color = grey, penwidth = 4, minlen =1.5]
-TH->NtoPRatio[color = grey, penwidth=3.7, minlen =1.5]
-TH->NEP[color=grey,penwidth=2.5,minlen=1.5]
+V-> MMC[color =grey, penwidth = 0.3, minlen = 1.5]
+TH-> MMC[color =OrangeRed2, penwidth = 3.9, label = '-0.39', fontsize = 15, fontname = Helvetica, minlen = 1.5]
+V->MaxTemp[color = grey, penwidth = 0.41, minlen =1.5] 
+TH->MaxTemp[color = grey, penwidth = 0.99, minlen =1.5]
+V-> NtoPRatio[color = grey, penwidth = 4.0, minlen =1.5]
+TH->NtoPRatio[color = grey, penwidth=4.0, minlen =1.5]
+TH->NEP[color=grey,penwidth=2.4,minlen=1.5]
 V-> pH[color = grey, penwidth =1.6, minlen = 1.5]
-TH->pH[color = grey, penwidth =2.1, minlen = 1.5]
-TH->NEC[color =grey, penwidth=2.9,minlen=1.5]
+TH->pH[color = grey, penwidth =2.3, minlen = 1.5]
+TH->NEC[color =grey, penwidth=2.7,minlen=1.5]
 
-NtoPRatio-> NEP[color = OrangeRed2, penwidth = 1.9, label ='-0.19', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
-MMC-> NEP[color = SteelBlue3, penwidth =8.7, label = '0.87', fontsize = 15, fontname = Helvetica, minlen =1.5]
+NtoPRatio-> NEP[color = OrangeRed2, penwidth = 2.0, label ='-0.20', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
+MMC-> NEP[color = SteelBlue3, penwidth =8.9, label = '0.89', fontsize = 15, fontname = Helvetica, minlen =1.5]
 NEP -> pH[color = SteelBlue3, penwidth =4.0,label='0.40' , fontsize = 15, fontname = Helvetica, minlen =1.5]
-pH -> NEC[color = grey, penwidth =3.3, minlen =1.5] 
-MaxTemp -> NEC[color = OrangeRed2, penwidth = 6.3, label ='-0.63', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
+pH -> NEC[color = grey, penwidth =4.1, minlen =1.5] 
+MaxTemp -> NEC[color = OrangeRed2, penwidth = 6.1, label ='-0.61', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
 
 # add a graph statement
 graph [nodesep = 0.1]
@@ -92,7 +92,7 @@ MMC[label = 'Micro/macroalgae cover'];
 V[label = 'Volume']; 
 MaxTemp[label = 'Temperature']; 
 NtoPRatio[label = 'N:P']; 
-TH[label = 'Tide height residuals']
+TH[label = 'Tide height']
 
 #End statements
 # color red is significant negative; where as blue is significant positive; 
@@ -101,29 +101,29 @@ TH[label = 'Tide height residuals']
 # labels are significant standardized coefficients
 
 
-MytilusLoss-> MMC[color = SteelBlue3, penwidth =6.5, label = '0.65',fontsize = 15,
+MytilusLoss-> MMC[color = SteelBlue3, penwidth =7.9, label = '0.79',fontsize = 15,
 fontname = Helvetica, minlen = 1.5]
-MytilusLoss -> MaxTemp[color = grey penwidth =5.5, fontsize = 15,
+MytilusLoss -> MaxTemp[color = grey penwidth =6.2, fontsize = 15,
 fontname = Helvetica, minlen = 1.5]
-MytilusLoss-> NtoPRatio[color =  grey, penwidth = 3.6, minlen =1.5]
-MytilusLoss->pH[color = SteelBlue3, penwidth =8.9, label = '0.89',fontsize = 15, fontname = Helvetica, minlen = 1.5]
+MytilusLoss-> NtoPRatio[color =  grey, penwidth = 2.5, minlen =1.5]
+MytilusLoss->pH[color = SteelBlue3, penwidth =7.5, label = '0.75',fontsize = 15, fontname = Helvetica, minlen = 1.5]
 
-V-> MMC[color =grey, penwidth = 0.4, minlen = 1.5]
-TH-> MMC[color =OrangeRed2, penwidth = 3.6, label = '-0.36', fontsize = 15, fontname = Helvetica, minlen = 1.5]
-V->MaxTemp[color = grey, penwidth = 0.69, minlen =1.5] 
-TH->MaxTemp[color = grey, penwidth = 1.7, minlen =1.5]
+V-> MMC[color =grey, penwidth = 0.35, minlen = 1.5]
+TH-> MMC[color =OrangeRed2, penwidth = 3.9, label = '-0.39', fontsize = 15, fontname = Helvetica, minlen = 1.5]
+V->MaxTemp[color = grey, penwidth = 0.75, minlen =1.5] 
+TH->MaxTemp[color = grey, penwidth = 1.8, minlen =1.5]
 V-> NtoPRatio[color = grey, penwidth = 2.8, minlen =1.5]
-TH->NtoPRatio[color = grey, penwidth=2.6, minlen =1.5]
+TH->NtoPRatio[color = grey, penwidth=2.8, minlen =1.5]
 TH->NEP[color=grey,penwidth=4.5,minlen=1.5]
-V-> pH[color = grey, penwidth =2.8, minlen = 1.5]
-TH->pH[color = grey, penwidth =3.7, minlen = 1.5]
-TH->NEC[color =grey, penwidth=2.9,minlen=1.5]
+V-> pH[color = grey, penwidth =2.9, minlen = 1.5]
+TH->pH[color = grey, penwidth =4.0, minlen = 1.5]
+TH->NEC[color =grey, penwidth=2.7,minlen=1.5]
 
-MMC-> NEP[color = grey, penwidth =4.4, fontsize = 15, fontname = Helvetica, minlen =1.5]
-NtoPRatio-> NEP[color = OrangeRed2, penwidth = 4.9, label ='-0.49', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
-NEP -> pH[color = SteelBlue3, penwidth =3.8,label='0.38' , fontsize = 15, fontname = Helvetica, minlen =1.5]
-MaxTemp -> NEC[color = OrangeRed2, penwidth = 3.5, label ='-0.35', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
-pH -> NEC[color = grey, penwidth =1.9, minlen =1.5] 
+MMC-> NEP[color = grey, penwidth =2.5, fontsize = 15, fontname = Helvetica, minlen =1.5]
+NtoPRatio-> NEP[color = OrangeRed2, penwidth = 5.3, label ='-0.53', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
+NEP -> pH[color = SteelBlue3, penwidth =3.9,label='0.39' , fontsize = 15, fontname = Helvetica, minlen =1.5]
+MaxTemp -> NEC[color = OrangeRed2, penwidth = 3.4, label ='-0.34', fontsize = 15, fontface = bold,fontname = Helvetica, minlen = 1.5]
+pH -> NEC[color = grey, penwidth =2.4, minlen =1.5] 
 
 # add a graph statement
 graph [nodesep = 0.1]

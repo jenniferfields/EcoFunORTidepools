@@ -105,20 +105,18 @@ Funsppcover<- Communitymetrics%>%
   summarise(Mytilusdelta = -1*(MusselCover[Before_After == 'After'] - MusselCover[Before_After == 'Before']),
             Phyllodelta = -1*(SurfgrassCover[Before_After == 'After'] - SurfgrassCover[Before_After == 'Before']))
 
-#before then take avg of tide height and sa to v ratio
-PhysicalParameters<-TidePooldes[, c("PoolID","Removal_Control","MaxDepth","Perimeter","SurfaceArea", "Vol", "SAtoV", "TideHeight")] #pull out the necessary columns and treatment 
 
-
-PP<-PhysicalParameters %>%
+PP<-TidePooldes %>%
   dplyr::group_by(PoolID,Removal_Control) %>%
   dplyr::summarise(SAVav = mean(SAtoV), #ave between before and after since SA/V changed with fspp removal
-                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol),Depthav=mean(MaxDepth)) #tide height didn't change 
+                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol),Depthav=mean(MaxDepth),
+                   loggerdepth=mean(LoggerDepth)) #tide height didn't change 
 
 PP$PoolID<-as.factor(PP$PoolID)
 Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
 Funsppandpp<-left_join(Funsppcover,PP)
 
-ggpairs(Funsppandpp[c(4:9)])
+#ggpairs(Funsppandpp[c(4:9)])
 #mussel and surfgrass are not correlated with volume; t
 #take residuals of mussel loss and tide height 
 
@@ -147,7 +145,6 @@ PhyllonMDS<-PhyllocommunitynMDS[-c(1:10,72:73)]
 PhyllonMDS<-PhyllonMDS%>%
   dplyr::select_if(colSums(.) != 0) #remove columns with 0s (spp found in only mussel pools)
 
-
 set.seed(267)
 PhylloSessiles<-metaMDS(sqrt(sqrt(PhyllonMDS)),k=2, distance='bray', trymax = 50, autotransform = FALSE) #add more iterations
 
@@ -159,6 +156,9 @@ psdata.scores <- as.data.frame(scores(PhylloSessiles))  #Using the scores functi
 psdata.scores$labels <- rownames(psdata.scores)  # create a column of site names, from the rownames of data.scores
 psspecies.scores <- as.data.frame(scores(PhylloSessiles, "species"))  #Using the scores function from vegan to extract the species scores and convert to a data.frame
 psspecies.scores$Species <- rownames(psspecies.scores)  # create a column of species, from the rownames of species.scores
+
+Mostabun<-PhyllonMDS%>%
+  dplyr::select_if(colSums(.) > 50) #get top 8 spp (over 50% of all pools)
 
 #colors for all sesssile spp graphs
 Colors<-c(
@@ -177,13 +177,17 @@ phyllospp<-left_join(psspecies.scores,SessilesGroupings) #combine with functiona
 
 #label for geom_label function
 subset<-phyllospp%>%
-  filter(Species =="Algae.film"|Species == "Diatoms" | Species == "Chaetomorpha.linum"| Species == "Ptilota.spp"|Species == "Analipus.japonicus") 
-subset$Species<-c("Diatoms","Algae film","A. japonicus","C. linum","Ptilota spp") #rename to easier labels
+  filter(Species =="Algae.film"|Species == "Diatoms" | Species == "Chaetomorpha.linum"| 
+           Species == "Ptilota.spp"|Species == "Analipus.japonicus"|Species=="Crustose.coralline"|
+           Species=="Noncoralline.crust"|Species=="Bosiella.spp"|Species=="Calliathron.tuberculosum"|
+           Species=="Ulva.spp"|Species=="Smithura.naiadum") 
+subset$Species<-c("Diatoms","CCA","Algae film","Noncoralline crust","Bossiella spp","A. japonicus",
+                  "C. linum","Ptilota spp","Ulva spp","Smithora naiadum") #rename to easier labels
 
 ordSesSurf<-ggplot(phyllospp)+
-                   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8) + 
+                   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8,shape =15) + 
   geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.3,color="#006d2c",size = 10) +  # add the species labels
+                   direction=c("both"),nudge_y=0.2,color="#006d2c",size = 12) +  # add the species labels
   #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
   scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
                                                               "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
@@ -195,10 +199,8 @@ ordSesSurf<-ggplot(phyllospp)+
                     axis.ticks = element_blank(),  # remove axis ticks
                     axis.title.x = element_blank(), # remove x-axis labels
                     axis.title.y = element_blank(),
-        legend.title = element_blank(), 
-        legend.text = element_text(color = "black", size = 30),
-        legend.position = c(0.86,0.8), #legend in top right hand corner 0 (left or bottom) to 1 (right or top)
-        legend.background = element_rect(fill="transparent")) #fill of legend transparent
+        legend.title = element_blank(),
+        legend.position = "none")
 ordSesSurf       
 
 phyllopp<-Funsppandpp%>%
@@ -212,7 +214,6 @@ phyllograph<-phyllograph%>%
 psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+Vol+TH, phyllograph, permutations = 999, 
                                method="bray")
 psessperm
-
 
 ####Phyllo Sessile nMDS graph####
 PSessilesnMDSpts<-data.frame(PhylloSessiles$points)
@@ -263,7 +264,7 @@ Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape =
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   labs(x ='', y = 'Sessile community nMDS2', shape='', color='',size='', linetype ='Before or after') +
-  annotate("text",  size=14, x=0.85, y=0.75, label= "2D stress = 0.12") +
+  annotate("text",  size=14, x=0.7, y=0.75, label= "2D stress = 0.12") +
   theme(axis.text = element_blank(), 
         axis.title.x = element_text(color="black", size=50), 
         axis.title.y = element_text(color="black", size=50), 
@@ -302,6 +303,8 @@ set.seed(267)
 McombinednMDS<-metaMDS(sqrt(sqrt(Myilussessspplist)),k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
 McombinednMDS$stress  #0.1736432
 
+Mostabunm<-Myilussessspplist%>%
+  dplyr::select_if(colSums(.) > 50) #get top 7 spp (over 50% of all pools)
 #nMDS of surgrass
 #ordiplot in ggplot
 msdata.scores <- as.data.frame(scores(McombinednMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
@@ -310,14 +313,17 @@ msspecies.scores <- as.data.frame(scores(McombinednMDS, "species"))  #Using the 
 msspecies.scores$Species <- rownames(msspecies.scores)  # create a column of species, from the rownames of species.scores
 
 musselspp<-left_join(msspecies.scores,SessilesGroupings)
-labels<-musselspp%>%
-  filter(Species =="Diatoms")
 
+labels<-musselspp%>%
+  filter(Species =="Diatoms"|Species =="Crustose.coralline"|Species =="Algae.film"|Species =="Noncoralline.crust"|Species =="Odonthalia.floccosa"|
+           Species =="Chthamalus"|Species =="Anthropluera.xanthogrammica")
+
+labels$Species<-c("Diatoms","CCA","Algae film","Noncoralline crust","Odonthalia floccosa","Chthamalus spp","Anthopluera xanthogrammica")
 ordSesMussel<-ggplot(musselspp) + 
-  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8) + 
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8, shape =15) + 
   #geom_text(data=msspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add all species labels
   geom_label_repel(data=labels,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.1,color="#045a8d",size = 15) +  # add the species labels
+                   direction=c("both"),nudge_y=0.3,color="#045a8d",size = 12) +  # add the species labels
   scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
                                                               "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
   labs(color="Functional group")+
@@ -328,10 +334,7 @@ ordSesMussel<-ggplot(musselspp) +
         axis.ticks = element_blank(),  # remove axis ticks
         axis.title.x = element_blank(), # remove x-axis labels
         axis.title.y = element_blank(),
-        legend.title = element_blank(), 
-        legend.text = element_text(color = "black", size = 30),
-        legend.position = c(0.85,0.8), #legend in top right hand corner 0 (left or bottom) to 1 (right or top)
-        legend.background = element_rect(fill="transparent")) #fill of legend transparent
+        legend.position = "none")
 ordSesMussel
 
 mpp<-Funsppandpp%>%
@@ -341,13 +344,8 @@ mgraph<-cbind(MytiluscommunitynMDS,mpp$Vav,mpp$THav)
 mgraph<-mgraph%>%
   rename(Vol="mpp$Vav",TH="mpp$THav")
 
-#tide height is correlated with mussel loss so take resids of tide height to get the effect above mussel loss
-MusselTideHeight<-lm(TH~Mytilusdelta,data=mgraph)
-summary(MusselTideHeight) #correlated
-TH.resid<-resid(MusselTideHeight)
-mgraph$TH.resid<-TH.resid
 
-msessperm<-adonis(sqrt(sqrt(Myilussessspplist))~Mytilusdelta+Vol+TH.resid, mgraph, permutations = 999, 
+msessperm<-adonis(sqrt(sqrt(Myilussessspplist))~Mytilusdelta+Vol+TH, mgraph, permutations = 999, 
                   method="bray")
 msessperm
 
@@ -415,7 +413,7 @@ Musselsessilesplot<-ggplot(MSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Be
 Musselsessilesplot
 
 ######Mobile nMDS######
-
+ 
 SurfgrassMobiles <-Mobiles %>%
   filter(Before_After !="Immediate" & Foundation_spp =="Phyllospadix")
 
@@ -437,6 +435,9 @@ Phyllomob<-metaMDS(sqrt(sqrt(Phyllomoblist)),k=2, distance='bray', trymax = 50, 
 
 Phyllomob$stress #0.2304031
 
+Mostabunmobp<-Phyllomoblist%>%
+  dplyr::select_if(colSums(.) > 100) #get top 9 spp 
+
 #nMDS of surgrass
 #ordplot in ggplot
 pmdata.scores <- as.data.frame(scores(Phyllomob))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
@@ -453,9 +454,19 @@ phyllomobspp<-left_join(pmspecies.scores,MobileGroupings)
 phyllomobspp<-phyllomobspp%>%
   filter(Functional_Group != "SuspensionFeeder")
 
+plabels<-phyllomobspp%>%
+  filter(Species =="Tonicella.spp"|Species =="Littorina.spp"|Species =="Tegula.funebralis"|Species =="Lottia.spp"|Species =="Pagarus.spp"|
+           Species =="Pugettia.producta"|Species =="Heptacarpus.sitchensis"|Species =="Strongylocentrotus.purpuratus"|Species =="Sculpin")
+
+plabels$Species<-c("Tonicella spp","Littorina spp","Tegula funebralis","Lottia spp","Pagurus spp","Pugettia producta","Heptacarpus sitchensis",
+                   "Strongylocentrotus purpuratus","Sculpin")
+
+
 ordMobSurf<-ggplot(phyllomobspp) + 
   #geom_text(data=pmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
-  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8) +
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8,shape=15) +
+  geom_label_repel(data=plabels,aes(x=NMDS1,y=NMDS2,label=Species),
+                   direction=c("both"),nudge_y=0.3,color="#006d2c",size = 12) +  # add the species labels
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
   labs(x= "nMDS1",color="Functional group")+
   theme_classic()+
@@ -466,9 +477,7 @@ ordMobSurf<-ggplot(phyllomobspp) +
         axis.title.x = element_text(color="black", size=40),
         axis.title.y = element_blank(),
         legend.title = element_blank(),
-        legend.text = element_text(color = "black", size = 30),
-        legend.position = c(0.9,0.9), #legend in top right hand corner 0 (left or bottom) to 1 (right or top)
-        legend.background = element_rect(fill="transparent")) #fill of legend transparent
+        legend.position = "none")
 ordMobSurf
 
 phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$Vav,phyllopp$THav)
@@ -549,6 +558,8 @@ set.seed(267)
 MmobnMDS<-metaMDS(sqrt(sqrt(Mytilusmobspplist)),k=2, distance='bray', trymax = 50, autotransform  = FALSE) #add more iterations
 MmobnMDS$stress  #.1962671
 
+Mostabunmobm<-Mytilusmobspplist%>%
+  dplyr::select_if(colSums(.) > 100) #get top 9 spp 
 
 #ordiplot in ggplot
 mmdata.scores <- as.data.frame(scores(MmobnMDS))  #Using the scores function from vegan to extract the site scores and convert to a data.frame
@@ -558,9 +569,18 @@ mmspecies.scores$Species <- rownames(mmspecies.scores)  # create a column of spe
 
 musselmobspp<-left_join(mmspecies.scores,MobileGroupings)
 
+labelsm<-musselmobspp%>%
+  filter(Species =="Nucella.ostrina"|Species =="Callistoma.canaliculata"|Species =="Lottorina.spp"|Species =="Tegula.funebralis"|Species =="Pagarus.spp"|
+           Species =="Lottia.spp"|Species =="Strongylocentrotus.purpuratus"|Species =="Sculpin")
+
+labelsm$Species<-c("Nucella ostrina","Callistoma canaliculata","Tegula funebralis","Lottia spp","Pagurus spp",
+                   "Strongylocentrotus purpuratus","Sculpin")
+
 ordMobMussel<-ggplot(musselmobspp) + 
-  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8) +
+  geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8, shape=15) +
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
+  geom_label_repel(data=labelsm,aes(x=NMDS1,y=NMDS2,label=Species),
+                   direction=c("both"),nudge_y=0.1,color="#045a8d",size = 12) +  # add the species labels
   labs(x= "nMDS1",color="Functional group")+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
@@ -570,24 +590,16 @@ ordMobMussel<-ggplot(musselmobspp) +
         axis.title.x = element_text(color="black", size=40),
         axis.title.y = element_blank(),
         legend.title = element_blank(), 
-        legend.text = element_text(color = "black", size = 30),
-        legend.position = c(0.75,0.92), #legend in top right hand corner 0 (left or bottom) to 1 (right or top)
-        legend.background = element_rect(fill="transparent")) #fill of legend transparent
+        legend.position = "none")
 ordMobMussel
 
 mmobgraph<-cbind(MytilusmobnMDS,mpp$Vav,mpp$THav)
 
 mmobgraph<-mmobgraph%>%
   rename(Vol="mpp$Vav",TH="mpp$THav")
-#tide height is correlated with mussel loss so take resids of tide height to get the effect above mussel loss
-MusselTideHeight<-lm(TH~Mytilusdelta,data=mmobgraph)
-summary(MusselTideHeight) #correlated
-TH.resid<-resid(MusselTideHeight)
-mmobgraph$TH.resid<-TH.resid
-
 
 set.seed(267)
-mmobperm<-adonis(sqrt(sqrt(Mytilusmobspplist))~Mytilusdelta+Vol+TH.resid,mmobgraph, permutations = 999, 
+mmobperm<-adonis(sqrt(sqrt(Mytilusmobspplist))~Mytilusdelta+Vol+TH,mmobgraph, permutations = 999, 
                  method="bray")
 mmobperm
 ######Mussel mobile nMDS graph#####
@@ -689,10 +701,9 @@ phyllosessrich<-deltasessrichfunpp %>%
 
 mytilusessrich<-deltasessrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
-ggpairs(mytilusessrich[c(5:11)])
+#ggpairs(mytilusessrich[c(5:11)])
 
-cor.test(mytilusessrich$Mytilusdelta,mytilusessrich$THav) 
-ggpairs(phyllosessrich[c(6:11)])
+#ggpairs(phyllosessrich[c(6:11)])
 #richness and diversity phyllo
 phyllosessrichmod<-lm(DeltaRich~Phyllodelta +Vav+THav, data=phyllosessrich)
 #plot(phyllosessrichmod) #good
@@ -729,10 +740,10 @@ phyllospp
 #richness and diversity mytilus
 mytilusessrich$logrichness<-sign(mytilusessrich$DeltaRich)*log(abs(mytilusessrich$DeltaRich))
 
-mytilussessrichmod<-lm(logrichness~Mytilusdelta +SAVav+THav, data=mytilusessrich)
+mytilussessrichmod<-lm(logrichness~Mytilusdelta +Vav+THav, data=mytilusessrich)
 #plot(mytilussessrichmod) #good
 qqp(resid(mytilussessrichmod),"norm") #one point out log to meet normality
-anova(mytilussessrichmod)
+
 summary(mytilussessrichmod)
 mytilussppr<-ggpredict(mytilussessrichmod, c("Mytilusdelta")) #predict marginal effects from model for foundation spp. loss
 plot(mytilussppr) #plot output 
@@ -785,7 +796,7 @@ phyllomobrich<-deltamobrichfunpp %>%
 mytilusmobrich<-deltamobrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
 #richness and diversity phyllo
-phyllomobrichmod<-lm(DeltaRich~Phyllodelta +SAVav+THav, data=phyllomobrich)
+phyllomobrichmod<-lm(DeltaRich~Phyllodelta +Vav+THav, data=phyllomobrich)
 #plot(phyllomobrichmod) #good
 qqp(resid(phyllomobrichmod),"norm") #good
 summary(phyllomobrichmod)
@@ -813,10 +824,10 @@ phyllospprm<-ggplot(phyllosppmobr, aes(x =Phyllodelta, y=DeltaRich)) +
   theme(legend.position="none")+
   labs(x ='Surfgrass loss \n (Phyllospadix spp.)', y = 'Change in moblie species richness') 
 phyllospprm
-anova(phyllomobrichmod)
+
 
 #richness and diversity mytilus
-mytilusmobrichmod<-lm(DeltaRich~Mytilusdelta +SAVav+THav, data=mytilusmobrich)
+mytilusmobrichmod<-lm(DeltaRich~Mytilusdelta +Vav+THav, data=mytilusmobrich)
 #plot(mytilusmobrichmod) #good
 qqp(resid(mytilusmobrichmod),"norm") #good
 summary(mytilusmobrichmod)
@@ -844,7 +855,7 @@ mspmr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=DeltaRich)) +
   labs(x ='CA mussel loss \n (Mytilus californianus)', y = '') 
 mspmr
 
-anova(mytilusmobrichmod)
+
 
 #patchwork of richness plots
 richpm<-phyllospp+mspr+phyllospprm+mspmr+
