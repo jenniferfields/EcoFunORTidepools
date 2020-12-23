@@ -23,7 +23,8 @@ library(patchwork) #patch plots together with ease!
 source("scripts/tidepoolphysicalparameters.R")
 source("scripts/CommunityComp.R")
 #View(PCATPDesc)
-
+#load ocean temp data
+SMURFOceanTemp<-read_csv("Data/LightandTemp/Fields_OR_1mSMURFTemp_2019.csv")
 
 #########Cleaning Light and Temp logger data#################
 #options(na.action = "na.omit") 
@@ -37,6 +38,7 @@ temp.data <-
 
 temp.data$Date.Time<- mdy_hm(temp.data$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time 
 #View(temp.data)
+SMURFOceanTemp$Date.Time<-mdy_hm(SMURFOceanTemp$Date.Time,quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time
 
 #convert lux to par
 #parameters from Long 2012 Field exp values
@@ -265,6 +267,12 @@ RemovalDailyMax$Before_After<-"After"
 MaxTempLightData<-rbind(ControlDailyMax,RemovalDailyMax)
 
 #####Time series plot#####
+#figuring it out...
+SMURFOceanTemp<-SMURFOceanTemp %>%
+  mutate(Before_After=case_when("2019-07-15 00:00:00" < Date.Time < "2019-06-16 00:00:00"  ~"Before",
+                                "2019-08-16 00:00:00" < Date.Time < "2019-07-18 00:00:00" ~"After",
+                                TRUE ~as.character(x)))
+
 TemptimeseriesC<-Control.period %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control)
 TemptimeseriesC$Before_After<-"Before"
