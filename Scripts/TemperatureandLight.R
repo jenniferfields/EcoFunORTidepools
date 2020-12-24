@@ -267,11 +267,6 @@ RemovalDailyMax$Before_After<-"After"
 MaxTempLightData<-rbind(ControlDailyMax,RemovalDailyMax)
 
 #####Time series plot#####
-#figuring it out...
-SMURFOceanTemp<-SMURFOceanTemp %>%
-  mutate(Before_After=case_when("2019-07-15 00:00:00" < Date.Time < "2019-06-16 00:00:00"  ~"Before",
-                                "2019-08-16 00:00:00" < Date.Time < "2019-07-18 00:00:00" ~"After",
-                                TRUE ~as.character(x)))
 
 TemptimeseriesC<-Control.period %>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control)
@@ -313,6 +308,8 @@ DeltaLightandTempdata<-left_join(DeltaLightandTempdata,Funsppandpp)
 
 ####Time series temp####
 Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
+SMURFOceanTemp<-SMURFOceanTemp%>%
+  filter(Date.Time < "2019-08-16 00:00:00")
 
 Phyllotimeseries<-Temptimeseries%>%
   filter(Foundation_spp =="Phyllospadix") 
@@ -329,50 +326,64 @@ Phyllotimeseriesmean$Date.Time<-as.factor(Phyllotimeseriesmean$Date.Time)
 Phyllotimeseries<-left_join(Phyllotimeseries,Phyllotimeseriesmean)
 
 Phyllotimeseries$PoolID<-as.factor(Phyllotimeseries$PoolID)
-
+ 
 
 #Phyllotimeseries$Day<-as.factor(as.Date(Phyllotimeseries$by60, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
-Temptimeseries %>%
+Phyllotempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Phyllospadix") %>%
-ggplot(aes(x=Date.Time,y=Temp.C,color=Phyllodelta)) +
-  geom_line()+
+ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
+  geom_line(size=2)+
+  scale_colour_distiller(palette = "Greys",direction =-1)+
+  geom_vline(xintercept = as.POSIXct("2019-07-17"), linetype=2, 
+             color = "black", size=3)+
+  geom_line(data=SMURFOceanTemp,aes(x=Date.Time,y=OceanTemp.C),colour="#a50f15",size=2)+
   theme_classic()+
   facet_wrap(~Removal_Control) +
-  theme(axis.text.x=element_text(size = 35, color = "black"), 
-        axis.text.y=element_text(size = 35, color = "black"),
+  theme(axis.text.x=element_text(size = 30, color = "black"), 
+        axis.text.y=element_text(size = 30, color = "black"),
         axis.title.y = element_text(size = 40, color = "black"),
         axis.title.x = element_text(size = 40, color = "black"),
-        legend.text =element_text(size = 25, color = "black"),
-        legend.title = element_text(size = 35, color = "black"))+
-  labs(y="Temperature (°C)", x="Date", color ="Surfgrass Loss")
-ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+        legend.text =element_text(size = 30, color = "black"),
+        legend.title = element_text(size = 35, color = "black"),
+        strip.text.x = element_text(size=40, color="black"), #change facet labels
+        panel.spacing = unit(3, "lines"), #change facet spacing
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(1.0,"cm")) +
+  annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
+           color="black",size=15)+
+  annotate(geom="text", y=34, x=as.POSIXct("2019-08-02"), label="After",
+           color="black",size=15)+
+   labs(y="Temperature (°C)", x="Date", color ="Surfgrass Loss")
+Phyllotempseries
+#ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
 
-Temptimeseries %>%
+Musseltempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Mytilus") %>%
   ggplot(aes(x=Date.Time,y=Temp.C,color=Mytilusdelta)) +
-  geom_line()+
+  geom_line(size =2)+
+  scale_colour_distiller(palette = "Greys",direction =-1)+
+  geom_vline(xintercept = as.POSIXct("2019-07-17"), linetype=2, 
+             color = "black", size=3)+
+  geom_line(data=SMURFOceanTemp,aes(x=Date.Time,y=OceanTemp.C),colour="#a50f15",size=2)+
   theme_classic()+
   facet_wrap(~Removal_Control) +
-  theme(axis.text.x=element_text(size = 35, color = "black"), 
-        axis.text.y=element_text(size = 35, color = "black"),
+  theme(axis.text.x=element_text(size = 30, color = "black"), 
+        axis.text.y=element_text(size = 30, color = "black"),
         axis.title.y = element_text(size = 40, color = "black"),
         axis.title.x = element_text(size = 40, color = "black"),
-        legend.text =element_text(size = 25, color = "black"),
-        legend.title = element_text(size = 35, color = "black"))+
+        legend.text =element_text(size = 30, color = "black"),
+        legend.title = element_text(size = 35, color = "black"),
+        strip.text.x = element_text(size=40, color="black"), #change facet labels
+        panel.spacing = unit(3, "lines"), #change facet spacing
+        legend.key.size = unit(1.5, "cm"),
+        legend.key.width = unit(1.0,"cm")) +
+  annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
+           color="black",size=15)+
+  annotate(geom="text", y=34, x=as.POSIXct("2019-08-02"), label="After",
+           color="black",size=15)+
   labs(y="Temperature (°C)", x="Date", color ="Mussel Loss")
-ggsave(filename = "Output/musseltemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
-
-
-
-ggplot(Phyllotimeseries, aes(x=Date.Time,y=Meantemp,color=Phyllodelta)) +
-  geom_line()+
-  theme_classic()+
-  facet_wrap(~Removal_Control)
-
-ggsave(filename = "Output/musselTHupdated.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
-
-Musseltimeseries<-Temptimeseries%>%
-  filter(Foundation_spp =="Mytilus" & PoolID  != '30')
+Musseltempseries
+#ggsave(filename = "Output/musseltemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 ####temp and light analyses####
 #separate datasets for surfgrass and mussels
@@ -408,18 +419,20 @@ pmaxtemp<-pmaxtemp %>% #output for values gives you an x for variable. rename va
 pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main dataframe for ggplot
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
-phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=logtemp)) +
+phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=exp(logtemp))) + #aes(y = ) using the non-logged data
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  geom_line(aes(x=Phyllodelta, y=exp(predicted)), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=exp(conf.low),ymax=exp(conf.high)),alpha=0.2) +
   theme_classic()+
+  coord_trans(y="log")+
+  scale_y_continuous(breaks = c(-2,-1,0,2,4,6))+ #(or whatever breaks are appropriate) 
   theme(axis.title.x=element_text(color="black", size=45), 
         axis.title.y=element_text(color="black", size=45),
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs(x ='', y = 'Log change in average daily max temperature (°C)') 
+  labs(x ='', y = 'Change in average daily max temperature (°C)') 
 phyllotemp 
 
 
@@ -524,9 +537,10 @@ light
 ggsave(filename = "Output/light.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 #patchwork figs together
-figure <-phyllotemp + mytilustemp + phyllolight+ mytiluslight +      #patchwork to combine plots
+figure <-(Phyllotempseries | Musseltempseries)/ (phyllotemp | mytilustemp) /
+  (phyllolight| mytiluslight) +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =40))   #edit the lettered text
 
 figure
-ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 30)
+ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 47, height = 45)

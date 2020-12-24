@@ -59,10 +59,9 @@ CarbChem$Sampling_Day<-mdy(CarbChem$Sampling_Day, quiet=FALSE, tz="America/Los_A
 CarbChem$Date_Time <- paste(CarbChem$Sampling_Day, CarbChem$Sampling_time)
 CarbChem$Date_Time<-ymd_hms(CarbChem$Date_Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time
 
-CarbChemAll<-CarbChem
 ####Time 1-Time 4####
 #Calculate delta TA between Time Points
-CarbChem<-CarbChemAll %>%
+CarbChem<-CarbChem %>%
   filter(Time_Point != '5') %>% #take out time point 5 from further analysis
   filter(PoolID != '30') #removing pool 30 because nutrients values in After period during 
 #day were orders of magnitude higher than others (ex:Nh4 avg 4540 ug/L, PO avg 324ug/L, NO avg 670ug/L)
@@ -272,7 +271,6 @@ Oceanday1AI<-which(CarbChem$Time_Point == "1" & CarbChem$Before_After == "After"
 CarbChem$DO_mg_L[Oceanday1AI]<- -36.4751 + (5.4970 * CarbChem$pH_insitu[Oceanday1AI]) + (0.1504 * CarbChem$Temp.pool[Oceanday1AI])
 CarbChem$DO_p[Oceanday1AI]<- -470.450 + (66.208  * CarbChem$pH_insitu[Oceanday1AI]) + (3.935 * CarbChem$Temp.pool[Oceanday1AI])
 
-########NEC and NEP rates##########
 #calculate all the CO2Sys params
 PoolCO2<-carb(flag=8, CarbChem$pH_insitu, CarbChem$TA_CRM/1000000, S=CarbChem$Salinity, T=CarbChem$Temp.pool, Patm=1, P=0, 
               Pt=CarbChem$PO_umol_L/1000000, Sit=0,
@@ -314,7 +312,7 @@ CarbChem$DIC_Norm<-CarbChem$DIC*(CarbChem$Salinity_Lab/34)
 #theme_classic() +
 #ggsave("Output/EcoMetabolism/TATime.png", width=55, height=35,dpi=300, unit="cm")
 #TATime
-
+#####NEC and NEP#####
 #for TA, DIC, Sampling Time to find change over time
 DeltaSamples<- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
@@ -855,10 +853,10 @@ MytilusBiogeochem <-Biogeochem.sum %>%
   filter(Foundation_spp !="Phyllospadix")
 
 PhylloBiogeochem<-left_join(PhylloBiogeochem,Phylloloss)
-PhysicalParameters$PoolID<-as.character(PhysicalParameters$PoolID)
-PhylloBiogeochem<-left_join(PhylloBiogeochem,PhysicalParameters) 
+TidePooldes$PoolID<-as.character(TidePooldes$PoolID)
+PhylloBiogeochem<-left_join(PhylloBiogeochem,TidePooldes) 
 MytilusBiogeochem <-left_join(MytilusBiogeochem,Musselloss)
-MytilusBiogeochem<-left_join(MytilusBiogeochem,PhysicalParameters) 
+MytilusBiogeochem<-left_join(MytilusBiogeochem,TidePooldes) 
 
 PhylloBiogeochemPCA<-PhylloBiogeochem[,c("DO_mg_L_mean","DO_mg_L_var","DO_mg_L_max",
                                          "pH_insitu_mean","pH_insitu_var","pH_insitu_max",
@@ -881,31 +879,17 @@ MytilusBiogeochemPCAmodel<-prcomp(MytilusBiogeochemPCA, center = TRUE, scale. = 
 summary(PhylloBiogeochemPCAmodel)#shows amount of variance explained by each axis
 #This is actually a big wide table, with all 38 Principle Components
 #It tell us the amount of variance explained by each axis, and the cumulative proportion of variance explained
-#PC1  0.3536 PC2 0.2669total 0.6205
+#PC1   0.3288  PC2 0.2790total 0.6079
 summary(MytilusBiogeochemPCAmodel)
-#pc1 0.3734 pc2  0.2440 0.6174
+#pc1 0.3808 pc2  0.2383 0.6191
 
 
 PhylloPCAscores<- data.frame(PhylloBiogeochemPCAmodel$x[,c(1,2)])#asks for first rows (PC1 and PC2) of table
 MytilusPCAscores<- data.frame(MytilusBiogeochemPCAmodel$x[,c(1,2)])
 #View(PCAscores)
 biplot(PhylloBiogeochemPCAmodel, xlab="PC1", ylab="PC2")
-PhylloBiogeochemPCAgraph<-data.frame(bind_cols(PhylloBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Phyllodelta","SAtoV","TideHeight")], PhylloPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
-MytilusBiogeochemPCAgraph<-data.frame(bind_cols(MytilusBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Mytilusdelta","SAtoV","TideHeight")], MytilusPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
-
-
-
-#Now to do the MANOVA
-#remove ocean
-PhylloBiogeochemmanova<-PhylloBiogeochemPCAgraph%>%
-  filter(Foundation_spp !="Ocean")
-phylloManova<-manova(cbind(PC1,PC2)~Phyllodelta  + SAtoV +TideHeight , data=PhylloBiogeochemmanova)
-summary(phylloManova, test="Pillai")
-
-mytilusBiogeochemmanova<-MytilusBiogeochemPCAgraph%>%
-  filter(Foundation_spp !="Ocean")
-mytilusmanova<-manova(cbind(PC1,PC2)~Mytilusdelta + SAtoV +TideHeight, data=mytilusBiogeochemmanova)
-summary(mytilusmanova, test="Pillai")
+PhylloBiogeochemPCAgraph<-data.frame(bind_cols(PhylloBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Phyllodelta")], PhylloPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
+MytilusBiogeochemPCAgraph<-data.frame(bind_cols(MytilusBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Mytilusdelta")], MytilusPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
 
 ########Combined data with Before/After##########
 #Plot with just point data
@@ -944,7 +928,7 @@ y1<-as.matrix(y1)
 
 Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(color =Phyllodelta, size =Phyllodelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greens",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend")+
   scale_size(range = c(1,15)) +
   geom_point(data=pcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -955,8 +939,8 @@ Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_
                colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='PC1 (32.88%)', y = 'PC2 (27.9%)', shape='', color='Surfgrass loss',size='Surfgrass loss', linetype ='Before or after') +
-  #PC1  0.3288PC2 0.2790total 0.6079
+  labs(x ='PC1 (32.88%)', y = 'PC2 (27.9%)', shape='', color='Surfgrass percent loss',size='Surfgrass percent loss', linetype ='Before or after') +
+  #PC1   0.3288  PC2 0.2790total 0.6079
   theme(axis.text = element_text(color = "black", size = 35), 
         axis.title.x = element_text(color="black", size=40), 
         axis.title.y = element_text(color="black", size=40), 
@@ -982,10 +966,9 @@ surfgrass
 #ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 library(patchwork)
-
 surfgrasspca<-Surfgrassplot+surfgrass+
-  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =35, face = "bold"))   #edit the lettered text
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =40))   #edit the lettered text
 surfgrasspca
 ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
@@ -1010,7 +993,7 @@ z1<-as.matrix(z1)
 
 musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Blues",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend")+
   scale_size(range = c(1,15)) +
   geom_point(data=mcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -1021,8 +1004,8 @@ musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)
                colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='PC1 (38.08%)', y = 'PC2 (23.83%)', shape='', color='Mussel loss',size='Mussel loss', linetype ='Before or after') +
-  #pc1 0.3808 pc2 0.2383 0.6191
+  labs(x ='PC1 (38.08%)', y = 'PC2 (23.83%)', shape='', color='Mussel percent loss',size='Mussel percent loss', linetype ='Before or after') +
+  #pc1 0.3808 pc2  0.2383 0.6191
   theme(axis.text = element_text(color = "black", size = 35), 
         axis.title.x = element_text(color="black", size=40), 
         axis.title.y = element_text(color="black", size=40), 
@@ -1051,8 +1034,8 @@ musselloadings
 library(patchwork)
 
 musselpca<-musselplot+musselloadings+
-  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =35, face = "bold"))   #edit the lettered text
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =40))   #edit the lettered text
 musselpca
 ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
