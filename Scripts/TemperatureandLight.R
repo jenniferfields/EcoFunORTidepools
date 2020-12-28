@@ -316,17 +316,18 @@ Phyllotimeseries<-Temptimeseries%>%
 
 Phyllotimeseriesmean<-Temptimeseries%>%
   filter(Foundation_spp =="Phyllospadix") %>%
-  group_by(PoolID,Removal_Control,Phyllodelta,by60=cut(Date.Time, "60 min"), Date.Time) %>%
+  group_by(Removal_Control,Before_After,by60=cut(Date.Time, "60 min"), Date.Time) %>%
   summarise(Meantemp = mean(Temp.C),
             Maxtemp = max(Temp.C),
-           mintemp=min(Temp.C))
-#idk wtf
-#join together somehow
+            mintemp=min(Temp.C))
+
 Phyllotimeseriesmean$Date.Time<-as.factor(Phyllotimeseriesmean$Date.Time)
 Phyllotimeseries<-left_join(Phyllotimeseries,Phyllotimeseriesmean)
 
 Phyllotimeseries$PoolID<-as.factor(Phyllotimeseries$PoolID)
  
+
+Temptimeseries$Phyllodelta[Temptimeseries$Before_After=="Before"]<-0 #change phyllo loss before period to 0
 
 #Phyllotimeseries$Day<-as.factor(as.Date(Phyllotimeseries$by60, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
 Phyllotempseries<-Temptimeseries %>%
@@ -346,7 +347,7 @@ ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
         legend.text =element_text(size = 30, color = "black"),
         legend.title = element_text(size = 35, color = "black"),
         strip.text.x = element_text(size=40, color="black"), #change facet labels
-        panel.spacing = unit(3, "lines"), #change facet spacing
+        panel.spacing = unit(4, "lines"), #change facet spacing
         legend.key.size = unit(1.5, "cm"),
         legend.key.width = unit(1.0,"cm")) +
   annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
@@ -356,7 +357,7 @@ ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
    labs(y="Temperature (°C)", x="Date", color ="Surfgrass Loss")
 Phyllotempseries
 #ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
-
+Temptimeseries$Mytilusdelta[Temptimeseries$Before_After=="Before"]<-0
 Musseltempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Mytilus") %>%
   ggplot(aes(x=Date.Time,y=Temp.C,color=Mytilusdelta)) +
@@ -374,7 +375,7 @@ Musseltempseries<-Temptimeseries %>%
         legend.text =element_text(size = 30, color = "black"),
         legend.title = element_text(size = 35, color = "black"),
         strip.text.x = element_text(size=40, color="black"), #change facet labels
-        panel.spacing = unit(3, "lines"), #change facet spacing
+        panel.spacing = unit(4, "lines"), #change facet spacing
         legend.key.size = unit(1.5, "cm"),
         legend.key.width = unit(1.0,"cm")) +
   annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
@@ -415,24 +416,27 @@ pmaxtemp<-as.data.frame(pmaxtempgg) #create dataframe
 
 pmaxtemp<-pmaxtemp %>% #output for values gives you an x for variable. rename variable to match
   rename(Phyllodelta=x) #rename to join to rest of dataframe
+  
 
 pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main dataframe for ggplot
-
+pmaxtemp<-pmaxtemp%>%
+  mutate(BTpredict=exp(predicted),BTcl=exp(conf.low),BTch=exp(conf.high),BTtemp=exp(logtemp))
 #display raw data but prediction line and confidence intervals are from ggpredict model
-phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=exp(logtemp))) + #aes(y = ) using the non-logged data
+phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=logtemp))+ #aes(y = ) using the non-logged data
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=exp(predicted)), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=exp(conf.low),ymax=exp(conf.high)),alpha=0.2) +
+  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
-  coord_trans(y="log")+
-  scale_y_continuous(breaks = c(-2,-1,0,2,4,6))+ #(or whatever breaks are appropriate) 
   theme(axis.title.x=element_text(color="black", size=45), 
         axis.title.y=element_text(color="black", size=45),
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs(x ='', y = 'Change in average daily max temperature (°C)') 
+  scale_x_continuous(limits = c(-30, 100), breaks = seq(-30, 100, by = 25))+
+  #scale_y_log10(limits = c(NA, 6.5), breaks = seq(-2, 6.5, by = 2))+
+  #coord_trans(y='log')+
+  labs(x ='', y = 'Log change in average daily max temperature (°C)') 
 phyllotemp 
 
 
@@ -466,6 +470,7 @@ phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=loglight)) +
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+ 
+  scale_x_continuous(limits = c(-30, 100), breaks = seq(-30, 100, by = 25))+
   labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Log change in average daily percent max light') 
 phyllolight
 
@@ -529,18 +534,18 @@ mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=loglight)) +
   xlab('CA mussel percent loss \n (Mytilus californianus)')+ ylab('') 
 mytiluslight
 
-temp<-phyllotemp+mytilustemp
-temp
-ggsave(filename = "Output/temp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
-light<-phyllolight+mytiluslight
-light
-ggsave(filename = "Output/light.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+Temptimeseriespm<-Phyllotempseries+Musseltempseries+
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =40))   #edit the lettered text
+Temptimeseriespm
+ggsave(filename = "Output/temptimeseries.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
+
 
 #patchwork figs together
-figure <-(Phyllotempseries | Musseltempseries)/ (phyllotemp | mytilustemp) /
+figure <-(phyllotemp | mytilustemp) /
   (phyllolight| mytiluslight) +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =40))   #edit the lettered text
 
 figure
-ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 47, height = 45)
+ggsave(filename = "Output/LightandTempgraphsavg.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 40)

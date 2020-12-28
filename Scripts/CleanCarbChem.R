@@ -936,7 +936,7 @@ Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_
   geom_segment(aes(x = x0[1], y = y0[1], xend = (x1[1]), yend = (y1[1])),size = 1,#segment with arrow for surfgrass before/after control
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[3], y = y0[3], xend = (x1[3]), yend = (y1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
-               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+               colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   labs(x ='PC1 (32.88%)', y = 'PC2 (27.9%)', shape='', color='Surfgrass percent loss',size='Surfgrass percent loss', linetype ='Before or after') +
@@ -1001,7 +1001,7 @@ musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)
   geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[3], y = z0[3], xend = (v1[3]), yend = (z1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
-               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+               colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   labs(x ='PC1 (38.08%)', y = 'PC2 (23.83%)', shape='', color='Mussel percent loss',size='Mussel percent loss', linetype ='Before or after') +
