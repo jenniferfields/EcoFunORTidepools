@@ -143,7 +143,7 @@ PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+Volume+TideHeight,  dat
 PDNTempall<-lm(MaxTemp~ PhyllospadixLoss+Volume+TideHeight, data =PhylloDayNightall)
 PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+Volume +TideHeight, data =PhylloDayNightall)
 PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =PhylloDayNightall) #removed surfgrass loss since very correlated with pH and maxTemp
-PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+TideHeight,data = PhylloDayNightall)
+PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+Volume+TideHeight,data = PhylloDayNightall)
 PDNNEPall<-lm(NEP ~MaxTemp +MicroMacroAlgaeCover+NtoPRatio+TideHeight, data =PhylloDayNightall) 
 
 qqp(resid(PDNMMAlgaeall),"norm")
@@ -167,7 +167,6 @@ PhylloDNSEMall<-psem(
   PDNNEPall,
   PDNpHall,
   PDNNECall)
-
 
 OutputPhylloMGSEM<-multigroup(PhylloDNSEMall,standardize = 'scale', test.type = "III",group ="Day_Night")
 
@@ -202,7 +201,7 @@ MDNTempall<-lm(MaxTemp~MytilusLoss +Volume+TideHeight, data = Mytilusdaynightall
 #MDNLightall<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusdaynightall)
 MDNtoPall<-lm(NtoPRatio ~ MytilusLoss+Volume+TideHeight,  data = Mytilusdaynightall)
 MDNNECall<- lm(NEC~ pH+MaxTemp+TideHeight, data = Mytilusdaynightall) #removed mussel loss since v related to pH&maxtemp
-MDNpHall<- lm(pH ~ MytilusLoss+NEP+TideHeight, data =Mytilusdaynightall)
+MDNpHall<- lm(pH ~ MytilusLoss+NEP+Volume+TideHeight, data =Mytilusdaynightall)
 MDNNEPall<-lm(NEP ~NtoPRatio+MicroMacroAlgaeCover+TideHeight,data = Mytilusdaynightall) 
 #used ntoPratio instead of max temp since more background knowledge of how mussels affect nutrient envrionment
 
