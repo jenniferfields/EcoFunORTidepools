@@ -421,22 +421,25 @@ pmaxtemp<-pmaxtemp %>% #output for values gives you an x for variable. rename va
 pmaxtemp<-left_join(pmaxtemp,DeltaLightandTempPhyllo) #rejoin with main dataframe for ggplot
 pmaxtemp<-pmaxtemp%>%
   mutate(BTpredict=exp(predicted),BTcl=exp(conf.low),BTch=exp(conf.high),BTtemp=exp(logtemp))
+
+
+ 
 #display raw data but prediction line and confidence intervals are from ggpredict model
-phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=logtemp))+ #aes(y = ) using the non-logged data
+phyllotemp<-ggplot(pmaxtemp, aes(x =Phyllodelta, y=exp(logtemp)))+ #aes(y = ) using the non-logged data
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  geom_line(aes(x=Phyllodelta, y=exp(predicted)), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=exp(conf.low),ymax=exp(conf.high)),alpha=0.2) +
+  coord_trans(y='log') +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=45), 
         axis.title.y=element_text(color="black", size=45),
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  scale_x_continuous(limits = c(-30, 100), breaks = seq(-30, 100, by = 25))+
-  #scale_y_log10(limits = c(NA, 6.5), breaks = seq(-2, 6.5, by = 2))+
-  #coord_trans(y='log')+
-  labs(x ='', y = 'Log change in average daily max temperature (°C)') 
+  scale_x_continuous(limits = c(-28, 100), breaks = seq(-30, 100, by = 25))+
+  #ylim(-2,6)+
+  labs(x ='', y = 'Change in average daily max temperature (°C)') 
 phyllotemp 
 
 
@@ -459,11 +462,11 @@ plight<-plight %>%
 
 plight<-left_join(plight,DeltaLightandTempPhyllo)
 
-phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=loglight)) +
+phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=exp(loglight)))+
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Phyllodelta, y=predicted), color="#006d2c",size =2)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  geom_line(aes(x=Phyllodelta, y=exp(predicted)), color="#006d2c",size =2)+
+  geom_ribbon(aes(ymin=exp(conf.low),ymax=exp(conf.high)),alpha=0.2) +
   theme_classic() +
   theme(axis.title.x=element_text(color="black", size=45), 
         axis.title.y=element_text(color="black", size=45),
@@ -471,7 +474,9 @@ phyllolight<-ggplot(plight, aes(x =Phyllodelta, y=loglight)) +
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+ 
   scale_x_continuous(limits = c(-30, 100), breaks = seq(-30, 100, by = 25))+
-  labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Log change in average daily percent max light') 
+  coord_trans(y="log")+
+  scale_y_continuous(breaks = scales::log_breaks())+
+  labs(x ='Surfgrass percent loss \n (Phyllospadix spp.)', y = 'Change in average daily percent max light') 
 phyllolight
 
 mytilusmaxtempmod<-lm(DeltaTempMax ~Mytilusdelta +Vav +THav,data = DeltaLightandTempMytilus)

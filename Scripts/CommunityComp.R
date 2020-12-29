@@ -189,8 +189,7 @@ ordSesSurf<-ggplot(phyllospp)+
   geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),
                    direction=c("both"),nudge_y=0.2,color="#006d2c",size = 12) +  # add the species labels
   #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
-  scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
-                                                              "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
+  scale_color_manual(values=Colors)+
   labs(x='nMDS1',color="Functional group",y='Sessile species scores nMDS2')+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+

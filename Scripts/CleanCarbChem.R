@@ -154,7 +154,9 @@ CarbChem<-left_join(CarbChem,Nutrients) #join with carbchem data
 CarbChem <- CarbChem %>%
   filter(Id_code != 'N_17_5_BC' & Id_code != 'D_24_1_BC' & Id_code != 'N_24_1_BC' &
            Id_code != 'N2_Ocean_5_BC' & Id_code != 'D_1_2_AI' & Id_code != 'D_16_2_AI'&
-           Id_code != 'D_4_3_AI' & Id_code != 'N_20_3_AI') 
+           Id_code != 'D_4_3_AI' & Id_code != 'N_20_3_AI' & Id_code !='N_26_1_BC') 
+#N_26_1_BC has very low phosphate that yields it to be an outlier in later analysis
+#could be a typo or the tide pool was just exposed from the ocean
 
 #Conversions from ug/l to µmol/l
 #1 µg P/l = 1/MW P = 0.032285 µmol/l
@@ -320,7 +322,8 @@ DeltaSamples<- CarbChem %>%
   dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   dplyr::filter(Id_code != 'D_24_2_BC',Id_code != 'D_24_3_BC', Id_code != 'D_24_4_BC',
-                Id_code != 'N_24_2_BC',Id_code != 'N_24_3_BC', Id_code != 'N_24_4_BC') %>%
+                Id_code != 'N_24_2_BC',Id_code != 'N_24_3_BC', Id_code != 'N_24_4_BC',
+                Id_code != 'N_26_2_BC',Id_code != 'N_26_3_BC',Id_code != 'N_26_4_BC') %>%
   dplyr::filter(Time_Point == 1 | Time_Point == 4) %>% #taking the integrated value over low tide
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 4 from 1
@@ -339,13 +342,14 @@ DeltaSamples<- CarbChem %>%
                 DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
 #because tp 24 in Before period did not have time pt 1 so took differences btw time point 2 and 4
-TP24 <- CarbChem %>%
+TP24and26 <- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
   filter(Foundation_spp != 'Ocean') %>%
   dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
-                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC'|
+                  Id_code == 'N_26_2_BC'|Id_code == 'N_26_3_BC'|Id_code == 'N_26_4_BC') %>%
   dplyr::filter(Time_Point == 2 | Time_Point == 4) %>%
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 1&2,2&3,3&4
@@ -364,7 +368,7 @@ TP24 <- CarbChem %>%
          DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
 #combine dataframes
-DeltaSamples<-rbind(DeltaSamples,TP24)
+DeltaSamples<-rbind(DeltaSamples,TP24and26)
 
 #bring in physical parameters for nec and nep calculations
 PhysicalParameters<-TidePooldes[, c("PoolID", "Before_After", "SurfaceArea", "Vol", "SAtoV", "TideHeight")] #pull out the necessary columns and treatment 
@@ -446,7 +450,8 @@ AirSeaFlux<- CarbChem %>%
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::filter(Id_code != 'D_24_2_BC',Id_code != 'D_24_3_BC', Id_code != 'D_24_4_BC',
-                Id_code != 'N_24_2_BC',Id_code != 'N_24_3_BC', Id_code != 'N_24_4_BC') %>% #take out these ids since not following 4-1 rule
+                Id_code != 'N_24_2_BC',Id_code != 'N_24_3_BC', Id_code != 'N_24_4_BC',
+                Id_code != 'N_26_2_BC'|Id_code != 'N_26_3_BC'|Id_code != 'N_26_4_BC') %>% #take out these ids since not following 4-1 rule
   dplyr::filter(Time_Point == 1 | Time_Point == 4) %>%
   dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
                 pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 1 & 2, time 2&3 etc. 
@@ -469,7 +474,8 @@ TP24Airseaflux<- CarbChem %>%
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
-                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC'|
+                  Id_code == 'N_26_2_BC'|Id_code == 'N_26_3_BC'|Id_code == 'N_26_4_BC') %>%
   dplyr::filter(Time_Point == 2 | Time_Point == 4) %>%
   dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
                 pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 1 & 2, time 2&3 etc. 
@@ -563,7 +569,7 @@ Allsamples<- CarbChem %>%
   dplyr::filter(Id_code != 'D_24_2_BC'|Id_code != 'D_24_3_BC'| Id_code != 'D_24_4_BC'|
                 Id_code != 'N_24_2_BC'|Id_code != 'N_24_3_BC'| Id_code != 'N_24_4_BC'|
                 Id_code != 'D_1_2_AI'|Id_code != 'D_16_2_AI'|Id_code != 'D_4_3_AI'| 
-                Id_code != 'N_20_3_AI') %>% #remove samples that don't have nutrients
+                Id_code != 'N_20_3_AI'|Id_code != 'N_26_2_BC'|Id_code != 'N_26_3_BC'|Id_code != 'N_26_4_BC') %>% #remove samples that don't have nutrients
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 1&2,2&3,3&4
                 DICDeltaTime = DIC_Norm-lag(DIC_Norm, default = first(DIC_Norm)),
@@ -581,13 +587,14 @@ Allsamples<- CarbChem %>%
                 DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
 #because tp 24 in Before period did not have time pt 1 so took differences btw time point 2,3 and 4
-TP24all <- CarbChem %>%
+TP24and26all <- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
   filter(Foundation_spp != 'Ocean') %>%
   dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
-                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC'|
+                  Id_code == 'N_26_2_BC'|Id_code == 'N_26_3_BC'|Id_code == 'N_26_4_BC') %>%
   dplyr::filter(Time_Point == 2 | Time_Point == 3 | Time_Point == 4) %>%
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::mutate(TADeltaTime = TA_NormSal - lag(TA_NormSal, default = first(TA_NormSal)), # subtracts time point 2&3,3&4
@@ -606,7 +613,7 @@ TP24all <- CarbChem %>%
          DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
 #combine dataframes
-Allsamples<-rbind(Allsamples,TP24all)
+Allsamples<-rbind(Allsamples,TP24and26all)
 
 #bring in physical parameters for nec and nep calculations
 PhysicalParameters<-TidePooldes[, c("PoolID", "Before_After", "SurfaceArea", "Vol", "SAtoV", "TideHeight")] #pull out the necessary columns and treatment 
@@ -707,7 +714,7 @@ AirSeaFluxall<- CarbChem %>%
   dplyr::filter(Id_code != 'D_24_2_BC'|Id_code != 'D_24_3_BC'| Id_code != 'D_24_4_BC'|
                 Id_code != 'N_24_2_BC'|Id_code != 'N_24_3_BC'| Id_code != 'N_24_4_BC'|
                 Id_code != 'D_1_2_AI' |Id_code != 'D_16_2_AI'|Id_code != 'D_4_3_AI'| 
-                Id_code != 'N_20_3_AI') %>% #take out these ids since not following 4-1 rule
+                Id_code != 'N_20_3_AI'|Id_code != 'N_26_2_BC'|Id_code != 'N_26_3_BC'|Id_code != 'N_26_4_BC') %>% #take out these ids since not following 4-1 rule
   #dplyr::filter(Time_Point == 1 | Time_Point == 4) %>%
   dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
                 pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 1 & 2, time 2&3 etc. 
@@ -722,15 +729,16 @@ AirSeaFluxall<- CarbChem %>%
   select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,
          Tempmean,pCO2mean,Salinitymean,Windmean,pHmean,DOmean, NNmean, NH4mean,POmean) #selects the columns needed for air-sea flux equation
 
-#TP24
-TP24Airseafluxall<- CarbChem %>%
+#TP24 and 26 night before
+TP24and26Airseafluxall<- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
   filter(Foundation_spp != 'Ocean') %>%
   dplyr::group_by(PoolID,Group,Day_Night) %>% #grouping by pool id and beforeafter/controlremoval
   dplyr::arrange(Time_Point, .by_group = TRUE) %>% #arranges by time point and group so all time points from each tidepool
   #and each grouping are in order (D_1_1_BC--D_1_4_BC then D_1_1_AI -- D_1_4_AI etc)
   dplyr::filter(Id_code == 'D_24_2_BC' | Id_code == 'D_24_3_BC'| Id_code == 'D_24_4_BC'|
-                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC') %>%
+                  Id_code == 'N_24_2_BC'|Id_code == 'N_24_3_BC'|Id_code == 'N_24_4_BC'|
+                  Id_code == 'N_26_2_BC'|Id_code == 'N_26_3_BC'|Id_code == 'N_26_4_BC') %>%
   dplyr::filter(Time_Point == 2 |Time_Point == 3| Time_Point == 4) %>% #no time point 1
   dplyr::mutate(Tempmean = rollmean(Temp.pool,2, na.pad=TRUE, align="right"), #takes rolling means every two pts
                 pCO2mean = rollmean(pCO2,2, na.pad=TRUE, align="right"), #avg btw time 2& 3, time 3&4 etc. 
@@ -747,7 +755,7 @@ TP24Airseafluxall<- CarbChem %>%
 
 
 #combine dataframes
-AirSeaFluxall<-rbind(AirSeaFluxall,TP24Airseafluxall)
+AirSeaFluxall<-rbind(AirSeaFluxall,TP24and26Airseafluxall)
 
 #combine with delta samples dataframe
 Allsamples<-left_join(Allsamples,AirSeaFluxall)
@@ -879,7 +887,7 @@ MytilusBiogeochemPCAmodel<-prcomp(MytilusBiogeochemPCA, center = TRUE, scale. = 
 summary(PhylloBiogeochemPCAmodel)#shows amount of variance explained by each axis
 #This is actually a big wide table, with all 38 Principle Components
 #It tell us the amount of variance explained by each axis, and the cumulative proportion of variance explained
-#PC1   0.3288  PC2 0.2790total 0.6079
+#PC1   0.3279 PC2 0.2781total 0.6061
 summary(MytilusBiogeochemPCAmodel)
 #pc1 0.3808 pc2  0.2383 0.6191
 
@@ -887,7 +895,7 @@ summary(MytilusBiogeochemPCAmodel)
 PhylloPCAscores<- data.frame(PhylloBiogeochemPCAmodel$x[,c(1,2)])#asks for first rows (PC1 and PC2) of table
 MytilusPCAscores<- data.frame(MytilusBiogeochemPCAmodel$x[,c(1,2)])
 #View(PCAscores)
-biplot(PhylloBiogeochemPCAmodel, xlab="PC1", ylab="PC2")
+#biplot(PhylloBiogeochemPCAmodel, xlab="PC1", ylab="PC2")
 PhylloBiogeochemPCAgraph<-data.frame(bind_cols(PhylloBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Phyllodelta")], PhylloPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
 MytilusBiogeochemPCAgraph<-data.frame(bind_cols(MytilusBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Mytilusdelta")], MytilusPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
 
@@ -939,8 +947,8 @@ Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='PC1 (32.88%)', y = 'PC2 (27.9%)', shape='', color='Surfgrass percent loss',size='Surfgrass percent loss', linetype ='Before or after') +
-  #PC1   0.3288  PC2 0.2790total 0.6079
+  labs(x ='PC1 (32.79%)', y = 'PC2 (27.81%)', shape='', color='Surfgrass percent loss',size='Surfgrass percent loss', linetype ='Before or after') +
+  #PC1   0.3279 PC2 0.2781total 0.6061
   theme(axis.text = element_text(color = "black", size = 35), 
         axis.title.x = element_text(color="black", size=40), 
         axis.title.y = element_text(color="black", size=40), 
@@ -968,7 +976,7 @@ surfgrass
 library(patchwork)
 surfgrasspca<-Surfgrassplot+surfgrass+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =40))   #edit the lettered text
+  theme(plot.tag = element_text(size =50))   #edit the lettered text
 surfgrasspca
 ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
