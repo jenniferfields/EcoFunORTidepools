@@ -267,7 +267,7 @@ phylloMMA<-ggplot(pmmagg, aes(x =PhyllospadixLoss, y=MicroMacroAlgaeCover)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs( x= '', y='Change micro/macroalgae % cover') 
+  labs( x= '', y='Change in micro/macroalgae % cover') 
 phylloMMA
 
 #2
@@ -292,7 +292,7 @@ phyllopH<-ggplot(ppHphyllogg, aes(x =PhyllospadixLoss, y=pH)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y=expression("Change in average pH"[T]))
+  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y=expression("Average pH"[T]))
 phyllopH
 
 #3
@@ -318,7 +318,7 @@ pneppH<-ggplot(ppHnepgg, aes(x =PhyllospadixLoss, y=pH,color=Day_Night)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x =expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),y='')
+  labs(x =expression("Average"~NEP~(mmol~C/m^"2"*hr)),y='')
 pneppH
 
 #4
@@ -345,7 +345,7 @@ phyllotemp<-ggplot(ptempgg, aes(x =PhyllospadixLoss, y=MaxTemp,color=Day_Night))
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y="Change in average maximum Temperature (°C)")
+  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y="Average maximum temperature (°C)")
 phyllotemp
 
 #5
@@ -374,7 +374,7 @@ ptempnepplot<-ggplot(ptempnep, aes(x =MaxTempadj, y=NEP)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ="Change in average maximum Temperature (°C)",y=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)))
+  labs(x ="Average maximum Temperature (°C)",y=expression("Average"~NEP~(mmol~C/m^"2"*hr)))
 ptempnepplot
 
 #6
@@ -402,7 +402,7 @@ pntopnepplot<-ggplot(pntopnep, aes(x =NtoPRatioadj, y=NEP)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ="Change in average N to P Ratio",y='')
+  labs(x ="Average N to P Ratio",y='')
 pntopnepplot
 
 #7
@@ -430,7 +430,7 @@ pHNEC<-ggplot(pHnecgg, aes(x =pHadj, y=NEC)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x =expression("Change in average pH"[T]),y=expression("Change in average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
+  labs(x =expression("Average pH"[T]),y=expression("Average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
 pHNEC
 
 #8
@@ -542,7 +542,7 @@ mytpH<-ggplot(mytpHgg, aes(x =MytilusLoss, y=pH)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='CA mussel % loss \n (Mytilus californianus)',y=expression("Change in average pH"[T]))
+  labs(x ='CA mussel % loss \n (Mytilus californianus)',y=expression("Average pH"[T]))
 mytpH
 
 #4
@@ -567,7 +567,7 @@ mytpHnep<-ggplot(mneppHgg, aes(x =NEPadj, y=pH)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),y='')
+  labs(x=expression("Average"~NEP~(mmol~C/m^"2"*hr)),y='')
 mytpHnep
 
 #5
@@ -594,7 +594,7 @@ mmanep<-ggplot(mmanepgg, aes(y =NEP, x=MicroMacroAlgaeCover,color=Day_Night)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(y=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),x='Change in micro/macroalgae % cover')
+  labs(y=expression("Average"~NEP~(mmol~C/m^"2"*hr)),x='Change in micro/macroalgae % cover')
 mmanep
 
 #6
@@ -621,7 +621,7 @@ ntpnep<-ggplot(ntpnepgg, aes(y =NEP, x=NtoPRatioedited)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x='Change in average N to P Ratio',y='')
+  labs(x='Average N to P Ratio',y='')
 ntpnep
 
 #7
@@ -648,7 +648,7 @@ mtempnec<-ggplot(mtempnecgg, aes(x =MaxTempedited, y=NEC)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x='Change in average maximum Temperature (°C)',y=expression("Change in average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
+  labs(x='Average maximum temperature (°C)',y=expression("Average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
 mtempnec
 
 #patchwork mytilus figs
