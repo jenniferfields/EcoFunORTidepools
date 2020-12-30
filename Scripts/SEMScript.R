@@ -243,22 +243,23 @@ write.csv(MFisher, 'Output/mytilusdaynightfishersupdated.csv' )
 #####Supplemental Info Figs#####
 #significant regression ggplot plots with ggeffects package
 ####Phyllospadix surfgrass model#####
+#1
 #Micro/macroalgae and phyllo
-
-pmmagg<-ggpredict(PAvgMMAlgae, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
+PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+Volume+TideHeight,  data = PhylloDayNightall)
+pmmagg<-ggpredict(PDNMMAlgaeall, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
 plot(pmmagg) #plot output 
 pmmagg<-as.data.frame(pmmagg) #create dataframe 
 
 pmmagg<-pmmagg %>% #output for values gives you an x for variable. rename variable to match
   rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
 
-pmmagg<-left_join(pmmagg,Phyllounscaled) #rejoin with main dataframe for ggplot
+pmmagg<-left_join(pmmagg,PhylloDayNightall) #rejoin with main dataframe for ggplot
 
 #display raw data but prediction line and confidence intervals are from ggpredict model
 phylloMMA<-ggplot(pmmagg, aes(x =PhyllospadixLoss, y=MicroMacroAlgaeCover)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -266,22 +267,24 @@ phylloMMA<-ggplot(pmmagg, aes(x =PhyllospadixLoss, y=MicroMacroAlgaeCover)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs( x= '', y='Change micro/macroalgae cover') 
+  labs( x= '', y='Change micro/macroalgae % cover') 
 phylloMMA
 
-#light and phyllo
-plightgg<-ggpredict(PAvgLight, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
-plightgg<-as.data.frame(plightgg) #create dataframe 
+#2
+#pH and phyllo
+PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+Volume+TideHeight,data = PhylloDayNightall)
+ppHphyllogg<-ggpredict(PDNpHall, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
+ppHphyllogg<-as.data.frame(ppHphyllogg) #create dataframe 
 
-plightgg<-plightgg %>% #output for values gives you an x for variable. rename variable to match
+ppHphyllogg<-ppHphyllogg %>% #output for values gives you an x for variable. rename variable to match
   rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
 
-plightgg<-left_join(plightgg,Phyllounscaled) #rejoin with main dataframe for ggplot
+ppHphyllogg<-left_join(ppHphyllogg,PhylloDayNightall) #rejoin with main dataframe for ggplot
 
-phyllolight<-ggplot(plightgg, aes(x =PhyllospadixLoss, y=Light)) +
+phyllopH<-ggplot(ppHphyllogg, aes(x =PhyllospadixLoss, y=pH)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -289,22 +292,52 @@ phyllolight<-ggplot(plightgg, aes(x =PhyllospadixLoss, y=Light)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)',y=expression('Average light' (PFD~µmol~photons~m^{-2}~s^{-1})))
-phyllolight
+  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y=expression("Change in average pH"[T]))
+phyllopH
 
+#3
+#pH and nep because significant day/night interaction
+PDNpHall<- lm(pH ~(NEP+PhyllospadixLoss+Volume+TideHeight)*Day_Night,data = PhylloDayNightall)
+ppHnepgg<-ggpredict(PDNpHall, c("PhyllospadixLoss","Day_Night")) #predict marginal effects from model for foundation spp. loss
+ppHnepgg<-as.data.frame(ppHnepgg) #create dataframe 
+
+ppHnepgg<-ppHnepgg %>% #output for values gives you an x for variable. rename variable to match
+  rename(PhyllospadixLoss=x,Day_Night=group) #rename to join to rest of dataframe
+
+ppHnepgg<-left_join(ppHnepgg,PhylloDayNightall) #rejoin with main dataframe for ggplot
+
+pneppH<-ggplot(ppHnepgg, aes(x =PhyllospadixLoss, y=pH,color=Day_Night)) +
+  geom_point(size=8,aes(shape=Removal_Control,color=Day_Night),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  scale_colour_manual(values = c("#006d2c",'#bdbdbd'))+
+  geom_line(aes(x=PhyllospadixLoss, y=predicted, color=Day_Night),size =2,linetype=2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(x =expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),y='')
+pneppH
+
+#4
 #temp and phyllo
-ptempgg<-ggpredict(PAvgTemp, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
+#significant day/night interaction 
+PDNTempall<-lm(MaxTemp~ (PhyllospadixLoss+Volume+TideHeight)*Day_Night, data =PhylloDayNightall)
+ptempgg<-ggpredict(PDNTempall, c("PhyllospadixLoss", "Day_Night")) #predict marginal effects from model for foundation spp. loss
 ptempgg<-as.data.frame(ptempgg) #create dataframe 
 
 ptempgg<-ptempgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
+  rename(PhyllospadixLoss=x,Day_Night=group) #rename to join to rest of dataframe
 
-ptempgg<-left_join(ptempgg,Phyllounscaled) #rejoin with main dataframe for ggplot
+ptempgg<-left_join(ptempgg,PhylloDayNightall) #rejoin with main dataframe for ggplot
 
-phyllotemp<-ggplot(ptempgg, aes(x =PhyllospadixLoss, y=MaxTemp)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+phyllotemp<-ggplot(ptempgg, aes(x =PhyllospadixLoss, y=MaxTemp,color=Day_Night)) +
+  geom_point(size=8,aes(shape=Removal_Control,color=Day_Night),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
+  scale_colour_manual(values = c("#006d2c",'#bdbdbd'))+
+  geom_line(aes(x=PhyllospadixLoss, y=predicted, color=Day_Night),size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -312,112 +345,84 @@ phyllotemp<-ggplot(ptempgg, aes(x =PhyllospadixLoss, y=MaxTemp)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Surfgrass loss \n (Phyllospadix spp.)',y="Maximum Temperature (°C)")
+  labs(x ='Surfgrass % loss \n (Phyllospadix spp.)',y="Change in average maximum Temperature (°C)")
 phyllotemp
 
-#SA/V and pH
-savphgg<-ggpredict(PAvgpH, c("SAtoVRatio")) #predict marginal effects from model for foundation spp. loss
-savphgg<-as.data.frame(savphgg) #create dataframe 
+#5
+#Temp and NEP
+PDNNEPall<-lm(NEP ~MaxTemp +MicroMacroAlgaeCover+NtoPRatio+TideHeight, data =PhylloDayNightall) 
 
-savphgg<-savphgg %>% #output for values gives you an x for variable. rename variable to match
-  rename(SAtoVRatio=x) #rename to join to rest of dataframe
+ptempnep<-ggpredict(PDNNEPall, c("MaxTemp[all]")) #predict marginal effects from model max temp
 
-savphgg<-left_join(savphgg,Phyllounscaled) #rejoin with main dataframe for ggplot
+ptempnep<-as.data.frame(ptempnep) #create dataframe 
 
-SAVpH<-ggplot(savphgg, aes(x =SAtoVRatio, y=pH)) +
+ptempnep<-ptempnep%>% #output for values gives you an x for variable. rename variable to match
+  rename(MaxTempadj=x) #rename to join to rest of dataframe
+PhylloDayNightall$MaxTempadj<-format(round(PhylloDayNightall$MaxTemp, 3), nsmall = 3)  # Apply format function
+PhylloDayNightall$MaxTempadj<-as.numeric(PhylloDayNightall$MaxTempadj)
+
+ptempnep<-left_join(ptempnep,PhylloDayNightall) #rejoin with main dataframe for ggplot
+
+ptempnepplot<-ggplot(ptempnep, aes(x =MaxTempadj, y=NEP)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=SAtoVRatio, y=predicted), color="#006d2c",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
-  theme(legend.position="none")+
-  labs(x ='SA to V ratio',y='') 
-SAVpH
-
-#NEP and pH
-phyllophgg<-ggpredict(PAvgpH, c("PhyllospadixLoss")) #predict marginal effects from model for foundation spp. loss
-phyllophgg<-as.data.frame(phyllophgg) #create dataframe 
-
-phyllophgg<-phyllophgg %>% #output for values gives you an x for variable. rename variable to match
-  rename(PhyllospadixLoss=x) #rename to join to rest of dataframe
-
-phyllophgg<-left_join(phyllophgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-
-phyllopH<-ggplot(phyllophgg, aes(x =PhyllospadixLoss, y=pH)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=PhyllospadixLoss, y=predicted), color="#006d2c",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=45), 
-        axis.title.y=element_text(color="black", size=45),
-        axis.text.x =element_text(color="black", size=30),
-        axis.text.y =element_text(color="black", size=30)) +
-  theme(legend.position="none")+
-  labs(y ='pH',x='Surfgrass loss \n (Phyllospadix spp.)')
-phyllopH
-
-#SA to V and NEC
-savnecgg<-ggpredict(PAvgNEC, c("SAtoVRatio")) #predict marginal effects from model for foundation spp. loss
-savnecgg<-as.data.frame(savnecgg) #create dataframe 
-
-savnecgg<-savnecgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(SAtoVRatio=x) #rename to join to rest of dataframe
-
-savnecgg<-left_join(savnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-SAVNEC<-ggplot(savnecgg, aes(x =SAtoVRatio, y=NEC)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=SAtoVRatio, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=MaxTempadj, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
         axis.title.y=element_text(color="black", size=50),
         axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_text(color="black", size=40))+
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='SA to V ratio',y='')
-SAVNEC
+  labs(x ="Change in average maximum Temperature (°C)",y=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)))
+ptempnepplot
 
-#temp and nec
-tempnecgg<-ggpredict(PAvgNEC, c("MaxTemp")) #predict marginal effects from model for foundation spp. loss
-tempnecgg<-as.data.frame(tempnecgg) #create dataframe 
+#6
+#N:P and NEP
+pntopnep<-ggpredict(PDNNEPall, c("NtoPRatio[all]")) #predict marginal effects from model max temp
 
-tempnecgg<-tempnecgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(MaxTemp=x) #rename to join to rest of dataframe
+pntopnep<-as.data.frame(pntopnep) #create dataframe 
 
-tempnecgg<-left_join(tempnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-tempNEC<-ggplot(tempnecgg, aes(x =MaxTemp, y=NEC)) +
+pntopnep<-pntopnep%>% #output for values gives you an x for variable. rename variable to match
+  rename(NtoPRatioadj=x) #rename to join to rest of dataframe
+
+PhylloDayNightall$NtoPRatioadj<-format(round(PhylloDayNightall$NtoPRatio, 2), nsmall = 2)  # Apply format function
+PhylloDayNightall$NtoPRatioadj<-as.numeric(PhylloDayNightall$NtoPRatioadj) #make ratio smaller to match output of predict model
+
+pntopnep<-left_join(pntopnep,PhylloDayNightall) #rejoin with main dataframe for ggplot
+
+pntopnepplot<-ggplot(pntopnep, aes(x =NtoPRatioadj, y=NEP)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MaxTemp, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=NtoPRatioadj, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
         axis.title.y=element_text(color="black", size=50),
         axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_text(color="black", size=40))+
+        axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='Maximum temperature (°C)',y='')
-tempNEC
+  labs(x ="Change in average N to P Ratio",y='')
+pntopnepplot
 
+#7
 #pH and NEC
+PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =PhylloDayNightall) #removed surfgrass loss since very correlated with pH and maxTemp
 
-pHnecgg<-ggpredict(PAvgNEC, c("pH")) #predict marginal effects from model for foundation spp. loss
+pHnecgg<-ggpredict(PDNNECall, c("pH[all]")) #predict marginal effects from model for foundation spp. loss
 pHnecgg<-as.data.frame(pHnecgg) #create dataframe 
 
 pHnecgg<-pHnecgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(pH=x) #rename to join to rest of dataframe
+  rename(pHadj=x) #rename to join to rest of dataframe
 
-pHnecgg<-left_join(pHnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-pHNEC<-ggplot(pHnecgg, aes(x =pH, y=NEC)) +
+PhylloDayNightall$pHadj<-format(round(PhylloDayNightall$pH, 3), nsmall = 3)  # Apply format function
+PhylloDayNightall$pHadj<-as.numeric(PhylloDayNightall$pHadj) #make ratio smaller to match output of predict model
+pHnecgg<-left_join(pHnecgg,PhylloDayNightall) #rejoin with main dataframe for ggplot
+
+pHNEC<-ggplot(pHnecgg, aes(x =pHadj, y=NEC)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=pH, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=pHadj, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -425,21 +430,25 @@ pHNEC<-ggplot(pHnecgg, aes(x =pH, y=NEC)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='pH',y=expression(Average~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
+  labs(x =expression("Change in average pH"[T]),y=expression("Change in average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
 pHNEC
 
+#8
 #tide height and nec
-THnecgg<-ggpredict(PAvgNEC, c("TideHeight")) #predict marginal effects from model for foundation spp. loss
+THnecgg<-ggpredict(PDNNECall, c("TideHeight[all]")) #predict marginal effects from model for foundation spp. loss
 THnecgg<-as.data.frame(THnecgg) #create dataframe 
 
 THnecgg<-THnecgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(TideHeight=x) #rename to join to rest of dataframe
+  rename(TideHeightadj=x) #rename to join to rest of dataframe
 
-THnecgg<-left_join(THnecgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-THNEC<-ggplot(THnecgg, aes(x =TideHeight, y=NEC)) +
+PhylloDayNightall$TideHeightadj<-format(round(PhylloDayNightall$TideHeight, 3), nsmall = 3)  # Apply format function
+PhylloDayNightall$TideHeightadj<-as.numeric(PhylloDayNightall$TideHeightadj) #make ratio smaller to match output of predict model
+THnecgg<-left_join(THnecgg,PhylloDayNightall) #rejoin with main dataframe for ggplot
+
+THNEC<-ggplot(THnecgg, aes(x =TideHeightadj, y=NEC)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=TideHeight, y=predicted), color="#006d2c",size =1.5)+
+  geom_line(aes(x=TideHeightadj, y=predicted), color="#006d2c",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -450,51 +459,33 @@ THNEC<-ggplot(THnecgg, aes(x =TideHeight, y=NEC)) +
   labs(x ='Tide height (m)',y='')
 THNEC
 
-#Light and NEP
-lightnepgg<-ggpredict(PAvgNEP, c("Light")) #predict marginal effects from model for foundation spp. loss
-lightnepgg<-as.data.frame(lightnepgg) #create dataframe 
-
-lightnepgg<-lightnepgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(Light=x) #rename to join to rest of dataframe
-
-lightnepgg<-left_join(lightnepgg,Phyllounscaled) #rejoin with main dataframe for ggplot
-lightnep<-ggplot(lightnepgg, aes(x =Light, y=NEP)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=Light, y=predicted), color="#006d2c",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=50), 
-        axis.title.y=element_text(color="black", size=50),
-        axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_text(color="black", size=40)) +
-  theme(legend.position="none")+
-  labs(x =expression('Average light' (PFD~µmol~photons~m^{-2}~s^{-1})),y=expression(Average~NEP~(mmol~C/m^"2"*hr)))
-lightnep
-
 #patchwork everything together
-phyllosig<-(phyllolight | phylloMMA | lightnep)/
-  (phyllopH|SAVpH)/
-  (pHNEC|tempNEC|THNEC|SAVNEC) +
+phyllosig<-(phyllotemp | phylloMMA)/
+  (phyllopH | pneppH)/
+  (ptempnepplot | pntopnepplot)/
+  (pHNEC|THNEC) +
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
 phyllosig
-ggsave(filename = "Output/phyllosigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 45)
+ggsave(filename = "Output/phyllosigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
 
 ####Mytilus mussel SEM#####
+#1
+#micro/macroalage cover and mytilus
+MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TideHeight, data = Mytilusdaynightall)
 
-#mma and mytilus
-mytmmagg<-ggpredict(MAvgMMalgae, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
+mytmmagg<-ggpredict(MDNMMalgaeall, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
 mytmmagg<-as.data.frame(mytmmagg) #create dataframe 
 
 mytmmagg<-mytmmagg%>% #output for values gives you an x for variable. rename variable to match
   rename(MytilusLoss=x) #rename to join to rest of dataframe
 
-mytmmagg<-left_join(mytmmagg,Mytilusunscaled) #rejoin with main dataframe for ggplot
+mytmmagg<-left_join(mytmmagg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+
 mytmma<-ggplot(mytmmagg, aes(x =MytilusLoss, y=MicroMacroAlgaeCover)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
+  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -502,65 +493,23 @@ mytmma<-ggplot(mytmmagg, aes(x =MytilusLoss, y=MicroMacroAlgaeCover)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x ='CA mussel loss \n (Mytilus californianus)',y='Change in micro/macroalgae cover')
+  labs(x ='CA mussel % loss \n (Mytilus californianus)',y='Change in micro/macroalgae % cover')
 mytmma
 
-#mytilus and pH
-
-mytpHgg<-ggpredict(MAvgpH, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
-mytpHgg<-as.data.frame(mytpHgg) #create dataframe 
-
-mytpHgg<-mytpHgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(MytilusLoss=x) #rename to join to rest of dataframe
-
-mytpHgg<-left_join(mytpHgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
-mytpH<-ggplot(mytpHgg, aes(x =MytilusLoss, y=pH)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=50), 
-        axis.title.y=element_text(color="black", size=50),
-        axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_text(color="black", size=40)) +
-  theme(legend.position="none")+
-  labs(x ='',y='pH')
-
-#nep and mma
-mmanepgg<-ggpredict(MAvgNEP, c("MicroMacroAlgaeCover")) #predict marginal effects from model for foundation spp. loss
-mmanepgg<-as.data.frame(mmanepgg) #create dataframe 
-
-mmanepgg<-mmanepgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(MicroMacroAlgaeCover=x) #rename to join to rest of dataframe
-
-mmanepgg<-left_join(mmanepgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
-mmanep<-ggplot(mmanepgg, aes(y =NEP, x=MicroMacroAlgaeCover)) +
-  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
-  scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=MicroMacroAlgaeCover, y=predicted), color="#045a8d",size =1.5)+
-  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
-  theme_classic()+
-  theme(axis.title.x=element_text(color="black", size=50), 
-        axis.title.y=element_text(color="black", size=50),
-        axis.text.x =element_text(color="black", size=40),
-        axis.text.y =element_text(color="black", size=40)) +
-  theme(legend.position="none")+
-  labs(y=expression(Average~NEP~(mmol~C/m^"2"*hr)),x='Change in micro/macroalgae cover')
-
-
+#2
 #mma and tideheight
-thmmagg<-ggpredict(MAvgMMalgae, c("TideHeight")) #predict marginal effects from model for foundation spp. loss
+MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TideHeight, data = Mytilusdaynightall)
+thmmagg<-ggpredict(MDNMMalgaeall, c("TideHeight")) #predict marginal effects from model for foundation spp. loss
 thmmagg<-as.data.frame(thmmagg) #create dataframe 
 
 thmmagg<-thmmagg%>% #output for values gives you an x for variable. rename variable to match
   rename(TideHeight=x) #rename to join to rest of dataframe
 
-thmmagg<-left_join(thmmagg,Mytilusunscaled) #rejoin with main dataframe for ggplot
+thmmagg<-left_join(thmmagg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
 thmma<-ggplot(thmmagg, aes(x =TideHeight, y=MicroMacroAlgaeCover)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=TideHeight, y=predicted), color="#045a8d",size =1.5)+
+  geom_line(aes(x=TideHeight, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -568,20 +517,24 @@ thmma<-ggplot(thmmagg, aes(x =TideHeight, y=MicroMacroAlgaeCover)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x='Tide height (m)',y='Change in micro/macroalgae cover')
+  labs(x='Tide height (m)',y='')
+thmma
 
-#nutrients and sa to v ratio
-nutsavgg<-ggpredict(MAvgNtoP, c("SAtoVRatio")) #predict marginal effects from model for foundation spp. loss
-nutsavgg<-as.data.frame(nutsavgg) #create dataframe 
+#3
+#mytilus and pH
+MDNpHall<- lm(pH ~ MytilusLoss+NEP+Volume+TideHeight, data =Mytilusdaynightall)
 
-nutsavgg<-nutsavgg%>% #output for values gives you an x for variable. rename variable to match
-  rename(SAtoVRatio=x) #rename to join to rest of dataframe
+mytpHgg<-ggpredict(MDNpHall, c("MytilusLoss")) #predict marginal effects from model for foundation spp. loss
+mytpHgg<-as.data.frame(mytpHgg) #create dataframe 
 
-nutsavgg<-left_join(nutsavgg,Mytilusunscaled) #rejoin with main dataframe for ggplot
-nutsav<-ggplot(nutsavgg, aes(x =SAtoVRatio, y=NtoPRatio)) +
+mytpHgg<-mytpHgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(MytilusLoss=x) #rename to join to rest of dataframe
+
+mytpHgg<-left_join(mytpHgg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+mytpH<-ggplot(mytpHgg, aes(x =MytilusLoss, y=pH)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
-  geom_line(aes(x=SAtoVRatio, y=predicted), color="#045a8d",size =1.5)+
+  geom_line(aes(x=MytilusLoss, y=predicted), color="#045a8d",size =2)+
   geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
   theme_classic()+
   theme(axis.title.x=element_text(color="black", size=50), 
@@ -589,15 +542,123 @@ nutsav<-ggplot(nutsavgg, aes(x =SAtoVRatio, y=NtoPRatio)) +
         axis.text.x =element_text(color="black", size=40),
         axis.text.y =element_text(color="black", size=40)) +
   theme(legend.position="none")+
-  labs(x='SA to V ratio',y='N to P ratio')
+  labs(x ='CA mussel % loss \n (Mytilus californianus)',y=expression("Change in average pH"[T]))
+mytpH
+
+#4
+#nep and pH
+mneppHgg<-ggpredict(MDNpHall, c("NEP[all]")) #predict marginal effects from model for foundation spp. loss
+mneppHgg<-as.data.frame(mneppHgg) #create dataframe 
+
+mneppHgg<-mneppHgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(NEPadj=x) #rename to join to rest of dataframe
+Mytilusdaynightall$NEPadj<-format(round(Mytilusdaynightall$NEP, 2), nsmall = 2)  # Apply format function
+Mytilusdaynightall$NEPadj<-as.numeric(Mytilusdaynightall$NEPadj) #make ratio smaller to match output of predict model
+mneppHgg<-left_join(mneppHgg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+
+mytpHnep<-ggplot(mneppHgg, aes(x =NEPadj, y=pH)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_line(aes(x=NEPadj, y=predicted), color="#045a8d",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(x=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),y='')
+mytpHnep
+
+#5
+#nep and mma
+#signficant day/night interaction
+MDNNEPallint<-lm(NEP ~(NtoPRatio+MicroMacroAlgaeCover+TideHeight)*Day_Night,data = Mytilusdaynightall) 
+
+mmanepgg<-ggpredict(MDNNEPallint, c("MicroMacroAlgaeCover","Day_Night")) #predict marginal effects from model for foundation spp. loss
+mmanepgg<-as.data.frame(mmanepgg) #create dataframe 
+
+mmanepgg<-mmanepgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(MicroMacroAlgaeCover=x,Day_Night=group) #rename to join to rest of dataframe
+
+mmanepgg<-left_join(mmanepgg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+mmanep<-ggplot(mmanepgg, aes(y =NEP, x=MicroMacroAlgaeCover,color=Day_Night)) +
+  geom_point(size=8,aes(shape=Removal_Control,color=Day_Night),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  scale_colour_manual(values = c("#045a8d",'#bdbdbd'))+
+  geom_line(aes(x=MicroMacroAlgaeCover, y=predicted, color=Day_Night,linetype=Day_Night),size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(y=expression("Change in average"~NEP~(mmol~C/m^"2"*hr)),x='Change in micro/macroalgae % cover')
+mmanep
+
+#6
+#nep and n to p
+MDNNEPall<-lm(NEP ~NtoPRatio+MicroMacroAlgaeCover+TideHeight,data = Mytilusdaynightall) 
+ntpnepgg<-ggpredict(MDNNEPall, c("NtoPRatio[all]")) #predict marginal effects from model for foundation spp. loss
+ntpnepgg<-as.data.frame(ntpnepgg) #create dataframe 
+
+ntpnepgg<-ntpnepgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(NtoPRatioedited=x) #rename to join to rest of dataframe
+
+Mytilusdaynightall$NtoPRatioedited<-format(round(Mytilusdaynightall$NtoPRatio, 2), nsmall = 2)  # Apply format function
+Mytilusdaynightall$NtoPRatioedited<-as.numeric(Mytilusdaynightall$NtoPRatioedited) #make ratio smaller to match output of predict model
+ntpnepgg<-left_join(ntpnepgg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+
+ntpnep<-ggplot(ntpnepgg, aes(y =NEP, x=NtoPRatioedited)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_line(aes(x=NtoPRatioedited, y=predicted), color="#045a8d",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(x='Change in average N to P Ratio',y='')
+ntpnep
+
+#7
+#nec and max temp
+MDNNECall<- lm(NEC~ pH+MaxTemp+TideHeight, data = Mytilusdaynightall) #removed mussel loss since v related to pH&maxtemp
+mtempnecgg<-ggpredict(MDNNECall, c("MaxTemp[all]")) #predict marginal effects from model for foundation spp. loss
+mtempnecgg<-as.data.frame(mtempnecgg) #create dataframe 
+
+mtempnecgg<-mtempnecgg%>% #output for values gives you an x for variable. rename variable to match
+  rename(MaxTempedited=x) #rename to join to rest of dataframe
+
+Mytilusdaynightall$MaxTempedited<-format(round(Mytilusdaynightall$MaxTemp, 3), nsmall = 3)  # Apply format function
+Mytilusdaynightall$MaxTempedited<-as.numeric(Mytilusdaynightall$MaxTempedited) #make ratio smaller to match output of predict model
+
+mtempnecgg<-left_join(mtempnecgg,Mytilusdaynightall) #rejoin with main dataframe for ggplot
+mtempnec<-ggplot(mtempnecgg, aes(x =MaxTempedited, y=NEC)) +
+  geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
+  scale_shape_manual(values = c(19,1)) +
+  geom_line(aes(x=MaxTempedited, y=predicted), color="#045a8d",size =2)+
+  geom_ribbon(aes(ymin=conf.low,ymax=conf.high),alpha=0.2) +
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=50), 
+        axis.title.y=element_text(color="black", size=50),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40)) +
+  theme(legend.position="none")+
+  labs(x='Change in average maximum Temperature (°C)',y=expression("Change in average"~NEC~(mmol~CaCO["3"]/m^"2"*hr)))
+mtempnec
 
 #patchwork mytilus figs
-mytilussig<-(mytmma|mytpH)/
-  (mmanep|thmma|nutsav) +
+mytilussig<-(mytmma | thmma)/
+  (mmanep | ntpnep) /
+  (mytpH | mytpHnep |mtempnec)+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
 mytilussig
-ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 45)
+ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
 
 ####Light and temp correlation#####
 
