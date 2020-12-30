@@ -600,45 +600,51 @@ mytilussig
 ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 45)
 
 ####Light and temp correlation#####
+
 #supplemental figure
 #Light and temp correlation in SEM
-cor.test(Phyllounscaled$MaxTemp, Phyllounscaled$Light,  method = "pearson")
-#t = 4.2129, df = 14, p-value = 0.0008685
-#95 percent confidence interval:0.4003722 0.9071667\
-#cor 0.7476867 
-cor.test(Mytilusunscaled$MaxTemp, Mytilusunscaled$Light,  method = "pearson")
-#t = 5.842, df = 13, p-value = 5.761e-05
-#95 percent confidence interval:0.6004721 0.9493811
-#cor 0.8509753 
+PhylloDay<-PhylloDayNightall%>%
+  filter(Day_Night=='Day')
+cor.test(PhylloDay$MaxTemp, PhylloDay$Light,  method = "pearson")
+#t = 6.1464, df = 14, p-value = 2.534e-05
+#95 percent confidence interval:
+ #0.6217138 0.9483361
+#sample estimates: cor 0.8541739 
+Mytilusday<-Mytilusdaynightall%>%
+  filter(Day_Night=='Day')
+cor.test(Mytilusday$MaxTemp,Mytilusday$Light,  method = "pearson")
+#t = 5.7644, df = 13, p-value = 6.551e-05
+#95 percent confidence interval: 0.5931612 0.9482484
+#sample estimates:cor 0.8478125 
 #graphs
-phyllolightandtemp<-ggplot(Phyllounscaled, aes(x =MaxTemp, y=Light)) +
+phyllolightandtemp<-ggplot(PhylloDay, aes(y =MaxTemp, x=Light)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_smooth(method = 'lm',color ="#006d2c",size =1.5,alpha =0.3)+
   theme_sleek() +
-  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
-        axis.title.y=element_text(color="black", size=40),
+  theme(axis.title.y=element_text(color="black", size=45), 
+        axis.title.x=element_text(color="black", size=40),
         axis.text.x =element_text(color="black", size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs( x= '', y='Change in daily max temp (°C)')
+  labs(y='Change in daily max temp (°C)',x='')
 
-mytiluslightandtemp<-ggplot(Mytilusunscaled, aes(x =MaxTemp, y=Light)) +
+mytiluslightandtemp<-ggplot(Mytilusday, aes(y =MaxTemp, x=Light)) +
   geom_point(size=8,aes(shape=Removal_Control),stroke=2) +
   scale_shape_manual(values = c(19,1)) +
   geom_smooth(method = 'lm',color ="#045a8d",size =1.5,alpha =0.3)+
   theme_sleek() +
-  theme(axis.title.x=element_text(face="italic", color="black", size=40), 
+  theme(axis.title.x=element_text(face="italic", color="black", size=45), 
         axis.title.y=element_blank(),
         axis.text.x =element_text(color="black",size=35),
         axis.text.y =element_text(color="black", size=35)) +
   theme(legend.position="none")+
-  labs(x=expression('Average change in light' (PFD~µmol~photons~m^{-2}~s^{-1})), y='Change in daily max temp (°C)')
+  labs(x=expression('Average change in light' (PFD~µmol~photons~m^{-2}~s^{-1})), y='')
 
 lighttempsem<-phyllolightandtemp+mytiluslightandtemp +      #patchwork to combine plots
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size = 50, face = "bold"))   #edit the lettered text
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
 
 lighttempsem
-ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 20, height = 20)
+ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 30, height = 25)
 

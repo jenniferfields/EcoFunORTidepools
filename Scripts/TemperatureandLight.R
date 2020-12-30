@@ -314,19 +314,17 @@ SMURFOceanTemp<-SMURFOceanTemp%>%
 Phyllotimeseries<-Temptimeseries%>%
   filter(Foundation_spp =="Phyllospadix") 
 
-Phyllotimeseriesmean<-Temptimeseries%>%
-  filter(Foundation_spp =="Phyllospadix") %>%
-  group_by(Removal_Control,Before_After,by60=cut(Date.Time, "60 min"), Date.Time) %>%
-  summarise(Meantemp = mean(Temp.C),
-            Maxtemp = max(Temp.C),
-            mintemp=min(Temp.C))
-
-Phyllotimeseriesmean$Date.Time<-as.factor(Phyllotimeseriesmean$Date.Time)
-Phyllotimeseries<-left_join(Phyllotimeseries,Phyllotimeseriesmean)
+#to calculate daily max values
+#Phyllotimeseriesmean<-Temptimeseries%>%
+ # filter(Foundation_spp =="Phyllospadix") %>%
+ # dplyr::group_by(PoolID,Removal_Control,Before_After,by60=cut(Date.Time, "1440 min")) %>% #daily max per tide pool
+ #dplyr::summarise(meantempbypool= mean(Temp.C, na.rm = TRUE)) %>%
+ #dplyr::group_by(Removal_Control, Before_After,by60) %>% #daily mean max across all tide pools
+  #dplyr::summarise(meantemp=mean(meantempbypool, na.rm=TRUE))
+#Phyllotimeseriesmean$by60<-as_datetime(Phyllotimeseriesmean$by60)
 
 Phyllotimeseries$PoolID<-as.factor(Phyllotimeseries$PoolID)
  
-
 Temptimeseries$Phyllodelta[Temptimeseries$Before_After=="Before"]<-0 #change phyllo loss before period to 0
 
 #Phyllotimeseries$Day<-as.factor(as.Date(Phyllotimeseries$by60, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
@@ -338,6 +336,7 @@ ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
   geom_vline(xintercept = as.POSIXct("2019-07-17"), linetype=2, 
              color = "black", size=3)+
   geom_line(data=SMURFOceanTemp,aes(x=Date.Time,y=OceanTemp.C),colour="#a50f15",size=2)+
+  #geom_line(data=Phyllotimeseriesmean,aes(x=by60,y=meantemp),colour="#08519c",size=2)+
   theme_classic()+
   facet_wrap(~Removal_Control) +
   theme(axis.text.x=element_text(size = 30, color = "black"), 
@@ -350,13 +349,15 @@ ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
         panel.spacing = unit(4, "lines"), #change facet spacing
         legend.key.size = unit(1.5, "cm"),
         legend.key.width = unit(1.0,"cm")) +
+  scale_x_datetime(limits = as.POSIXct(c("2019-06-16 00:00:00", "2019-08-16 00:00:00 ")))+
   annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
            color="black",size=15)+
   annotate(geom="text", y=34, x=as.POSIXct("2019-08-02"), label="After",
            color="black",size=15)+
    labs(y="Temperature (°C)", x="Date", color ="Surfgrass Loss")
 Phyllotempseries
-#ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
+
+#ggsave(filename = "Output/Surfgrasstemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 10)
 Temptimeseries$Mytilusdelta[Temptimeseries$Before_After=="Before"]<-0
 Musseltempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Mytilus") %>%
@@ -378,6 +379,7 @@ Musseltempseries<-Temptimeseries %>%
         panel.spacing = unit(4, "lines"), #change facet spacing
         legend.key.size = unit(1.5, "cm"),
         legend.key.width = unit(1.0,"cm")) +
+  scale_x_datetime(limits = as.POSIXct(c("2019-06-16 00:00:00", "2019-08-16 00:00:00 ")))+
   annotate(geom="text", y=34, x=as.POSIXct("2019-07-01"), label="Before",
            color="black",size=15)+
   annotate(geom="text", y=34, x=as.POSIXct("2019-08-02"), label="After",
@@ -385,7 +387,11 @@ Musseltempseries<-Temptimeseries %>%
   labs(y="Temperature (°C)", x="Date", color ="Mussel Loss")
 Musseltempseries
 #ggsave(filename = "Output/musseltemp.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
-
+Temptimeseriespm<-(Phyllotempseries/Musseltempseries)+
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =50))   #edit the lettered text
+Temptimeseriespm
+ggsave(filename = "Output/temptimeseries.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 25)
 ####temp and light analyses####
 #separate datasets for surfgrass and mussels
 DeltaLightandTempPhyllo<-DeltaLightandTempdata %>%
@@ -539,11 +545,7 @@ mytiluslight<-ggplot(mlight, aes(x =Mytilusdelta, y=loglight)) +
   xlab('CA mussel percent loss \n (Mytilus californianus)')+ ylab('') 
 mytiluslight
 
-Temptimeseriespm<-Phyllotempseries+Musseltempseries+
-  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =40))   #edit the lettered text
-Temptimeseriespm
-ggsave(filename = "Output/temptimeseries.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 15)
+
 
 
 #patchwork figs together
