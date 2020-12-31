@@ -74,7 +74,6 @@ SummaryNEPNECcommpp<-SEMall%>%
             AvgCCA = mean(allCCA),
             Avgproddom = mean(prodphyllodom))
 
-
 SEMdata<-left_join(DeltaSamples,SEMcommunitydata)
 SEMdata<-as.data.frame(SEMdata)
 
@@ -92,7 +91,7 @@ SEMcombined<-left_join(SummaryNEPNECcommpp,Sumbiogeochemtemp)
 SEMcombined<-left_join(SEMcombined,IntegratedNECNEP)
 
 SEMcombined<-as.data.frame(SEMcombined)
-
+  
 #Takes the delta between after-before period
 SEMallavg<-SEMcombined%>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
@@ -117,7 +116,6 @@ SEMallavg<-SEMcombined%>%
                    #macroalgae cover - sessile consumers (including Mytilus)
 SEMallavg<-left_join(SEMallavg,PP)                  
 
-
 ####Surfgrass SEM####
 PhylloDayNightall<-SEMallavg %>%
   filter(Foundation_spp == 'Phyllospadix') %>%
@@ -125,15 +123,7 @@ PhylloDayNightall<-SEMallavg %>%
                 MaxTemp = Tempmaxdelta,Light=Parmeandelta,MytilusLoss=Mytilusdelta,PhyllospadixLoss=Phyllodelta, MicroMacroAlgaeCover=micromacroalgaedelta,
                 SAtoVRatio=SAVav,TideHeight=THav,SurfaceArea=SAav,Volume=Vav, NN=NNdelta) #rename cols to match sem
 
-
 #ggpairs(PhylloDayNightall[c(5:12,16:17,20:23)])
-##max temp and sa:v
-#surfgrass loss and sa to v ratio?
-
-#surfgrass loss and sa to v ratio?
-##max temp and sa:v
-#max temp and pH
-#sav and pH
 
 #make day/night a factor for multigroup analysis
 PhylloDayNightall$Day_Night<-as.factor(PhylloDayNightall$Day_Night)
@@ -145,6 +135,7 @@ PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+Volume +TideHeight, data =PhylloDayNi
 PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =PhylloDayNightall) #removed surfgrass loss since very correlated with pH and maxTemp
 PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+Volume+TideHeight,data = PhylloDayNightall)
 PDNNEPall<-lm(NEP ~MaxTemp +MicroMacroAlgaeCover+NtoPRatio+TideHeight, data =PhylloDayNightall) 
+
 
 qqp(resid(PDNMMAlgaeall),"norm")
 #plot(PDNMMAlgaeall)
@@ -209,8 +200,6 @@ qqp(resid(MDNMMalgaeall),"norm")
 #plot(MDNMMalgaeall)
 qqp(resid(MDNTempall),"norm") 
 #plot(MDNTempall)
-#qqp(resid(MDNLightall),"norm") #log light data for normality
-#plot(MDNLightall) #one outlier with log light data
 qqp(resid(MDNtoPall),"norm") 
 #plot(MDNtoPall)
 qqp(resid(MDNNECall),"norm") 
@@ -222,7 +211,6 @@ qqp(resid(MDNNEPall),"norm")
 
 
 MytilusDNSEMall<-psem(MDNMMalgaeall,
-                   #MDNLightall,
                    MDNTempall,
                    MDNtoPall,
                    MDNNEPall,
