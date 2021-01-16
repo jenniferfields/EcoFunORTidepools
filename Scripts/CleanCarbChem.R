@@ -1,6 +1,6 @@
 #Clean biogeochem and carb chem script
 ## By: Jenn Fields
-## Last updated: 10.23.2020
+## Last updated: 1.16.2020
 ###########################
 ## clear workspace
 rm(list=ls())
@@ -25,9 +25,10 @@ library(fitdistrplus) #distribution of data
 devtools::install_github("seananderson/ggsidekick")
 library(GGally) #for ggpairs function
 library(ggsidekick) #for theme sleek
+library(patchwork) #for combining figures
 library(tidyverse) #for all things %>%
 
-# load data
+
 #source scripts
 source("scripts/tidepoolphysicalparameters.R")#load physical parameters
 source("scripts/CommunityComp.R") #load community comp 
@@ -60,7 +61,6 @@ CarbChem$Date_Time <- paste(CarbChem$Sampling_Day, CarbChem$Sampling_time)
 CarbChem$Date_Time<-ymd_hms(CarbChem$Date_Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time
 
 ####Time 1-Time 4####
-#Calculate delta TA between Time Points
 CarbChem<-CarbChem %>%
   filter(Time_Point != '5') %>% #take out time point 5 from further analysis
   filter(PoolID != '30') #removing pool 30 because nutrients values in After period during 
@@ -84,6 +84,7 @@ Stop<- CarbChem %>%
 
 StartandStop<-left_join(Start,Stop)
 
+#load temp data from data file
 temp.data <-
   list.files(path = 'Data/LightandTemp',pattern = ".csv", full.names = TRUE) %>% #all temp and light files in the is folder
   # list files in directory following a particular pattern
@@ -91,6 +92,7 @@ temp.data <-
   map_dfr(read.csv, .id = "file.ID") %>% # join all files together in one data frame by file ID
   group_by(file.ID) 
 
+#fix date and time column to match carbchem data set
 temp.data$Date_Time<- mdy_hm(temp.data$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0) #format date and time 
 #View(temp.data)
 
@@ -141,7 +143,7 @@ TempandLightSumall<-StartandStop %>% #create new data frame finding temp and lig
 
 
 ###########Nutrient Data Cleaning##########
-#Missing 8 samples from nutritent analysis out of 612 samples
+#Missing 8 samples from nutrient analysis out of 612 samples
 #N_17_5_BC was lost before taking nutrients \
 # D_24_1_BC, N_24_1_BC, N2_Ocean_5_BC, D_1_2_AI, D_16_2_AI, D_4_3_AI, N_20_3_AI were missing
 #from lab analyses
@@ -156,7 +158,8 @@ CarbChem <- CarbChem %>%
            Id_code != 'N2_Ocean_5_BC' & Id_code != 'D_1_2_AI' & Id_code != 'D_16_2_AI'&
            Id_code != 'D_4_3_AI' & Id_code != 'N_20_3_AI' & Id_code !='N_26_1_BC') 
 #N_26_1_BC has very low phosphate that yields it to be an outlier in later analysis
-#could be a typo or the tide pool was just exposed from the ocean
+#could be a typo or the tide pool was just exposed from the ocean during sampling so may have had values
+#closer to ocean values 
 
 #Conversions from ug/l to µmol/l
 #1 µg P/l = 1/MW P = 0.032285 µmol/l
@@ -178,8 +181,8 @@ CarbChem$PO_umol_L[which(CarbChem$PO_umol_L < 0)] <- 0
 CarbChem$NN_umol_L [which(CarbChem$NN_umol_L  < 0)] <- 0
 CarbChem$NH4_umol_L[which(CarbChem$NH4_umol_L < 0)] <- 0
 
-####Adding TA data and lab salinity data####
 
+#Adding TA data and lab salinity data
 CarbChem<-left_join(CarbChem,TA) #join with TA samples
 CarbChem<-left_join(CarbChem,Salinity) #join with salinity in lab
 
@@ -240,7 +243,7 @@ fitted(DOTime1regression)
 
 #To test for homogeneity of variance, we want to plot the fitted (predicted) values
 #against the residuals
-plot(DOregressionres~fitted(DOTime1regression))
+#plot(DOregressionres~fitted(DOTime1regression))
 #good so can use model for DO values
 
 #plot(DO~pH + Temperature, data=DayTime1Chem)
@@ -249,7 +252,7 @@ plot(DOregressionres~fitted(DOTime1regression))
 #select from dataset tide pools 1-15 for time point one on 08052019 sampling day during after period since missing DO values
 tpday1AI<-which(CarbChem$Time_Point == "1" & CarbChem$Before_After == "After" & CarbChem$Sampling_Day == "2019-08-05" & 
                   CarbChem$PoolID != "Ocean" & CarbChem$PoolID != "16")
-#View(tpday1AI)
+
 
 #DO mg/L regression equation
 #r2 of 0.9083
@@ -257,7 +260,7 @@ tpday1AI<-which(CarbChem$Time_Point == "1" & CarbChem$Before_After == "After" & 
 #BpH =  5.4970  
 #B temp  = 0.1504
 CarbChem$DO_mg_L[tpday1AI]<- -36.4751 + (5.4970 * CarbChem$pH_insitu[tpday1AI]) + (0.1504 * CarbChem$Temp.pool[tpday1AI])
-#View(CarbChem)
+
 
 #DO % regression equation
 #r2 of 0.9039
@@ -269,7 +272,7 @@ CarbChem$DO_p[tpday1AI]<- -470.450 + (66.208  * CarbChem$pH_insitu[tpday1AI]) + 
 #Now for ocean sample--select from data set time one on 0805209 sampling day
 Oceanday1AI<-which(CarbChem$Time_Point == "1" & CarbChem$Before_After == "After" & CarbChem$Sampling_Day == "2019-08-05" & 
                      CarbChem$PoolID == "Ocean")
-#View(Oceanday1AI)
+
 CarbChem$DO_mg_L[Oceanday1AI]<- -36.4751 + (5.4970 * CarbChem$pH_insitu[Oceanday1AI]) + (0.1504 * CarbChem$Temp.pool[Oceanday1AI])
 CarbChem$DO_p[Oceanday1AI]<- -470.450 + (66.208  * CarbChem$pH_insitu[Oceanday1AI]) + (3.935 * CarbChem$Temp.pool[Oceanday1AI])
 
@@ -287,9 +290,9 @@ er<-errors(flag=8, CarbChem$pH_insitu, CarbChem$TA_CRM/1000000,
 
 #average error for DIC based on pH and TA
 mean(er$DIC*1000000)
-#7.091473
+#7.091209
 sd(er$DIC*1000000)/sqrt(nrow(er))
-#0.06065831
+#0.06077336
 
 #convert CO2, HCO3, CO3, DIC, and Alk back to micromol for easier interpretation
 PoolCO2[,c("CO2","HCO3","CO3","DIC","ALK")]<-PoolCO2[,c("CO2","HCO3","CO3","DIC","ALK")]*1000000
@@ -305,16 +308,8 @@ CarbChem$TA_NormSal<-CarbChem$TA_CRM*(CarbChem$Salinity_Lab/34)
 #Normalize DIC constant salinity
 CarbChem$DIC_Norm<-CarbChem$DIC*(CarbChem$Salinity_Lab/34)
 
-#Check Relationship of DIC and TA
-#TATime<- CarbChem %>%
-#ggplot(aes(x= Time_Point, y = TA_NormSal, shape = Day_Night, color =Removal_Control)) +
-#geom_point() +
-#geom_smooth(method = "lm") +
-#facet_wrap(~Foundation_spp * Before_After*PoolID, scales = "free_y") +
-#theme_classic() +
-#ggsave("Output/EcoMetabolism/TATime.png", width=55, height=35,dpi=300, unit="cm")
-#TATime
 #####NEC and NEP#####
+####Integrated NEC/NEP#####
 #for TA, DIC, Sampling Time to find change over time
 DeltaSamples<- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
@@ -341,7 +336,7 @@ DeltaSamples<- CarbChem %>%
   dplyr::select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,TADeltaTime, DICDeltaTime,
                 DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
-#because tp 24 in Before period did not have time pt 1 so took differences btw time point 2 and 4
+#because tp 24 & tp 26 in Before period did not have time pt 1 so took differences btw time point 2 and 4
 TP24and26 <- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
   filter(Foundation_spp != 'Ocean') %>%
@@ -586,7 +581,7 @@ Allsamples<- CarbChem %>%
   dplyr::select(PoolID, Id_code, Time_Point,Foundation_spp,Before_After,Removal_Control,Day_Night,Group,TADeltaTime, DICDeltaTime,
                 DeltaTime,DeltaNN,DeltaNH4,DeltaPO,DeltapH,DeltapCO2,DeltaDO)
 
-#because tp 24 in Before period did not have time pt 1 so took differences btw time point 2,3 and 4
+#because tp 24 & 26 in Before period did not have time pt 1 so took differences btw time point 2,3 and 4
 TP24and26all <- CarbChem %>%
   #filter(Day_Night == 'Day') %>% #just do day and night separately since having issues
   filter(Foundation_spp != 'Ocean') %>%
@@ -824,7 +819,7 @@ Allsamples$NEP.mmol.m2.hr<-as.numeric(Allsamples$NEP.mmol.m2.hr)
 ######PCA of biogeochem########
 CarbChem$Sampling_Day<-as.factor(CarbChem$Sampling_Day)
 
-
+#select data and summarize for PCA
 Biogeochem.sum<-CarbChem %>%
   dplyr::group_by(PoolID,Foundation_spp,Before_After,Removal_Control)  %>% #group PoolID
   dplyr::select(PoolID,Foundation_spp,Before_After,Removal_Control,Temp.pool,DO_mg_L,pH_insitu,NN_umol_L,NH4_umol_L,PO_umol_L) %>% #selects columns of data 
@@ -845,13 +840,13 @@ PBeforespploss$Phyllodelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of
 Phylloloss<-rbind(PBeforespploss,PFunsppcover) #combine before and after together
 
 MFunsppcover<-Funsppcover%>%
-  filter(Foundation_spp =="Mytilus") 
+  filter(Foundation_spp =="Mytilus" & PoolID !=30) 
 MFunsppcover<-MFunsppcover[c(1,4)] #select poolid and mytilus delta
 MFunsppcover$Before_After<- "After"
 MBeforespploss<-MytiluscommunitynMDS%>%
   select(PoolID,Before_After) %>%
-  filter(Before_After =='Before')
-MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
+  filter(Before_After =='Before'& PoolID !=30)
+MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
 Musselloss<-rbind(MBeforespploss,MFunsppcover) #combine before and after together
 
 
@@ -894,18 +889,14 @@ summary(MytilusBiogeochemPCAmodel)
 
 PhylloPCAscores<- data.frame(PhylloBiogeochemPCAmodel$x[,c(1,2)])#asks for first rows (PC1 and PC2) of table
 MytilusPCAscores<- data.frame(MytilusBiogeochemPCAmodel$x[,c(1,2)])
-#View(PCAscores)
-#biplot(PhylloBiogeochemPCAmodel, xlab="PC1", ylab="PC2")
+
 PhylloBiogeochemPCAgraph<-data.frame(bind_cols(PhylloBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Phyllodelta")], PhylloPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
 MytilusBiogeochemPCAgraph<-data.frame(bind_cols(MytilusBiogeochem[,c("PoolID","Foundation_spp","Before_After","Removal_Control","Mytilusdelta")], MytilusPCAscores)) #column binds scores back with Tp pool Id, foundation species, removal/control, before/after
-
-########Combined data with Before/After##########
-#Plot with just point data
 
 ## add a column combining after before and foundation species
 PhylloBiogeochemPCAgraph$AB_F<-factor(paste(PhylloBiogeochemPCAgraph$Before_After, PhylloBiogeochemPCAgraph$Foundation_spp))
 MytilusBiogeochemPCAgraph$AB_F<-factor(paste(MytilusBiogeochemPCAgraph$Before_After, MytilusBiogeochemPCAgraph$Foundation_spp))
-#create dataframe for centroids with median from x and y axes
+#create dataframe for centroids with mean from x and y axes
 pcentroids <- aggregate(cbind(PC1,PC2)~AB_F*Before_After*Removal_Control,PhylloBiogeochemPCAgraph,mean)
 mcentroids<-aggregate(cbind(PC1,PC2)~AB_F*Before_After*Removal_Control,MytilusBiogeochemPCAgraph,mean)
 
@@ -915,7 +906,7 @@ mgroupings<-c("After Mytilus" = 2,  "Before Mytilus" = 17,
               "Before Ocean" = 15, "After Ocean" = 0)
 pgroupings<-c("After Phyllospadix" = 2,"Before Phyllospadix" = 17,"Before Ocean" = 15, "After Ocean" = 0)
 
-#for arrows fucnction:
+#for arrows function:
 x0 <- pcentroids %>%
   filter(Before_After == "Before") %>%
   select(PC1)
@@ -933,7 +924,7 @@ y1<-pcentroids %>%
   select(PC2)
 y1<-as.matrix(y1)
 
-
+#####Surfgrass PCA and biplot#####
 Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(color =Phyllodelta, size =Phyllodelta, stroke=2), shape=16) +
   scale_color_distiller(palette = "Greys",guide = "legend")+
@@ -960,7 +951,8 @@ Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_
   guides(colour = guide_legend(nrow = 1))#makes legend only one row
 Surfgrassplot
 #ggsave(filename = "Output/Phyllopcagraph.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 10)
-#plot with loadings and point
+
+#biplot with loadings and point
 surfgrass<-autoplot(PhylloBiogeochemPCAmodel, 
                                     loadings = TRUE, loadings.colour = 'black',
                                     loadings.label = TRUE, loadings.label.size = 12 , loadings.label.colour = '#2b8cbe',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
@@ -973,13 +965,14 @@ surfgrass<-autoplot(PhylloBiogeochemPCAmodel,
 surfgrass
 #ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
-library(patchwork)
+#combine plots togeteher
 surfgrasspca<-Surfgrassplot+surfgrass+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =50))   #edit the lettered text
 surfgrasspca
-ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+#ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
+#####Mussel PCA and biplot#####
 #for arrows fucnction:
 v0 <- mcentroids %>%
   filter(Before_After == "Before") %>%
@@ -1039,13 +1032,11 @@ musselloadings<-autoplot(MytilusBiogeochemPCAmodel,
 musselloadings
 #ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
-library(patchwork)
-
 musselpca<-musselplot+musselloadings+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =40))   #edit the lettered text
 musselpca
-ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+#ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
 
 #####for supplemental summary table######

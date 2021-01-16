@@ -1,6 +1,6 @@
-## Data processing and Structural equation model for both surfgrass and mussel models
+## Data processing and Structural equation model for both surfgrass and mussel tide pools
 ## By: Jenn Fields
-## Last updated: 10.23.2020
+## Last updated: 1.16.2020
 ###################
 ## clear workspace
 rm(list=ls())
@@ -51,11 +51,12 @@ Summarybiogeochem<-CarbChem%>%
             AvgP=mean(PO_umol_L),
             AvgNh4=mean(NH4_umol_L))
 
-
+  
 #summarise average max temp over the low tide sample (n=3-4 values per tide pool/time period)
 SummaryTemp<-TempandLightSumall%>%
   dplyr::group_by(PoolID, Day_Night,Before_After)  %>%
   summarise(AvgTempmax = mean(Temp.max),
+            Avgtemp=mean(Temp.mean),
             AvgPar = mean(Par.mean)) # to show light and temp correlation, not included in SEM model
 
 #leftjoin biogeochem and temp together
@@ -103,6 +104,7 @@ SEMallavg<-SEMcombined%>%
                    NtoPdelta = AvgNtoP[Before_After == 'After'] - AvgNtoP[Before_After == 'Before'],
                    NNdelta = AvgNN[Before_After == 'After'] - AvgNN[Before_After == 'Before'],
                    Tempmaxdelta = AvgTempmax[Before_After == 'After'] - AvgTempmax[Before_After == 'Before'],
+                   Tempmeandelta = Avgtemp[Before_After == 'After'] - Avgtemp[Before_After == 'Before'],
                    Parmeandelta = AvgPar[Before_After == 'After'] - AvgPar[Before_After == 'Before'],
                    Mytiluscover =AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before'],
                    Mytilusdelta = -1*(AvgMytilus[Before_After == 'After'] - AvgMytilus[Before_After == 'Before']),
@@ -131,8 +133,8 @@ PhylloDayNightall$Day_Night<-as.factor(PhylloDayNightall$Day_Night)
 #models based off hypotheses
 PDNMMAlgaeall<-lm(MicroMacroAlgaeCover~ PhyllospadixLoss+Volume+TideHeight,  data = PhylloDayNightall)
 PDNTempall<-lm(MaxTemp~ PhyllospadixLoss+Volume+TideHeight, data =PhylloDayNightall)
-PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+Volume +TideHeight, data =PhylloDayNightall)
-PDNNECall<- lm(NEC~pH +MaxTemp+TideHeight,data =PhylloDayNightall) #removed surfgrass loss since very correlated with pH and maxTemp
+PDNNtoPall<-lm(NtoPRatio ~PhyllospadixLoss+Volume+TideHeight, data =PhylloDayNightall)
+PDNNECall<- lm(NEC~pH +MaxTemp+ TideHeight,data =PhylloDayNightall) #removed surfgrass loss since very correlated with pH and maxTemp
 PDNpHall<- lm(pH ~NEP+PhyllospadixLoss+Volume+TideHeight,data = PhylloDayNightall)
 PDNNEPall<-lm(NEP ~MaxTemp +MicroMacroAlgaeCover+NtoPRatio+TideHeight, data =PhylloDayNightall) 
 
@@ -185,12 +187,16 @@ Mytilusdaynightall<-SEMallavg%>%
 #tide height and mussel loss are not correlated with day/night separately 
 #must be an artefact of having double values within the dataset
 
+
+#Ntempmod<-lm(NtoPRatio~MaxTemp,data = Mytilusdaynightall)
+#N.resid<-resid(Ntempmod)
+#Mytilusdaynightall$N.resid<-N.resid
 #models based on hypotheses
 MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TideHeight, data = Mytilusdaynightall)
 MDNTempall<-lm(MaxTemp~MytilusLoss +Volume+TideHeight, data = Mytilusdaynightall)
 #Mytilusdaynightall$logLight<-sign(Mytilusdaynightall$Light)*log(abs(Mytilusdaynightall$Light+1))
 #MDNLightall<-lm(Light ~ MytilusLoss +SAtoVRatio+TideHeight, data = Mytilusdaynightall)
-MDNtoPall<-lm(NtoPRatio ~ MytilusLoss+Volume+TideHeight,  data = Mytilusdaynightall)
+MDNtoPall<-lm(NtoPRatio~ MytilusLoss+Volume+TideHeight,  data = Mytilusdaynightall)
 MDNNECall<- lm(NEC~ pH+MaxTemp+TideHeight, data = Mytilusdaynightall) #removed mussel loss since v related to pH&maxtemp
 MDNpHall<- lm(pH ~ MytilusLoss+NEP+Volume+TideHeight, data =Mytilusdaynightall)
 MDNNEPall<-lm(NEP ~NtoPRatio+MicroMacroAlgaeCover+TideHeight,data = Mytilusdaynightall) 
@@ -209,6 +215,10 @@ qqp(resid(MDNpHall),"norm")
 qqp(resid(MDNNEPall),"norm") 
 #plot(MDNNEPall)
 
+
+ggplot(Mytilusdaynightall,aes(y=NEC,x=MaxTemp))+
+  geom_point()+
+  geom_smooth(method='lm')
 
 MytilusDNSEMall<-psem(MDNMMalgaeall,
                    MDNTempall,

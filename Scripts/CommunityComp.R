@@ -1,9 +1,9 @@
 ##Community Composition data for Sessile and Mobiles from Surfgrass and Mussel
 ##Oregon Tide Pools
 ##By: Jenn Fields
-##Last updated: 10.23.2020
+##Last updated: 1.16.2020
 
-
+###########################################
 rm(list=ls()) #Clears the environment
 
 #load libraries
@@ -31,10 +31,9 @@ library(parameters)
 library(tidyverse)
 
 
-#load data from community comp surveys
 #source scripts
 source("scripts/tidepoolphysicalparameters.R")
-#data
+#load data from community comp surveys
 Sessiles <- read_csv("Data/CommunityComposition/SessilesAll.csv")
 Mobiles <- read_csv("Data/CommunityComposition/Mobiles.csv")
 SessilesGroupings<-read_csv("Data/CommunityComposition/SessilesFunwithcitations.csv")
@@ -44,20 +43,18 @@ MobileGroupings<-read_csv("Data/CommunityComposition/MobilesFun.csv")
 #replace NA with 0
 Mobiles[is.na(Mobiles)]<-0
 
-
-#starts_with("Diatom")
-
 #######Sessiles#########
 #convert characters to numeric in sessile sheet
 Sessiles$Epiactis.prolifera<-as.numeric(Sessiles$Epiactis.prolifera)
 Sessiles$Chaetomorpha.linum<-as.numeric(Sessiles$Chaetomorpha.linum)
 Sessiles$Costaria.costata<-as.numeric(Sessiles$Costaria.costata)
+#replace NA with 0
 Sessiles[is.na(Sessiles)]<-0 
 
 
 # Make all the community data a relative percent
 PercentSessile<-100*Sessiles[7:ncol(Sessiles)]/Sessiles$Squares #change to rock--end spp
-#View(PercentSessile)
+
 #normalize to the sum of the total cover (since it can be greater than 100%)
 StandardizedSessile<- 100*PercentSessile/rowSums(PercentSessile)
 
@@ -69,7 +66,7 @@ Communitymetrics <- Communitymetrics %>%
          Before_After ="Sessiles$Before_After", AdjMusselCover=Mytilus.californianus, AdjSurfgrassCover=Phyllospadix.spp, MusselCover = "PercentSessile$Mytilus.californianus",SurfgrassCover = "PercentSessile$Phyllospadix.spp")
 #rename joined columns
 
-
+#combine data for community metrics for Strcutural equation models
 SEMcommunitydata<-Communitymetrics %>%
   dplyr::filter(Before_After != "Immediate") %>%
   dplyr::filter(PoolID != 30) %>% #remove pool 30 since no biogeochem values for this pool 
@@ -105,27 +102,23 @@ Funsppcover<- Communitymetrics%>%
   summarise(Mytilusdelta = -1*(MusselCover[Before_After == 'After'] - MusselCover[Before_After == 'Before']),
             Phyllodelta = -1*(SurfgrassCover[Before_After == 'After'] - SurfgrassCover[Before_After == 'Before']))
 
-
+#physical parameters averaged over time periods
 PP<-TidePooldes %>%
   dplyr::group_by(PoolID,Removal_Control) %>%
   dplyr::summarise(SAVav = mean(SAtoV), #ave between before and after since SA/V changed with fspp removal
-                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol),Depthav=mean(MaxDepth),
-                   loggerdepth=mean(LoggerDepth)) #tide height didn't change 
+                   THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol),Depthav=mean(MaxDepth)) #tide height didn't change 
 
 PP$PoolID<-as.factor(PP$PoolID)
 Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
-Funsppandpp<-left_join(Funsppcover,PP)
+Funsppandpp<-left_join(Funsppcover,PP) #combine foundation spp with tide pool physical parameters
 
 #ggpairs(Funsppandpp[c(4:9)])
-#mussel and surfgrass are not correlated with volume; t
-#take residuals of mussel loss and tide height 
+#mussel and surfgrass are not correlated with volume
 
-
-#####nMDS Surfgrass######
+#####nMDS Sessile Surfgrass######
 PhyllocommunitynMDS<-Communitymetrics%>%
   dplyr::filter(Before_After != "Immediate" & Foundation_spp == "Phyllospadix") 
-MytiluscommunitynMDS<-Communitymetrics%>%
-  dplyr::filter(Before_After != "Immediate" & Foundation_spp == "Mytilus") 
+
 #create dataframe that has both before (baseline so low number in this case 1) and after
 #surfgrass loss that can be used in plot later as color/size variable 
 PFunsppcover<-Funsppcover%>%
@@ -276,7 +269,8 @@ Surfgrasssessilesplot
 #ggsave("Output/surfgrassprocrustesswtich.pdf",useDingbats = FALSE, width=40, height=30,dpi=600, unit="cm")
 
 ####Mussel Sessile nMDS#####
-
+MytiluscommunitynMDS<-Communitymetrics%>%
+  dplyr::filter(Before_After != "Immediate" & Foundation_spp == "Mytilus") 
 #create dataframe that has both before (baseline so low number in this case 1) and after
 #surfgrass loss that can be used in plot later as color/size variable 
 MFunsppcover<-Funsppcover%>%
@@ -414,7 +408,7 @@ SurfgrassMobiles <-Mobiles %>%
 MusselMobiles <-Mobiles %>%
   filter(Before_After !="Immediate" & Foundation_spp =="Mytilus") 
   
-
+####Surfgrass mobile nMDS#####
 SurfgrassMobiles$PoolID<-as.character(SurfgrassMobiles$PoolID)
 PhyllomobnMDS<-left_join(Phylloloss,SurfgrassMobiles) #combine with rest of dataframe by pool id
 
@@ -649,20 +643,18 @@ Musselmobplot<-ggplot(MmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After
 Musselmobplot
 
 #patchwork of ord plots and nMDS per foudnation spp
-
 Mcommgraphs<-Musselsessilesplot+Musselmobplot+ordSesMussel+ordMobMussel+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
 Mcommgraphs
-ggsave("Output/McommnMDS.pdf",useDingbats = FALSE, width=75, height=60,dpi=600, unit="cm")
+#ggsave("Output/McommnMDS.pdf",useDingbats = FALSE, width=75, height=60,dpi=600, unit="cm")
 
 Pcommgraphs<-Surfgrasssessilesplot+Surfgrassmobplot+ordSesSurf+ordMobSurf+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
-ggsave("Output/ScommnMDS.pdf",useDingbats = FALSE, width=75, height=60,dpi=600, unit="cm")
+#ggsave("Output/ScommnMDS.pdf",useDingbats = FALSE, width=75, height=60,dpi=600, unit="cm")
 
-####Species Richness and diversity anovas#####
-
+####Species Richness Anovas#####
 Sessilesall<-Communitymetrics%>%
   dplyr::filter(Before_After != "Immediate")
 sessspplist<-Sessilesall[-c(1:9,71:72)] #remove grouping parameters and foundation spp.
@@ -690,14 +682,14 @@ mytilusessrich<-deltasessrichfunpp %>%
 #ggpairs(mytilusessrich[c(5:11)])
 
 #ggpairs(phyllosessrich[c(6:11)])
-#richness and diversity phyllo
+###Sessile species richness anova and plots####
+#Phyllospadix pool sessile richness
 phyllosessrichmod<-lm(DeltaRich~Phyllodelta +Vav+THav, data=phyllosessrich)
 #plot(phyllosessrichmod) #good
 qqp(resid(phyllosessrichmod),"norm") #good
 
 summary(phyllosessrichmod)
 
-library(ggeffects)
 phyllospp<-ggpredict(phyllosessrichmod, c("Phyllodelta")) #predict marginal effects from model for foundation spp. loss
 plot(phyllospp) #plot output 
 phyllospp<-as.data.frame(phyllospp) #create dataframe 
@@ -722,8 +714,7 @@ phyllospp<-ggplot(phyllospp, aes(x =Phyllodelta, y=DeltaRich)) +
   labs(x ='', y = 'Change in sessile species richness') 
 phyllospp
 
-
-#richness and diversity mytilus
+#Mytilus pools sessile richness
 mytilusessrich$logrichness<-sign(mytilusessrich$DeltaRich)*log(abs(mytilusessrich$DeltaRich))
 
 mytilussessrichmod<-lm(logrichness~Mytilusdelta +Vav+THav, data=mytilusessrich)
@@ -758,7 +749,7 @@ mspr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=logrichness)) +
   labs(x ='', y = '') 
 mspr
 
-######Mobiles Species richness anovas######
+###Mobiles Species richness anovas and plots####
 MobileBA<-Mobiles %>%
   dplyr::filter(Before_After != 'Immediate') 
 Mobilelist<-MobileBA[-c(1:4)]
@@ -781,7 +772,8 @@ phyllomobrich<-deltamobrichfunpp %>%
 
 mytilusmobrich<-deltamobrichfunpp %>%
   filter(Foundation_spp =="Mytilus")
-#richness and diversity phyllo
+
+#Phyllospadix pools mobile richness
 phyllomobrichmod<-lm(DeltaRich~Phyllodelta +Vav+THav, data=phyllomobrich)
 #plot(phyllomobrichmod) #good
 qqp(resid(phyllomobrichmod),"norm") #good
@@ -812,7 +804,7 @@ phyllospprm<-ggplot(phyllosppmobr, aes(x =Phyllodelta, y=DeltaRich)) +
 phyllospprm
 
 
-#richness and diversity mytilus
+#Mytilus pools mobile richness
 mytilusmobrichmod<-lm(DeltaRich~Mytilusdelta +Vav+THav, data=mytilusmobrich)
 #plot(mytilusmobrichmod) #good
 qqp(resid(mytilusmobrichmod),"norm") #good
@@ -842,13 +834,12 @@ mspmr<-ggplot(mytilussppr, aes(x =Mytilusdelta, y=DeltaRich)) +
 mspmr
 
 
-
 #patchwork of richness plots
 richpm<-phyllospp+mspr+phyllospprm+mspmr+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-D
   theme(plot.tag = element_text(size = 40, face = "bold"))   #edit the lettered text
 richpm
-ggsave(filename = "Output/richnessplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf",width = 28, height = 30)
+#ggsave(filename = "Output/richnessplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf",width = 28, height = 30)
 
 
 ####Supplemental Figure####
@@ -885,6 +876,6 @@ Mytilusdist<-Funsppcover %>%
 #theme(plot.tag = element_text(size = 26, face = "bold"))   #edit the lettered text
 
 #distplots
-ggsave(filename = "Output/distplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
+#ggsave(filename = "Output/distplots.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 
