@@ -1,6 +1,6 @@
 #Clean biogeochem and carb chem script
 ## By: Jenn Fields
-## Last updated: 1.16.2020
+## Last updated: 1.16.2021
 ###########################
 ## clear workspace
 rm(list=ls())

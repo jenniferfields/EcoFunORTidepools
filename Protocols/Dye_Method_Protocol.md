@@ -1,4 +1,5 @@
 #Protocol for Dye Method: Experiment procedure, spectrophotometers, and cuvette clean-up
+Created by: Julio Rosales Fall 2018
 
 Contents
 - [**Prepping for spectrophotometer analyses: addition of dye and collecting samples**](#Prepping for spectrophotometer analyses: addition of dye and collecting samples)  
