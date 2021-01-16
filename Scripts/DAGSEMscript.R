@@ -1,7 +1,7 @@
 ## DAG for Structural Equation model for mussel and surfgrass models
 ##Code for SEM graph figures then further modified in Adobe Illustrator
 ## By: Jenn Fields
-## Last updated: 10.23.2020
+## Last updated: 1.16.2021
 ###################
 
 rm(list=ls()) #Clears the environment

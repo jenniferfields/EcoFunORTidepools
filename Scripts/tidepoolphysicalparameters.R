@@ -1,6 +1,7 @@
 ##Tide Pool Physical Parameters
 ##By: Jenn Fields
-##Last updated: 10.23.2020
+##Last updated: 1.16.2021
+###############
 
 rm(list=ls()) #Clears the environment
 #load libraries
@@ -15,14 +16,12 @@ poolSA <- read_csv("Data/PoolPhysicalParameters/poolSA.csv")
 TidePooldes <-read_csv("Data/PoolPhysicalParameters/TidePoolDes.csv")
 OregonTidePoolVolumes <- read_csv("Data/PoolPhysicalParameters/OregonTidePoolVolumes.csv")
 
-####Calculate surface area####
+#Calculate surface area
 x<-poolSA$squares #create list for function
 
 SurfaceArea<- (x *  0.01) #calculating surface area from number of squares and converting from cm^2 to m^2
-#View(SurfaceArea)
-TidePooldes$SurfaceArea<-SurfaceArea #create column in data frame for surface area
-#View(poolSA)
 
+TidePooldes$SurfaceArea<-SurfaceArea #create column in data frame for surface area
 
 ##Pool Volumes###
 #take average of triplicate measures
