@@ -1,5 +1,9 @@
+<<<<<<< HEAD:Protocols/Dye_Method_Protocol.md
 #Protocol for Dye Method: Experiment procedure, spectrophotometers, and cuvette clean-up
 Created by: Julio Rosales Fall 2018
+=======
+# Protocol for Dye Method: Experiment procedure, spectrophotometers, and cuvette clean-up
+>>>>>>> 305501524895ef7516b75271b026fa6c06d9597f:Protocols/Dye_Method_Protocol
 
 Contents
 - [**Prepping for spectrophotometer analyses: addition of dye and collecting samples**](#Prepping for spectrophotometer analyses: addition of dye and collecting samples)  
