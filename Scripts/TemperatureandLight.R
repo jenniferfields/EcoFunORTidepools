@@ -467,7 +467,7 @@ Phyllotempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Phyllospadix") %>%
   ggplot(aes(x=Date.Time,y=Temp.C,colour=Phyllodelta)) +
   geom_line(size=2)+
-  scale_colour_distiller(palette = "Greys",direction =-1)+
+  scale_colour_distiller(palette = "Greys",direction =1)+
   geom_vline(xintercept = as.POSIXct("2019-07-17"), linetype=2, 
              color = "black", size=3)+
   geom_line(data=SMURFOceanTemp,aes(x=Date.Time,y=OceanTemp.C),colour="#a50f15",size=2)+
@@ -498,7 +498,7 @@ Musseltempseries<-Temptimeseries %>%
   filter(Foundation_spp =="Mytilus") %>%
   ggplot(aes(x=Date.Time,y=Temp.C,color=Mytilusdelta)) +
   geom_line(size =2)+
-  scale_colour_distiller(palette = "Greys",direction =-1)+
+  scale_colour_distiller(palette = "Greys",direction =1)+
   geom_vline(xintercept = as.POSIXct("2019-07-17"), linetype=2, 
              color = "black", size=3)+
   geom_line(data=SMURFOceanTemp,aes(x=Date.Time,y=OceanTemp.C),colour="#a50f15",size=2)+

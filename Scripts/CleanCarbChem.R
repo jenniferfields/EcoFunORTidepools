@@ -927,7 +927,7 @@ y1<-as.matrix(y1)
 #####Surfgrass PCA and biplot#####
 Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(color =Phyllodelta, size =Phyllodelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -955,7 +955,7 @@ Surfgrassplot
 #biplot with loadings and point
 surfgrass<-autoplot(PhylloBiogeochemPCAmodel, 
                                     loadings = TRUE, loadings.colour = 'black',
-                                    loadings.label = TRUE, loadings.label.size = 12 , loadings.label.colour = '#2b8cbe',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
+                                    loadings.label = TRUE, loadings.label.size = 12 , loadings.label.colour = 'black',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
   theme_classic() + 
   theme(legend.text=element_text(size=24)) +
   theme(axis.text = element_text(color = "black", size = 35), 
@@ -994,7 +994,7 @@ z1<-as.matrix(z1)
 
 musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
   scale_size(range = c(1,15)) +
   geom_point(data=mcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -1022,7 +1022,7 @@ musselplot
 musselloadings<-autoplot(MytilusBiogeochemPCAmodel, 
                     loadings = TRUE, loadings.colour = 'black',
                     loadings.label = TRUE, loadings.label.size = 12 ,
-                    loadings.label.colour = '#2b8cbe',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
+                    loadings.label.colour = 'black',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
   theme_classic() + 
   theme(legend.text=element_text(size=24)) +
   theme(axis.text = element_text(color = "black", size = 35), 
@@ -1036,7 +1036,7 @@ musselpca<-musselplot+musselloadings+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =40))   #edit the lettered text
 musselpca
-#ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
 
 #####for supplemental summary table######

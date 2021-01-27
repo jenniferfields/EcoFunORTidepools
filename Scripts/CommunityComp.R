@@ -180,7 +180,7 @@ subset$Species<-c("Diatoms","CCA","Algae film","Noncoralline crust","Bossiella s
 ordSesSurf<-ggplot(phyllospp)+
                    geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8,shape =15) + 
   geom_label_repel(data=subset,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.2,color="#006d2c",size = 12) +  # add the species labels
+                   direction=c("both"),nudge_y=0.2,color="black",size = 12) +  # add the species labels
   #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
   scale_color_manual(values=Colors)+
   labs(x='nMDS1',color="Functional group",y='Sessile species scores nMDS2')+
@@ -246,7 +246,7 @@ pgroupings<-c("After" = 2,"Before" = 17)
 
 Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
   geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pscentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -266,7 +266,6 @@ Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape =
   guides(shape = "none", alpha = "none")
 Surfgrasssessilesplot
 
-#ggsave("Output/surfgrassprocrustesswtich.pdf",useDingbats = FALSE, width=40, height=30,dpi=600, unit="cm")
 
 ####Mussel Sessile nMDS#####
 MytiluscommunitynMDS<-Communitymetrics%>%
@@ -313,7 +312,7 @@ ordSesMussel<-ggplot(musselspp) +
   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8, shape =15) + 
   #geom_text(data=msspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#045a8d",size =8) +  # add all species labels
   geom_label_repel(data=labels,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.3,color="#045a8d",size = 12) +  # add the species labels
+                   direction=c("both"),nudge_y=0.3,color="black",size = 12) +  # add the species labels
   scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
                                                               "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
   labs(x='nMDS1',color="Functional group",y='Sessile species scores nMDS2')+
@@ -379,7 +378,7 @@ mgroupings<-c("After" = 2,"Before" = 17)
 
 Musselsessilesplot<-ggplot(MSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
   geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
   scale_size(range = c(1,15)) +
   geom_point(data=mscentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -453,7 +452,7 @@ ordMobSurf<-ggplot(phyllomobspp) +
   #geom_text(data=pmspecies.scores,aes(x=NMDS1,y=NMDS2,label=species),color="#006d2c",size = 8) +  # add the species labels
   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8,shape=15) +
   geom_label_repel(data=plabels,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.3,color="#006d2c",size = 12) +  # add the species labels
+                   direction=c("both"),nudge_y=0.3,color="black",size = 12) +  # add the species labels
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
   labs(x= "nMDS1",y='Mobile species scores nMDS2',color="Functional group")+
   theme_classic()+
@@ -512,7 +511,7 @@ b1<-as.matrix(b1)
 
 Surfgrassmobplot<-ggplot(PmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
   geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pmcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -564,7 +563,7 @@ ordMobMussel<-ggplot(musselmobspp) +
   geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8, shape=15) +
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
   geom_label_repel(data=labelsm,aes(x=NMDS1,y=NMDS2,label=Species),
-                   direction=c("both"),nudge_y=0.1,color="#045a8d",size = 12) +  # add the species labels
+                   direction=c("both"),nudge_y=0.1,color="black",size = 12) +  # add the species labels
   labs(x= "nMDS1",y='Mobile species scores nMDS2',color="Functional group")+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
@@ -623,7 +622,7 @@ d1<-as.matrix(d1)
 
 Musselmobplot<-ggplot(MmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
   geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend")+
+  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
   scale_size(range = c(1,15)) +
   geom_point(data=mmcentroids, size=10, stroke = 2.75) +
   theme_classic() +
