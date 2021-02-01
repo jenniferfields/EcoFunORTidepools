@@ -13,4 +13,7 @@ Contents
   *  4-5 buckets
   *  Large mesh grid with 0.1 x 0.1 m grid windows
   *  Water pumps
+  *  Datasheets
+  *  Notebooks
+  *  Field identification guides
  
