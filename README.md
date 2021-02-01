@@ -65,9 +65,11 @@ Contains protocols from field experiment including:
 
 [General biogeochemical sampling protocol](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/TidePoolSampling_SOP.md)
 
-Group biogeochemical sampling protocol
+[Group biogeochemical sampling protocol](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/GroupWaterSampling_SOP.md)
 
-Community composition surveys
+[Community composition surveys](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/CommunityComposition_SOP.md)
+
+[Foundation species removal](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/FoundationSpeciesRemoval_SOP.md)
 
 
 
