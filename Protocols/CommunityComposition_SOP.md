@@ -1,6 +1,7 @@
 # Standard protocol for sessile and mobile community composition
-Original: 20190610
-Last Revised: 20210201
+Original: 20190603
+
+Last Revised: 20190610
 
 Contents
 1. [**Materials**](#Materials)  
@@ -11,7 +12,7 @@ Contents
 <a name="Materials"></a> **Materials**
 
   *  2 buckets
-  *  Large flexible mesh gridded-quadrat with 10 x 10 cm grid windows
+  *  Conical flexible mesh gridded-quadrat with 10 x 10 cm grid windows
   *  2 demarcated metal chains and transect tape (for tide pool perimeter)
   *  1-2 siphon hand pumps
   *  Datasheets
@@ -21,7 +22,7 @@ Contents
 ***
 <a name="Protocol"></a> **Protocol**
 
-  1. Mark water perimeter with metal chain. For larger pools or pools with emergent biomass, mark extra perimeter or emergent biomass with transect tape after chains run out of length.
+  1. Mark water perimeter with metal chain. For larger pools or pools with emergent biomass, mark extra perimeter or emergent biomass with transect tape after chains run out of length. Mark end of chain with plastic tie to get tide pool perimeter (measured back at lab with transect tape).
   1. Remove water from pool with buckets and water pumps. Leave one bucket full of water next to pool for any fish present in pool
   1. Place flexible mesh quadrat flesh with the bottom of the pool.
   1. Team leader counts # of squares on the perimeter, then the interior of the pool (team leader is the only one that does percent cover to minimize bias) to get tide pool surface area
