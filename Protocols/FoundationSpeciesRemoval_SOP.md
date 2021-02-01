@@ -24,4 +24,8 @@ Contents
    1.  Mussel pools: use garden hoe to remove all mussels from the pool. Rinse off organisms in pool before removal. Place in buckets/trash bags and weigh wet biomass per pool with field scale or luggage scale.
    1.  Surfgrass pools: clip surfgrass overhanging into pool without harming rhizomes. Move surfgrass around pool to make sure everything that could possibly get into your pool is removed. Remove surfgrass and their rhizomes within pools by using a garden hoe. Rack the roots to rip out and place them into buckets/trash bags and weigh wet biomass per pool with field scale.
     	1. Place in buckets/trash bags and weigh wet biomass per pool with field scale or luggage scale.
+***
+<a name="References"></a> **References**
+* Boese, B. L., J. E. Kaldy, P. J. Clinton, P. M. Eldridge, and C. L. Folger. 2009. Recolonization   of intertidal Zostera marina L. (eelgrass) following experimental shoot removal. Journal of        Experimental Marine Biology and Ecology 374:69–77.
+    	
     	
