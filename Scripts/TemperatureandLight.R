@@ -443,10 +443,11 @@ Temptimeseries<-rbind(TemptimeseriesC,TemptimeseriesR)
 Temptimeseries$PoolID<-as.character(Temptimeseries$PoolID)
 
 Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
-
+#filter for time siries graph
 SMURFOceanTemp<-SMURFOceanTemp%>%
   filter(Date.Time < "2019-08-16 00:00:00")
 
+#summarizing ocean day by before and after periods
 SumOceanB<-SMURFOceanTemp%>%
   dplyr::filter(Date.Time >"2019-06-15 0:00:00" & Date.Time <"2019-07-15 00:00:00")
 
@@ -457,12 +458,12 @@ SumOceanB$Before_After<-"Before"
 SumOceanA$Before_After<-"After" 
 
 Oceantempseries<-rbind(SumOceanB,SumOceanA)
-
+#make day a factor for column
 Oceantempseries$Day<-as.factor(as.Date(Oceantempseries$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
 
 Oceansum<-Oceantempseries%>%
   group_by(Day,Before_After) %>%
-  summarize(meantemp = mean(OceanTemp.C))
+  summarize(meantemp = mean(OceanTemp.C)) #gets average daily temp
 
 oceansumB<-Oceansum%>%
   filter(Before_After=='Before')
@@ -470,16 +471,18 @@ oceansumB<-Oceansum%>%
 oceansumA<-Oceansum%>%
   filter(Before_After=='After')
 
-oceansumB$row_num <- seq.int(nrow(oceansumB)) 
+oceansumB$row_num <- seq.int(nrow(oceansumB)) #makes column for day #s
 oceansumA$row_num <- seq.int(nrow(oceansumA)) 
 
 Oceantempsum<-rbind(oceansumB,oceansumA)
 
+#subtract each daily av between after and before to get daily change between time
 Oceantempsum<-Oceantempsum%>%
-  dplyr::group_by(row_num) %>%
+  dplyr::group_by(row_num) %>% 
   dplyr::summarise(Deltadaily=meantemp[Before_After=='After']-meantemp[Before_After=='Before']) %>%
   dplyr::summarise(meandelta=mean(Deltadaily),se=std.error(Deltadaily))
 
+#summarize ave daily for each time period
 OceansumBandA<-Oceantempseries%>%
   group_by(Day,Before_After) %>%
   summarize(meantemp = mean(OceanTemp.C))%>%
