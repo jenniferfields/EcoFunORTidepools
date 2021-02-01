@@ -970,7 +970,7 @@ surfgrasspca<-Surfgrassplot+surfgrass+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =50))   #edit the lettered text
 surfgrasspca
-#ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
 #####Mussel PCA and biplot#####
 #for arrows fucnction:

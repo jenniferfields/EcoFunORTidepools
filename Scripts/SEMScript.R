@@ -187,10 +187,6 @@ Mytilusdaynightall<-SEMallavg%>%
 #tide height and mussel loss are not correlated with day/night separately 
 #must be an artefact of having double values within the dataset
 
-
-#Ntempmod<-lm(NtoPRatio~MaxTemp,data = Mytilusdaynightall)
-#N.resid<-resid(Ntempmod)
-#Mytilusdaynightall$N.resid<-N.resid
 #models based on hypotheses
 MDNMMalgaeall<-lm(MicroMacroAlgaeCover ~ MytilusLoss + Volume+TideHeight, data = Mytilusdaynightall)
 MDNTempall<-lm(MaxTemp~MytilusLoss +Volume+TideHeight, data = Mytilusdaynightall)
@@ -465,7 +461,7 @@ phyllosig<-(phyllotemp | phylloMMA)/
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
 phyllosig
-ggsave(filename = "Output/phyllosigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
+#ggsave(filename = "Output/phyllosigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
 
 ####Mytilus mussel SEM#####
 #1
@@ -705,5 +701,5 @@ lighttempsem<-phyllolightandtemp+mytiluslightandtemp +      #patchwork to combin
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
 
 lighttempsem
-ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 30, height = 25)
+#ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 30, height = 25)
 

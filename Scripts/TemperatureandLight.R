@@ -443,8 +443,55 @@ Temptimeseries<-rbind(TemptimeseriesC,TemptimeseriesR)
 Temptimeseries$PoolID<-as.character(Temptimeseries$PoolID)
 
 Temptimeseries<-left_join(Temptimeseries,Funsppandpp)
+
 SMURFOceanTemp<-SMURFOceanTemp%>%
   filter(Date.Time < "2019-08-16 00:00:00")
+
+SumOceanB<-SMURFOceanTemp%>%
+  dplyr::filter(Date.Time >"2019-06-15 0:00:00" & Date.Time <"2019-07-15 00:00:00")
+
+SumOceanA<-SMURFOceanTemp%>%
+  dplyr::filter( Date.Time<"2019-08-16 00:00:00" & Date.Time >"2019-07-18 0:00:00")
+                               
+SumOceanB$Before_After<-"Before"
+SumOceanA$Before_After<-"After" 
+
+Oceantempseries<-rbind(SumOceanB,SumOceanA)
+
+Oceantempseries$Day<-as.factor(as.Date(Oceantempseries$Date.Time, quiet=FALSE, tz="America/Los_Angeles", truncated=0))
+
+Oceansum<-Oceantempseries%>%
+  group_by(Day,Before_After) %>%
+  summarize(meantemp = mean(OceanTemp.C))
+
+oceansumB<-Oceansum%>%
+  filter(Before_After=='Before')
+
+oceansumA<-Oceansum%>%
+  filter(Before_After=='After')
+
+oceansumB$row_num <- seq.int(nrow(oceansumB)) 
+oceansumA$row_num <- seq.int(nrow(oceansumA)) 
+
+Oceantempsum<-rbind(oceansumB,oceansumA)
+
+Oceantempsum<-Oceantempsum%>%
+  dplyr::group_by(row_num) %>%
+  dplyr::summarise(Deltadaily=meantemp[Before_After=='After']-meantemp[Before_After=='Before']) %>%
+  dplyr::summarise(meandelta=mean(Deltadaily),se=std.error(Deltadaily))
+
+OceansumBandA<-Oceantempseries%>%
+  group_by(Day,Before_After) %>%
+  summarize(meantemp = mean(OceanTemp.C))%>%
+  group_by(Before_After)%>%
+  summarize(tempBA=mean(meantemp),se=std.error(meantemp))
+
+#Ocean mean:
+#before
+#11.34917 +/-0.4054801
+#after
+#10.79524 +/-	0.2405178
+#average daily avg change between periods: -0.5494291 +/- 0.4315244
 
 Phyllotimeseries<-Temptimeseries%>%
   filter(Foundation_spp =="Phyllospadix") 
