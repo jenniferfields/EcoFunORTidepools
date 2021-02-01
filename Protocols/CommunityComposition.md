@@ -11,9 +11,15 @@ Contents
 1. <a name="Materials"></a> **Materials**
 
   *  4-5 buckets
-  *  Large mesh grid with 0.1 x 0.1 m grid windows
+  *  Large flexible mesh gridded-quadrat with 10 x 10 cm grid windows
+  *  Metal chain (for tide pool perimeter)
   *  Water pumps
   *  Datasheets
   *  Notebooks
   *  Field identification guides
+  
+***
+1. <a name="Protocol"></a> **Protocol**
+
+  1. 
  
