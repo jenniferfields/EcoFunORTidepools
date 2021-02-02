@@ -5,11 +5,11 @@ Created by: Julio Rosales Fall 2018
 Edited by: Jenn Fields 02.20.2021
 
 Contents
-- [**Prepping for spectrophotometer analyses: addition of dye and collecting samples**](#)  
-- [**Protocol for spectrophotometer: Smart Spec 3000**](#)
-- [**Protocol for spectrophotometer: Genesys 5**](#)
-- [**Cleaning a cuvette**](#)
-- [**References**](#)
+- [**Prepping for spectrophotometer analyses: addition of dye and collecting samples**](#Preppingforspectrophotometeranalyses:additionofdyeandcollectingsamples)  
+- [**Protocol for spectrophotometer: Smart Spec 3000**](#Protocolforspectrophotometer:SmartSpec3000)
+- [**Protocol for spectrophotometer: Genesys 5**](#Protocolforspectrophotometer:Genesys5)
+- [**Cleaning a cuvette**](#Cleaningacuvette)
+- [**References**](#References)
 ***
 <a name="Prepping for spectrophotometer analyses: addition of dye and collecting samples"></a> **Prepping for spectrophotometer analyses: addition of dye and collecting samples**
 ***
