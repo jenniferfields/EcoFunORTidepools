@@ -3,16 +3,17 @@
 Created by: Julio Rosales Fall 2018
 
 Edited by: Jenn Fields 02.20.2021
-
+<a name="Protocol"></a> **Protocol**
 Contents
-- [**Prepping for spectrophotometer analyses: addition of dye and collecting samples**](#Preppingforspectrophotometeranalyses:additionofdyeandcollectingsamples)  
-- [**Protocol for spectrophotometer: Smart Spec 3000**](#Protocolforspectrophotometer:SmartSpec3000)
-- [**Protocol for spectrophotometer: Genesys 5**](#Protocolforspectrophotometer:Genesys5)
+- [**Prep**](#Prep)  
+- [**SOP for Smart Spec 3000**](#SOPforSmartSpec3000)
+- [**SOP for Genesys 5**](#SOPforGenesys5)
 - [**Cleaning a cuvette**](#Cleaningacuvette)
 - [**References**](#References)
 ***
-<a name="Prepping for spectrophotometer analyses: addition of dye and collecting samples"></a> **Prepping for spectrophotometer analyses: addition of dye and collecting samples**
+<a name="Prep"></a> **Prep**
 ***
+*Prepping for spectrophotometer analyses: addition of dye and collecting samples*
 *In lab*
 1.	Add 1mL, 3mL, and/or 6mL of blue dye to a few separate falcon tubes. You will choose the falcon tube that is most appropriate according to the size of the pool. Although you might not know the exact volume of a tide pool, you should estimate it in order to pick the correct amount of blue dye. 
 
@@ -34,8 +35,9 @@ Contents
 5.	This is all that can be done in the field for retrieving absorbency. The rest should be conducted in a lab with the use of a spectrophotometer. 
 
 ***
-<a name="Protocol for spectrophotometer: Smart Spec 3000"></a> **Protocol for spectrophotometer: Smart Spec 3000**
+<a name="SOP for Smart Spec 3000"></a> **SOP for Smart Spec 3000**
 ***
+*Protocol for spectrophotometer: Smart Spec 3000*
 1.	Plug the machine in and let it run its warm-up protocol.
   	1.	It will calibrate itself by testing its ram, measuring its saturation profile, as well as checking its noise levels and absorbency.
   	1.	Check the cuvette chamber to see if it’s empty, making sure there are no cuvettes inside.
@@ -73,8 +75,9 @@ Contents
   	1.	Make sure to take out any cuvettes inside the cuvette chamber.
  	1.	You may now unplug the machine.
 ***
-<a name="Protocol for spectrophotometer: Genesys 5"></a> **Protocol for spectrophotometer: Genesys 5**
+<a name="SOP for Genesys 5"></a> **SOP for Genesys 5**
 ***
+*Protocol for spectrophotometer: Genesys 5*
 1.	Plug the machine in.
 
 2.	Turn on the machine.
