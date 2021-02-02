@@ -60,8 +60,7 @@ Contains all figures of manuscript
 
 Contains protocols from field experiment including:
 
-[Tide pool dye method](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/Dye_Method_Protocol)
-
+[Tide pool dye method](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/Dye_Method_Protocol.md)
 
 [General biogeochemical sampling protocol](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Protocols/TidePoolSampling_SOP.md)
 
