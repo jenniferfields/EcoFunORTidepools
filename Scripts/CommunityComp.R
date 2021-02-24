@@ -170,12 +170,11 @@ phyllospp<-left_join(psspecies.scores,SessilesGroupings) #combine with functiona
 
 #label for geom_label function
 subset<-phyllospp%>%
-  filter(Species =="Algae.film"|Species == "Diatoms" | Species == "Chaetomorpha.linum"| 
-           Species == "Ptilota.spp"|Species == "Analipus.japonicus"|Species=="Crustose.coralline"|
-           Species=="Noncoralline.crust"|Species=="Bosiella.spp"|Species=="Calliathron.tuberculosum"|
+  filter(Species =="Algae.film"|Species == "Diatoms" |
+           Species=="Crustose.coralline"|Species=="Noncoralline.crust"|Species=="Bosiella.spp"|Species=="Calliathron.tuberculosum"|
            Species=="Ulva.spp"|Species=="Smithura.naiadum") 
-subset$Species<-c("Diatoms","CCA","Algae film","Noncoralline crust","Bossiella spp","A. japonicus",
-                  "C. linum","Ptilota spp","Ulva spp","Smithora naiadum") #rename to easier labels
+subset$Species<-c("Diatoms","CCA","Algae film","Noncoralline crust","Bossiella spp",
+                  "Ulva spp","Smithora naiadum") #rename to easier labels
 
 ordSesSurf<-ggplot(phyllospp)+
                    geom_point(aes(x=NMDS1,y=NMDS2,color=Functional_Group),size=8,shape =15) + 
@@ -183,7 +182,7 @@ ordSesSurf<-ggplot(phyllospp)+
                    direction=c("both"),nudge_y=0.2,color="black",size = 12) +  # add the species labels
   #geom_text(data=psspecies.scores,aes(x=NMDS1,y=NMDS2,label=Species),color="#045a8d",size =8) +  # add the species labels
   scale_color_manual(values=Colors)+
-  labs(x='nMDS1',color="Functional group",y='Sessile species scores nMDS2')+
+  labs(x='',color="Functional group",y='Surfgrass species scores nMDS2',title='Sessile community')+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
@@ -191,6 +190,7 @@ ordSesSurf<-ggplot(phyllospp)+
                     axis.ticks = element_blank(),  # remove axis ticks
         axis.title.x = element_text(color="black", size=50),
         axis.title.y = element_text(color="black", size=50),
+        plot.title = element_text(color="black", size=50,hjust = 0.5,face="bold"),#centered and bolded title
         legend.title = element_blank(),
         legend.position = "none")
 ordSesSurf       
@@ -245,8 +245,8 @@ y1<-as.matrix(y1)
 pgroupings<-c("After" = 2,"Before" = 17)
 
 Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
-  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
+  geom_point(aes(fill=Phyllodelta, size =Phyllodelta,stroke=1), shape=21,colour = "black") + #black line surrounding pts
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction =1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pscentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -255,15 +255,18 @@ Surfgrasssessilesplot<-ggplot(PSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape =
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='', y = 'Sessile community nMDS2', shape='', color='Surfgrass \n percent loss',size='Surfgrass \n percent loss', linetype ='Before or after') +
+  labs(x ='', y = 'Surfgrass community nMDS2', shape='', title='Sessile community',fill='Foundation species percent loss',size='Foundation species percent loss', linetype ='Before or after') +
   theme(axis.text = element_blank(), 
         axis.title.x = element_text(color="black", size=50), 
         axis.title.y = element_text(color="black", size=50), 
         axis.ticks = element_blank(),
         legend.title = element_text(color="black", size=40), 
         legend.text = element_text(color = "black", size = 40), 
+        legend.position = 'top',
+        plot.title = element_text(color="black", size=50,hjust = 0.5,face="bold"),#centered and bolded title
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
-  guides(shape = "none", alpha = "none")
+  guides(shape = "none", alpha = "none")+
+  guides(fill= guide_legend(nrow =1))#makes legend only one row
 Surfgrasssessilesplot
 
 
@@ -315,7 +318,7 @@ ordSesMussel<-ggplot(musselspp) +
                    direction=c("both"),nudge_y=0.3,color="black",size = 12) +  # add the species labels
   scale_color_manual(values=Colors,guide = "legend",labels =c("Anemone","Articulated corallines","Corticated foliose","Corticated macroalgae",
                                                               "Crustose","Filamentous","Foliose","Leathery macrophytes","Microalgae","Suspension feeders"))+
-  labs(x='nMDS1',color="Functional group",y='Sessile species scores nMDS2')+
+  labs(x='nMDS1',color="Functional group",y='Mussel species scores nMDS2')+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
@@ -377,9 +380,9 @@ z1<-as.matrix(z1)
 mgroupings<-c("After" = 2,"Before" = 17)
 
 Musselsessilesplot<-ggplot(MSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
-  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
-  scale_size(range = c(1,15)) +
+  geom_point(aes(fill=Mytilusdelta, size =Mytilusdelta,stroke=1), shape=21, color='black') +
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction=1,limits=c(-25,100))+
+  scale_size(range = c(1,15),limits=c(-25,100)) +
   geom_point(data=mscentroids, size=10, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(mgroupings))+
@@ -387,15 +390,17 @@ Musselsessilesplot<-ggplot(MSessilesnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Be
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='', y = 'Sessile community nMDS2', shape='', color='Mussel \n percent loss',size='Mussel \n percent loss', linetype ='Before or after') +
+  labs(x ='nMDS1', y = 'Mussel community nMDS2', shape='', fill='Foundation species percent loss',size='Foundation species percent loss', linetype ='Before or after') +
   theme(axis.text = element_blank(), 
         axis.title.x = element_text(color="black", size=50), 
         axis.title.y = element_text(color="black", size=50), 
         legend.title = element_text(color="black", size=40), 
         axis.ticks = element_blank(),
         legend.text = element_text(color = "black", size = 40), 
+        legend.position = 'none',
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
-  guides(shape = "none", alpha = "none")
+  guides(shape = "none")+
+  guides(fill= guide_legend(nrow =1))#makes legend only one row
 Musselsessilesplot
 
 ######Mobile nMDS######
@@ -454,7 +459,7 @@ ordMobSurf<-ggplot(phyllomobspp) +
   geom_label_repel(data=plabels,aes(x=NMDS1,y=NMDS2,label=Species),
                    direction=c("both"),nudge_y=0.3,color="black",size = 12) +  # add the species labels
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
-  labs(x= "nMDS1",y='Mobile species scores nMDS2',color="Functional group")+
+  labs(x= "",y='',title='Mobile community',color="Functional group")+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
@@ -462,6 +467,7 @@ ordMobSurf<-ggplot(phyllomobspp) +
         axis.ticks = element_blank(),  # remove axis ticks
         axis.title.x = element_text(color="black", size=50),
         axis.title.y = element_text(color="black", size=50),
+        plot.title = element_text(color="black", size=50,hjust = 0.5,face="bold"),#centered and bolded title
         legend.title = element_blank(),
         legend.position = "none")
 ordMobSurf
@@ -510,8 +516,8 @@ b1<-as.matrix(b1)
 
 
 Surfgrassmobplot<-ggplot(PmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
-  geom_point(aes(color =Phyllodelta, size =Phyllodelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
+  geom_point(aes(fill =Phyllodelta, size =Phyllodelta, stroke=1), shape=21,color='black') +
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction=1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pmcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -520,10 +526,11 @@ Surfgrassmobplot<-ggplot(PmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_Af
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = a0[2], y = b0[2], xend = (a1[2]), yend = (b1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='', y = 'Mobile community nMDS2', shape='', color='',size='', linetype ='Before or after') +
+  labs(x ='', y = '', title='Mobile community',shape='', color='',size='', linetype ='Before or after') +
   theme(axis.text = element_blank(), 
         axis.title.x = element_text(color="black", size=50), 
         axis.title.y = element_text(color="black", size=50), 
+        plot.title = element_text(color="black", size=50,hjust = 0.5,face="bold"),#centered and bolded title
         axis.ticks = element_blank(),  # remove axis ticks
         legend.position= "none",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
@@ -564,7 +571,7 @@ ordMobMussel<-ggplot(musselmobspp) +
   scale_color_manual(values=MobColors,guide = "legend",labels =c("Carnivores","Herbivores","Omnivores"))+
   geom_label_repel(data=labelsm,aes(x=NMDS1,y=NMDS2,label=Species),
                    direction=c("both"),nudge_y=0.1,color="black",size = 12) +  # add the species labels
-  labs(x= "nMDS1",y='Mobile species scores nMDS2',color="Functional group")+
+  labs(x= "nMDS1",y='',color="Functional group")+
   theme_classic()+
   guides(colour = guide_legend(override.aes = list(size=6)),size=FALSE)+
   theme(axis.text.x = element_blank(),  # remove x-axis text
@@ -621,9 +628,9 @@ d1<-mmcentroids  %>%
 d1<-as.matrix(d1)
 
 Musselmobplot<-ggplot(MmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After)) + #basic plot
-  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, alpha=3,stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction=1)+
-  scale_size(range = c(1,15)) +
+  geom_point(aes(fill =Mytilusdelta, size =Mytilusdelta,stroke=1), shape=21,color='black') +
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction=1,limits=c(-25,100))+
+  scale_size(range = c(1,15),limits=c(-25,100)) +
   geom_point(data=mmcentroids, size=10, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(mgroupings))+
@@ -631,7 +638,7 @@ Musselmobplot<-ggplot(MmobnMDSgraph, aes(x = MDS1 , y= MDS2,shape = Before_After
                colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = c0[2], y = d0[2], xend = (c1[2]), yend = (d1[2])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='', y = 'Mobile community nMDS2', shape='', color='',size='', linetype ='Before or after') +
+  labs(x ='nMDS1', y = '', shape='', color='',size='', linetype ='Before or after') +
   theme(axis.text = element_blank(), 
         axis.title.x = element_text(color="black", size=50), 
         axis.title.y = element_text(color="black", size=50), 
@@ -652,6 +659,19 @@ Pcommgraphs<-Surfgrasssessilesplot+Surfgrassmobplot+ordSesSurf+ordMobSurf+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
 #ggsave("Output/ScommnMDS.pdf",useDingbats = FALSE, width=75, height=60,dpi=600, unit="cm")
+#combined surfgrass and mussel community plots
+ComnMDS<-Surfgrasssessilesplot+Surfgrassmobplot+Musselsessilesplot+Musselmobplot+
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
+ComnMDS
+#ggsave("Output/CommunitycompnMDS.pdf",useDingbats = FALSE,  width = 35, height = 30,dpi=600)
+
+#supplement spp scores
+Sppscores<-ordSesSurf+ordMobSurf+ordSesMussel+ordMobMussel+
+  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
+Sppscores
+#ggsave("Output/sppscoresupplement.pdf",useDingbats = FALSE, width = 35, height = 30,dpi=600)
 
 ####Species Richness Anovas#####
 Sessilesall<-Communitymetrics%>%

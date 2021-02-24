@@ -926,8 +926,8 @@ y1<-as.matrix(y1)
 
 #####Surfgrass PCA and biplot#####
 Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
-  geom_point(aes(color =Phyllodelta, size =Phyllodelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
+  geom_point(aes(fill =Phyllodelta, size =Phyllodelta, stroke=1), shape=21,color='black') +
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction =1)+
   scale_size(range = c(1,15)) +
   geom_point(data=pcentroids, size=10, stroke = 2.75) +
   theme_classic() +
@@ -938,17 +938,17 @@ Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='PC1 (32.79%)', y = 'PC2 (27.81%)', shape='', color='Surfgrass percent loss',size='Surfgrass percent loss', linetype ='Before or after') +
+  labs(x ='Surfgrass PC1 (32.79%)', y = 'Surfgrass PC2 (27.81%)', shape='', fill='Foundation species percent loss',size='Foundation species percent loss', linetype ='Before or after') +
   #PC1   0.3279 PC2 0.2781total 0.6061
-  theme(axis.text = element_text(color = "black", size = 35), 
-        axis.title.x = element_text(color="black", size=40), 
-        axis.title.y = element_text(color="black", size=40), 
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
         legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 35), 
+        legend.text = element_text(color = "black", size = 40), 
         legend.position= "top",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   guides(shape = "none")+
-  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+  guides(fill= guide_legend(nrow =1))#makes legend only one row
 Surfgrassplot
 #ggsave(filename = "Output/Phyllopcagraph.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 10)
 
@@ -958,10 +958,11 @@ surfgrass<-autoplot(PhylloBiogeochemPCAmodel,
                                     loadings.label = TRUE, loadings.label.size = 12 , loadings.label.colour = 'black',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
   theme_classic() + 
   theme(legend.text=element_text(size=24)) +
-  theme(axis.text = element_text(color = "black", size = 35), 
-        axis.title.x = element_text(color="black", size=40), 
-        axis.title.y = element_text(color="black", size=40), 
-        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  labs(x= 'Surfgrass PC1 (32.79%)', y='')
 surfgrass
 #ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
@@ -970,7 +971,7 @@ surfgrasspca<-Surfgrassplot+surfgrass+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =50))   #edit the lettered text
 surfgrasspca
-ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+#ggsave(filename = "Output/combinedphyllopca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
 
 #####Mussel PCA and biplot#####
 #for arrows fucnction:
@@ -993,9 +994,9 @@ z1<-as.matrix(z1)
 
 
 musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
-  geom_point(aes(color =Mytilusdelta, size =Mytilusdelta, stroke=2), shape=16) +
-  scale_color_distiller(palette = "Greys",guide = "legend",direction =1)+
-  scale_size(range = c(1,15)) +
+  geom_point(aes(fill =Mytilusdelta, size =Mytilusdelta, stroke=1), shape=21,color='black') +
+  scale_fill_distiller(palette = "Greys",guide = "legend",direction =1,limits=c(-25,100))+
+  scale_size(range = c(1,15),limits=c(-25,100))+ #make same scale as surfgrass
   geom_point(data=mcentroids, size=10, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(mgroupings))+
@@ -1005,17 +1006,17 @@ musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)
                colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  labs(x ='PC1 (38.08%)', y = 'PC2 (23.83%)', shape='', color='Mussel percent loss',size='Mussel percent loss', linetype ='Before or after') +
+  labs(x ='CA Mussel PC1 (38.08%)', y = 'CA Mussel PC2 (23.83%)', shape='', fill='',size='', linetype ='Before or after') +
   #pc1 0.3808 pc2  0.2383 0.6191
-  theme(axis.text = element_text(color = "black", size = 35), 
-        axis.title.x = element_text(color="black", size=40), 
-        axis.title.y = element_text(color="black", size=40), 
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
         legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 35), 
-        legend.position= "top",
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position = 'none',
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   guides(shape = "none")+
-  guides(colour = guide_legend(nrow = 1))#makes legend only one row
+  guides(fill= guide_legend(nrow =1))#makes legend only one row
 musselplot
 #ggsave(filename = "Output/Phyllopcagraph.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 10)
 #plot with loadings and point
@@ -1025,18 +1026,19 @@ musselloadings<-autoplot(MytilusBiogeochemPCAmodel,
                     loadings.label.colour = 'black',loadings.label.repel=TRUE, loadings.label.vjust = 1.2) +
   theme_classic() + 
   theme(legend.text=element_text(size=24)) +
-  theme(axis.text = element_text(color = "black", size = 35), 
-        axis.title.x = element_text(color="black", size=40), 
-        axis.title.y = element_text(color="black", size=40), 
-        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) 
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  labs(y='',x='CA Mussel PC1 (38.08%)')
 musselloadings
 #ggsave(filename = "Output/Phyllopcaloadings.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
-musselpca<-musselplot+musselloadings+
+pcas<-Surfgrassplot+surfgrass+musselplot+musselloadings+
   plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =40))   #edit the lettered text
-musselpca
-ggsave(filename = "Output/combinedmusselpca.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 20)
+  theme(plot.tag = element_text(size =50))   #edit the lettered text
+pcas
+#ggsave(filename = "Output/allpcas.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
 
 
 #####for supplemental summary table######
