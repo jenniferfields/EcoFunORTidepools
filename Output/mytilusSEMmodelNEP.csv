@@ -1,9 +1,0 @@
-"","MytilusSEMSum$call"
-"1","MicroMacroAlgaeCover ~ MytilusLoss + SAtoVRatio + TideHeight
-  Light ~ MytilusLoss + SAtoVRatio + TideHeight
-  MaxTemp ~ MytilusLoss + SAtoVRatio + TideHeight
-  NtoPRatio ~ MytilusLoss + SAtoVRatio + TideHeight
-  NEP ~ Light + MicroMacroAlgaeCover + NtoPRatio + SAtoVRatio + TideHeight
-  pH ~ MytilusLoss + NEP + SAtoVRatio + TideHeight
-  NEC ~ MytilusLoss + pH + SAtoVRatio + MaxTemp + TideHeight
-  MaxTemp ~~ Light"

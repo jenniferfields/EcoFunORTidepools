@@ -1,9 +1,0 @@
-"","PhylloSEMsum$call"
-"1","MicroMacroAlgaeCover ~ PhyllospadixLoss + SAtoVRatio + TideHeight
-  Light ~ PhyllospadixLoss + SAtoVRatio + TideHeight
-  MaxTemp ~ PhyllospadixLoss + SAtoVRatio + TideHeight
-  NtoPRatio ~ PhyllospadixLoss + SAtoVRatio + TideHeight
-  NEP ~ Light + MicroMacroAlgaeCover + NtoPRatio + SAtoVRatio + TideHeight
-  pH ~ PhyllospadixLoss + NEP + SAtoVRatio + TideHeight
-  NEC ~ pH + MaxTemp + PhyllospadixLoss + SAtoVRatio + TideHeight
-  MaxTemp ~~ Light"
