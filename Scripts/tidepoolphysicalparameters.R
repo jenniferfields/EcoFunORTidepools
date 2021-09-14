@@ -6,7 +6,7 @@
 rm(list=ls()) #Clears the environment
 #load libraries
 library(tidyverse)
-library(factoextra)
+#library(factoextra)
 library(devtools)
 library(ggfortify)
 library(RColorBrewer)

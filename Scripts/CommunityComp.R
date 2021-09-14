@@ -198,10 +198,10 @@ ordSesSurf
 phyllopp<-Funsppandpp%>%
   filter(Foundation_spp =="Phyllospadix")
 phyllograph<-cbind(PhyllocommunitynMDS,phyllopp$Vav,phyllopp$THav)
-
-
 phyllograph<-phyllograph%>%
   rename(Vol="phyllopp$Vav",TH="phyllopp$THav")
+phyllographNyssa<-phyllograph[-c(6:8,10,72:73)] 
+write.csv(phyllographNyssa, file="output/SurfgrassSessileComm.csv")
 set.seed(267)
 psessperm<-adonis(sqrt(sqrt(PhyllonMDS))~Phyllodelta+Vol+TH, phyllograph, permutations = 999, 
                                method="bray")
@@ -473,7 +473,7 @@ ordMobSurf<-ggplot(phyllomobspp) +
 ordMobSurf
 
 phyllomobgraph<-cbind(PhyllomobnMDS,phyllopp$Vav,phyllopp$THav)
-
+write.csv(phyllomobgraph, file="output/SurfgrassMobileComm.csv")
 phyllomobgraph<-phyllomobgraph%>%
   rename(Vol="phyllopp$Vav",TH="phyllopp$THav")
 set.seed(267)
