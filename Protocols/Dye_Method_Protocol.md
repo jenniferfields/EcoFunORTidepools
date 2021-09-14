@@ -26,6 +26,7 @@ Edited by: Danielle Barnas Spring 2019; Jenn Fields Winter 2021
 
 1. Before heading into the field, use the appropriate pipette(s) to add 1mL, 3mL, 6mL, 9mL, or 15mL of blue dye to a falcon tube.  
     1. If you are unsure how much dye you'll need for the pool you intend to assess, fill multiple falcon tubes with different volumes and label the tubes by their dye volume.
+    2. Use a pipette to put accurate dye amount in each labeled falcon tubes
 1. Uniquely label at least 3 clean falcon tubes for water collections at your tide pool.
 1. Once in the field and at your tide pool, pour the dye from the falcon tube into the pool.  
     1. If you brough multiple dye volumes, consider how much dye you may need to sufficiently dilute the dye in the pool for later analysis.
