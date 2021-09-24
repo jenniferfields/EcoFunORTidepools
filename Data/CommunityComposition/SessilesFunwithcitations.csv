@@ -60,5 +60,5 @@ Urticina.coriacea,Cnidaria,Anthozoa,Actiniaria,Anemone,Russelletal2016
 Epiactis.prolifera,Cnidaria,Anthozoa,Actiniaria,Anemone,Russelletal2016
 Anthopleura.artemisia,Cnidaria,Anthozoa,Actiniaria,Anemone,Russelletal2016
 Stylantheca.spp,Cnidaria,Hydrozoa,Anthoathecata,SuspensionFeeder,Russelletal2016
-Mytilus.californianus,Mollusca,Bivalvia,Mytilida,SuspensionFeeder,Russelletal2016
-Phyllospadix.spp,Tracheophyta,Monocots,Alismatales,LeatheryMacro,AlgaeBase
+AdjMusselCover,Mollusca,Bivalvia,Mytilida,SuspensionFeeder,Russelletal2016
+AdjSurfgrassCover,Tracheophyta,Monocots,Alismatales,LeatheryMacro,AlgaeBase

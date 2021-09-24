@@ -60,5 +60,5 @@ Urticina.coriacea,Cnidaria,Anthozoa,Actiniaria,Anemone
 Epiactis.prolifera,Cnidaria,Anthozoa,Actiniaria,Anemone
 Anthopleura.artemisia,Cnidaria,Anthozoa,Actiniaria,Anemone
 Stylantheca.spp,Cnidaria,Hydrozoa,Anthoathecata,SuspensionFeeder
-Mytilus.californianus,Mollusca,Bivalvia,Mytilida,SuspensionFeeder
-Phyllospadix.spp,Tracheophyta,Monocots,Alismatales,LeatheryMacro
+AdjMusselCover,Mollusca,Bivalvia,Mytilida,SuspensionFeeder
+AdjSurfgrassCover,Tracheophyta,Monocots,Alismatales,LeatheryMacro

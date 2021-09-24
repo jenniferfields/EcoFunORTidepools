@@ -1,45 +1,45 @@
-Species,Phylum,Class,Order_Family,Functional_Group,paper
-Nuttalina.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Cyanoplax.hartwegii,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Katharina.tunicata,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Tonicella.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Leptochiton.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Mopalia.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Russelletal2006
-Nucella.ostrina,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Nucella.canaliculata,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Ocinebria.lurida,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Ceratostoma.foliatum,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Nucella.lamellosa,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Bittium.eschrichtii,Mollusca,Gastropoda,Cerithiidae,Herbivore,Russelletal2006
-Amphissa.spp,Mollusca,Gastropoda,Neogastropoda,Herbivore,Russelletal2006
-Callistoma.canaliculata,Mollusca,Gastropoda,Trochida,Herbivore,Russelletal2006
-Lirabuccinum.dirum,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Littorina.spp,Mollusca,Gastropoda,Littorinimorpha,Herbivore,Russelletal2006
-Tegula.funebralis,Mollusca,Gastropoda,Trochida,Herbivore,Russelletal2006
-Alia.carinata,Mollusca,Gastropoda,Neogastropoda,Carnivore,Russelletal2006
-Lottia.spp,Mollusca,Gastropoda,Lottiidae,Herbivore,Russelletal2006
-Fissurella.volcano,Mollusca,Gastropoda,Fissurellidea,Herbivore,Russelletal2006
-Diodora.aspera,Mollusca,Gastropoda,Fissurellidae,Omnivores,Russelletal2006
-Tectura.persona,Mollusca,Gastropoda,Lottiidae,Herbivore,Russelletal2006
-Acmaea.mitra,Mollusca,Gastropoda,Acmaeidae,Herbivore,Russelletal2006
-Pachygrapsus.crassipes,Arthropoda,Malacostraca,Decapoda,Omnivores,Russelletal2006
-Hemigrapsus.nudus,Arthropoda,Malacostraca,Decapoda,Omnivores,Russelletal2006
-Pagarus.spp,Arthropoda,Malacostraca,Decapoda,Omnivores,Russelletal2006
-Pugettia.producta,Arthropoda,Malacostraca,Decapoda,Omnivores,Russelletal2006
-Petrolisthes.spp,Arthropoda,Malacostraca,Decapoda,Herbivore,Russelletal2006
-Cancer.spp,Arthropoda,Malacostraca,Decapoda,Carnivore,Russelletal2006
-Heptacarpus.sitchensis,Arthropoda,Malacostraca,Decapoda,Omnivores,Russelletal2006
-Idotea.spp,Arthropoda,Malacostraca,Isopoda,Herbivore,Russelletal2006
-Anisodris.nobilis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Russelletal2006
-Aeolidia.papillosa,Mollusca,Gastropoda,Nudibranchia,Carnivore,Russelletal2006
-Acanthodoris.nanaimoensis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Russelletal2006
-Hermissenda.opalescens,Mollusca,Gastropoda,Nudibranchia,Carnivore,Russelletal2006
-Diaulula.sandiegensis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Russelletal2006
-Eupentacta.quinquesemita,Echinodermata,Holothuroidea,Dendrochirotida,SuspensionFeeder,Russelletal2006
-Strongylocentrotus.purpuratus,Echinodermata,Echinoidea,Camarodonta,Herbivore,Russelletal2006
-Henricia.spp,Echinodermata,Asteroidea,Spinulosida,Carnivore,Russelletal2006
-Pisaster.ochraceus,Echinodermata,Asteroidea,Forcipulatida,Carnivore,Russelletal2006
-Leptasterias.hexactis,Echinodermata,Asteroidea,Forcipulatida,Carnivore,Russelletal2006
-Brittle.star,Echinodermata,Ophiuroidea,na,Omnivores,Russelletal2006
-Sculpin,Chordata,Actinopterygii,Scorpaeniformes,Carnivore,Russelletal2006
-Gunnel,Chordata,Actinopterygii,Perciformes,Carnivore,Russelletal2006
+Species,Phylum,Class,Order_Family,Functional_Group,Fun_group,paper
+Nuttalina.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Cyanoplax.hartwegii,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Katharina.tunicata,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Tonicella.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Leptochiton.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Mopalia.spp,Mollusca,Polyplacophora,Chitonida,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Nucella.ostrina,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Nucella.canaliculata,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Ocinebria.lurida,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Ceratostoma.foliatum,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Nucella.lamellosa,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Bittium.eschrichtii,Mollusca,Gastropoda,Cerithiidae,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Amphissa.spp,Mollusca,Gastropoda,Neogastropoda,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Callistoma.canaliculata,Mollusca,Gastropoda,Trochida,Herbivore,Mesograzer,Russelletal2006; Steneck & Watling 1982
+Lirabuccinum.dirum,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Littorina.spp,Mollusca,Gastropoda,Littorinimorpha,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Tegula.funebralis,Mollusca,Gastropoda,Trochida,Herbivore,Mesograzer,Russelletal2006; Steneck & Watling 1982
+Alia.carinata,Mollusca,Gastropoda,Neogastropoda,Carnivore,Carnivore,Russelletal2006
+Lottia.spp,Mollusca,Gastropoda,Lottiidae,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Fissurella.volcano,Mollusca,Gastropoda,Fissurellidea,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Diodora.aspera,Mollusca,Gastropoda,Fissurellidae,Omnivores,Omnivore,Russelletal2006
+Tectura.persona,Mollusca,Gastropoda,Lottiidae,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Acmaea.mitra,Mollusca,Gastropoda,Acmaeidae,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Pachygrapsus.crassipes,Arthropoda,Malacostraca,Decapoda,Omnivores,Omnivore,Russelletal2006
+Hemigrapsus.nudus,Arthropoda,Malacostraca,Decapoda,Omnivores,Omnivore,Russelletal2006
+Pagarus.spp,Arthropoda,Malacostraca,Decapoda,Omnivores,Omnivore,Russelletal2006
+Pugettia.producta,Arthropoda,Malacostraca,Decapoda,Omnivores,Omnivore,Russelletal2006
+Petrolisthes.spp,Arthropoda,Malacostraca,Decapoda,Herbivore,Mesograzer,Russelletal2006; Steneck & Watling 1982
+Cancer.spp,Arthropoda,Malacostraca,Decapoda,Carnivore,Carnivore,Russelletal2006
+Heptacarpus.sitchensis,Arthropoda,Malacostraca,Decapoda,Omnivores,Omnivore,Russelletal2006
+Idotea.spp,Arthropoda,Malacostraca,Isopoda,Herbivore,Micrograzer,Russelletal2006; Steneck & Watling 1982
+Anisodris.nobilis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Carnivore,Russelletal2006
+Aeolidia.papillosa,Mollusca,Gastropoda,Nudibranchia,Carnivore,Carnivore,Russelletal2006
+Acanthodoris.nanaimoensis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Carnivore,Russelletal2006
+Hermissenda.opalescens,Mollusca,Gastropoda,Nudibranchia,Carnivore,Carnivore,Russelletal2006
+Diaulula.sandiegensis,Mollusca,Gastropoda,Nudibranchia,Carnivore,Carnivore,Russelletal2006
+Eupentacta.quinquesemita,Echinodermata,Holothuroidea,Dendrochirotida,SuspensionFeeder,SuspensionFeeder,Russelletal2006
+Strongylocentrotus.purpuratus,Echinodermata,Echinoidea,Camarodonta,Herbivore,Mesograzer,Russelletal2006; Steneck & Watling 1982
+Henricia.spp,Echinodermata,Asteroidea,Spinulosida,Carnivore,Carnivore,Russelletal2006
+Pisaster.ochraceus,Echinodermata,Asteroidea,Forcipulatida,Carnivore,Carnivore,Russelletal2006
+Leptasterias.hexactis,Echinodermata,Asteroidea,Forcipulatida,Carnivore,Carnivore,Russelletal2006
+Brittle.star,Echinodermata,Ophiuroidea,na,Omnivores,Omnivore,Russelletal2006
+Sculpin,Chordata,Actinopterygii,Scorpaeniformes,Carnivore,Carnivore,Russelletal2006
+Gunnel,Chordata,Actinopterygii,Perciformes,Carnivore,Carnivore,Russelletal2006
