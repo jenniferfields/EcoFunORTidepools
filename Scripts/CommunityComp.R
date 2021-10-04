@@ -1,7 +1,7 @@
 ##Community Composition data for Sessile and Mobiles from Surfgrass and Mussel
 ##Oregon Tide Pools
 ##By: Jenn Fields
-##Last updated: 1.16.2021
+##Last updated: 10.3.2021
 
 ###########################################
 rm(list=ls()) #Clears the environment
@@ -114,8 +114,10 @@ PP<-TidePooldes %>%
 PP$PoolID<-as.factor(PP$PoolID)
 Funsppcover$PoolID<-as.factor(Funsppcover$PoolID)
 Funsppandpp<-left_join(Funsppcover,PP)
-#####combine with functional groups####
-###phylum, class and functional group
+#ggpairs(Funsppandpp[4:9])
+#mussel and surfgrass are not correlated with volume
+
+#combine with functional groups
 SessilesMytilusFun<-Communitymetrics%>%
   dplyr::filter(Before_After != 'Immediate') %>%
   dplyr::group_by(PoolID, Foundation_spp, Before_After, Removal_Control) %>%
@@ -156,8 +158,474 @@ DeltaSessSurf$PoolID<-as.factor(DeltaSessSurf$PoolID)
 DeltaSessMussels$PoolID<-as.factor(DeltaSessMussels$PoolID)
 DeltaSessSurf<-left_join(DeltaSessSurf,Funsppandpp)
 DeltaSessMussels<-left_join(DeltaSessMussels,Funsppandpp)
-#ggpairs(Funsppandpp[4:9])
-#mussel and surfgrass are not correlated with volume
+
+#####Mobile data filtering####
+MobilesFun<-Mobiles %>%
+  dplyr::filter(Before_After != 'Immediate') %>%
+  dplyr::group_by(PoolID, Foundation_spp, Before_After, Removal_Control) %>%
+  tidyr::pivot_longer(
+    cols = Nuttalina.spp:Gunnel,
+    names_to = "Species", #creates column with species in longformat
+    values_to = "Count", #adds column for % cover
+    values_drop_na = TRUE
+  ) 
+Mobstacked<-left_join(MobilesFun,MobileGroupings)
+Mobstacked$PoolID<-as.factor(Mobstacked$PoolID)
+Mobdata<-left_join(Mobstacked,Funsppandpp)
+Mobdata$Std.Count<-Mobdata$Count/Mobdata$SAav #std counts by SA Count/m^2
+
+Mobdata<- Mobdata%>%
+  dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Fun_group,Species) %>%
+  summarise(SumDensity = sum(Std.Count)) %>%
+  dplyr::group_by(PoolID,Removal_Control,Foundation_spp, Fun_group,Species) %>%
+  summarise(DeltaCount = SumDensity[Before_After=="After"]-SumDensity[Before_After =="Before"]) 
+
+Mobdata<-left_join(Mobdata,Funsppandpp)
+#remove suspension feeder since only 1 present in the functional group
+Musselmob<-Mobdata%>%
+  dplyr::filter(Foundation_spp=='Mytilus'& Fun_group != 'SuspensionFeeder')
+
+Surfgrassmob<-Mobdata%>%
+  dplyr::filter(Foundation_spp=='Phyllospadix'& Fun_group != 'SuspensionFeeder')
+
+#### Functional groups PCoA-------------------------
+
+# surfgrass sessile #############################
+
+fungroups_wideSS <-pivot_wider(DeltaSessSurf,names_from = Functional_Group, values_from = Deltacover)
+
+Enviro2SS<-fungroups_wideSS %>%
+  ungroup() %>% #ungroup from factor categories
+  select(PoolID:Depthav)
+
+fungroup2SS<-fungroups_wideSS %>%
+  ungroup() %>% #ungroup from factor categories
+  select(Anemone:SuspensionFeeder)
+
+# try PCOA
+
+distSS <- vegdist(fungroup2SS,  method = "euclidean")
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOA_SS <- pcoa(distSS, correction = "cailliez")
+
+biplot<-biplot.pcoa(PCOA_SS, fungroup2SS)
+PCOAaxesSS <- PCOA_SS$vectors[,c(1,2)]
+allPCOSS<-bind_cols(Enviro2SS,data.frame(PCOAaxesSS)) 
+
+
+compute_arrows = function(given_pcoa, trait_df) {
+  
+  # Keep only quantitative or ordinal variables
+  # /!\ Change this line for different dataset
+  #     or select only quantitative/ordinal var. /!\
+  
+  n <- nrow(trait_df)
+  points.stand <- scale(given_pcoa$vectors)
+  
+  # Compute covariance of variables with all axes
+  S <- cov(trait_df, points.stand)
+  
+  # Select only positive eigenvalues
+  pos_eigen = given_pcoa$values$Eigenvalues[seq(ncol(S))]
+  
+  # Standardize value of covariance (see Legendre & Legendre 1998)
+  U <- S %*% diag((pos_eigen/(n - 1))^(-0.5))
+  colnames(U) <- colnames(given_pcoa$vectors)
+  
+  # Add values of covariances inside object
+  given_pcoa$U <- U
+  
+  return(given_pcoa)
+}
+
+trait_pcoa_arrows <- compute_arrows(PCOA_SS, fungroup2SS)
+
+# Basic plot with individuals
+
+# Now let's add the arrows
+# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
+# values of covariances of each variable
+
+arrows_df <- as.data.frame(trait_pcoa_arrows$U*50)
+arrows_df$variable <- rownames(arrows_df)
+
+# Make pretty names
+arrows_df$variable_pretty<-c("Anemone"," Articulated \nCorallines", 
+                             "Corticated \nFoliose","Corticated \nMacroalgae",
+                             "Crustose", "Filamentous", "Foliose", "Leathery \nMacroalgae",
+                             "Microalgae", "Suspension \nFeeders") 
+
+plotPCO_SS<-ggplot(allPCOSS, aes(Axis.1, Axis.2))+
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_point(aes(fill=Phyllodelta, size =Phyllodelta,stroke=1), shape=21,colour = "black")+
+  geom_segment(data = arrows_df,
+               x = 0, y = 0, alpha = 0.7,
+               mapping = aes(xend = Axis.1, yend = Axis.2),
+               size = 1.2,
+               # Add arrow head
+               arrow = arrow(length = unit(3, "mm"))) +
+  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable_pretty), max.overlaps = 20)+
+  theme_bw()+ # Add axes
+  # Keep coord equal for each axis
+  # coord_equal() +
+  scale_fill_distiller(expression("Surfgrass percent loss"), palette = 'Greens',
+                      direction = -1,
+                      breaks=seq(-25, 100, by=25),guide="legend")+
+  scale_size_continuous(expression("Surfgrass percent loss"),range = c(1,10),
+                        breaks=seq(-25, 100, by=25))+
+  guides(fill= guide_legend(nrow =1)) +
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  # Labs
+  labs(#subtitle = "Arrows scale arbitrarily",
+    # Add Explained Variance per axis
+    x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
+    y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
+# Theme change
+#labs(subtitle = "Arrows scale arbitrarily") # make sure to add in the legend that the arrows are arbitrarily scaled
+plotPCO_SS
+
+# permanova
+perm_phyllo_SS<-adonis(distSS~Enviro2SS$Phyllodelta+Enviro2SS$Vav+Enviro2SS$THav)
+perm_phyllo_SS
+
+#### Surfrass mobile ####################
+
+fungroups_SM<-Surfgrassmob %>%
+  select(!Species) %>%  # remove the species names
+  group_by(PoolID,Foundation_spp, Removal_Control, Fun_group) %>% # summarize by group
+  summarize(DeltaCount = sum(DeltaCount, na.rm = TRUE),
+            Phyllodelta = mean(Phyllodelta),
+            THav = mean(THav),
+            Vav = mean(Vav)) %>%
+  ungroup() %>%
+  filter(PoolID != 18) %>% #removed tide pool 18 due to outlier with micrograzers (tide height influence)
+  mutate(DeltaCount = sign(DeltaCount)*sqrt(abs(DeltaCount))) 
+#  select(-DeltaCount)
+
+
+fungroups_wideSM <-pivot_wider(fungroups_SM,names_from = Fun_group, values_from = DeltaCount)
+
+Enviro2SM<-fungroups_wideSM %>%
+  select(PoolID:Vav)
+
+fungroup2SM<-fungroups_wideSM %>%
+  select(Carnivore:Omnivore)
+
+# try PCOA
+
+distSM <- vegdist(fungroup2SM,  method = "euclidean")
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOASM <- pcoa(distSM, correction = "cailliez")
+
+biplot<-biplot.pcoa(PCOASM, fungroup2SM)
+PCOAaxesSM <- PCOASM$vectors[,c(1,2)]
+allPCOSM<-bind_cols(Enviro2SM,data.frame(PCOAaxesSM)) 
+
+trait_pcoa_arrows <- compute_arrows(PCOASM, fungroup2SM)
+
+# Now let's add the arrows
+# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
+# values of covariances of each variable
+
+arrows_df <- as.data.frame(trait_pcoa_arrows$U*5)
+arrows_df$variable <- rownames(arrows_df)
+
+plotPCO_SM<-ggplot(allPCOSM, aes(Axis.1, Axis.2))+
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_point(aes(fill=Phyllodelta, size =Phyllodelta,stroke=1), shape=21,colour = "black")+
+  geom_segment(data = arrows_df,
+               x = 0, y = 0, alpha = 0.7,
+               mapping = aes(xend = Axis.1, yend = Axis.2),
+               size = 1.2,
+               # Add arrow head
+               arrow = arrow(length = unit(3, "mm"))) +
+  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  theme_bw()+ # Add axes
+  guides(fill= guide_legend(nrow =1)) +
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "none",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  # Keep coord equal for each axis
+  # coord_equal(ratio = 1) +
+  scale_fill_distiller(expression("Surfgrass percent loss"), palette = 'Greens',
+                       direction = -1,
+                       breaks=seq(-25, 100, by=25),guide="legend")+
+  scale_size_continuous(expression("Surfgrass percent loss"),range = c(1,10),
+                        breaks=seq(-25, 100, by=25))+
+  # Labs
+  labs(#subtitle = "Arrows scale arbitrarily",
+    # Add Explained Variance per axis
+    x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
+    y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
+# Theme change
+plotPCO_SM
+
+# permanova
+perm_phylloSM<-adonis(distSM~Enviro2SM$Phyllodelta+Enviro2SM$Vav+Enviro2SM$THav)
+perm_phylloSM
+
+#####Surfgrass Pcoa with tide pool 18####
+fungroups_SM18<-Surfgrassmob %>%
+  select(!Species) %>%  # remove the species names
+  group_by(PoolID,Foundation_spp, Removal_Control, Fun_group) %>% # summarize by group
+  summarize(DeltaCount = sum(DeltaCount, na.rm = TRUE),
+            Phyllodelta = mean(Phyllodelta),
+            THav = mean(THav),
+            Vav = mean(Vav)) %>%
+  ungroup() %>%
+  mutate(DeltaCount = sign(DeltaCount)*sqrt(abs(DeltaCount))) 
+#  select(-DeltaCount)
+
+
+fungroups_wideSM18 <-pivot_wider(fungroups_SM18,names_from = Fun_group, values_from = DeltaCount)
+
+Enviro2SM18<-fungroups_wideSM18 %>%
+  select(PoolID:Vav)
+
+fungroup2SM18<-fungroups_wideSM18 %>%
+  select(Carnivore:Omnivore)
+
+# try PCOA
+
+distSM18 <- vegdist(fungroup2SM18,  method = "euclidean")
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOASM18 <- pcoa(distSM18, correction = "cailliez")
+
+biplot<-biplot.pcoa(PCOASM18, fungroup2SM18)
+PCOAaxesSM18 <- PCOASM18$vectors[,c(1,2)]
+allPCO18<-bind_cols(Enviro2SM18,data.frame(PCOAaxesSM18)) 
+
+trait_pcoa_arrows <- compute_arrows(PCOASM18, fungroup2SM18)
+
+# Now let's add the arrows
+# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
+# values of covariances of each variable
+
+arrows_df <- as.data.frame(trait_pcoa_arrows$U*5)
+arrows_df$variable <- rownames(arrows_df)
+
+plotPCO_SM18<-ggplot(allPCO18, aes(Axis.1, Axis.2))+
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_point(aes(fill=Phyllodelta, size =Phyllodelta,stroke=1), shape=21,colour = "black")+
+  geom_segment(data = arrows_df,
+               x = 0, y = 0, alpha = 0.7,
+               mapping = aes(xend = Axis.1, yend = Axis.2),
+               size = 1.2,
+               # Add arrow head
+               arrow = arrow(length = unit(3, "mm"))) +
+  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  theme_bw()+ # Add axes
+  guides(fill= guide_legend(nrow =1)) +
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  # Keep coord equal for each axis
+  # coord_equal(ratio = 1) +
+  scale_fill_distiller(expression("Surfgrass percent loss"), palette = 'Greens',
+                       direction = -1,
+                       breaks=seq(-25, 100, by=25),guide="legend")+
+  scale_size_continuous(expression("Surfgrass percent loss"),range = c(1,10),
+                        breaks=seq(-25, 100, by=25))+
+  # Labs
+  labs(#subtitle = "Arrows scale arbitrarily",
+    # Add Explained Variance per axis
+    x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
+    y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
+# Theme change
+plotPCO_SM18
+ggsave(filename = "Output/PCOA_pool18.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 10, height = 8)
+
+# permanova with tide pool 18
+perm_phylloSM18<-adonis(distSM18~Enviro2SM18$Phyllodelta+Enviro2SM18$Vav+Enviro2SM18$THav)
+perm_phylloSM18
+###--------------- Mussels sessile #############
+fungroups_MS<-DeltaSessMussels %>%
+  mutate(Deltacover = sign(Deltacover)*sqrt(abs(Deltacover))) %>%
+  select(-Phyllodelta)
+
+fungroups_wideMS <-pivot_wider(fungroups_MS,names_from = Functional_Group, values_from = Deltacover  )
+
+Enviro2MS<-fungroups_wideMS %>%
+  ungroup()%>%
+  select(PoolID:Depthav)
+
+fungroup2MS<-fungroups_wideMS %>%
+  ungroup()%>%
+  select(Anemone:SuspensionFeeder)
+
+# try PCOA
+
+distMS <- vegdist(fungroup2MS,  method = "euclidean")
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOAMS <- pcoa(distMS, correction = "cailliez")
+
+biplot<-biplot.pcoa(PCOAMS, fungroup2MS)
+PCOAaxesMS <- PCOAMS$vectors[,c(1,2)]
+allPCOMS<-bind_cols(Enviro2MS,data.frame(PCOAaxesMS)) 
+
+
+
+trait_pcoa_arrows <- compute_arrows(PCOAMS, fungroup2MS)
+
+# Basic plot with individuals
+
+# Now let's add the arrows
+# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
+# values of covariances of each variable
+
+arrows_df <- as.data.frame(trait_pcoa_arrows$U*5)
+arrows_df$variable <- rownames(arrows_df)
+
+# Make pretty names
+arrows_df$variable_pretty<-c("Anemone"," Articulated \nCorallines", 
+                             "Corticated \nFoliose","Corticated \nMacroalgae",
+                             "Crustose", "Filamentous", "Foliose", "Leathery \nMacroalgae",
+                             "Microalgae", "Suspension \nFeeders") 
+
+plotPCO_MS<-ggplot(allPCOMS, aes(Axis.1, Axis.2))+
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_point(aes(fill=Mytilusdelta, size =Mytilusdelta,stroke=1), shape=21,colour = "black")+
+  geom_segment(data = arrows_df,
+               x = 0, y = 0, alpha = 0.7,
+               mapping = aes(xend = Axis.1, yend = Axis.2),
+               size = 1.2,
+               # Add arrow head
+               arrow = arrow(length = unit(3, "mm"))) +
+  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable_pretty), max.overlaps = 20)+
+  theme_bw()+ # Add axes
+  # Keep coord equal for each axis
+  # coord_equal(1.5) +
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "top",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  scale_fill_distiller(expression("Mussel percent loss"), palette = 'Blues',
+                                  direction= -1,limits=c(-25,100),
+                      breaks=seq(-25, 100, by=25),guide="legend")+
+  scale_size_continuous(expression("Mussel percent loss"),range = c(1,10),limits=c(-25,100),
+                        breaks=seq(-25, 100, by=25))+
+  guides(fill= guide_legend(nrow =1)) +
+  # Labs
+  labs(#subtitle = "Arrows scale arbitrarily",
+    # Add Explained Variance per axis
+    x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
+    y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
+# Theme change
+plotPCO_MS
+
+# permanova
+perm_mussel_S<-adonis(distMS~Enviro2MS$Mytilusdelta+Enviro2MS$Vav+Enviro2MS$THav)
+#labs(subtitle = "Arrows scale arbitrarily") # make sure to add in the legend that the arrows are arbitrarily scaled
+perm_mussel_S
+
+###---- Mussel Mobile ---###########
+fungroups_MM<-Musselmob %>%
+  select(!Species) %>%  # remove the species names
+  group_by(PoolID,Foundation_spp, Removal_Control, Fun_group) %>% # summarize by group
+  summarize(DeltaCount = sum(DeltaCount, na.rm = TRUE),
+            Mytilusdelta = mean(Mytilusdelta),
+            THav = mean(THav),
+            Vav = mean(Vav)) %>%
+  ungroup() %>%
+  mutate(DeltaCount = sign(DeltaCount)*sqrt(abs(DeltaCount))) 
+
+
+fungroups_wideMM <-pivot_wider(fungroups_MM,names_from = Fun_group, values_from = DeltaCount)
+
+Enviro2MM<-fungroups_wideMM %>%
+  select(PoolID:Vav)
+
+fungroup2MM<-fungroups_wideMM %>%
+  select(Carnivore:Omnivore)
+
+# try PCOA
+
+distMM <- vegdist(fungroup2MM,  method = "euclidean")
+# Some distance measures may result in negative eigenvalues. In that case, add a correction:
+PCOAMM <- pcoa(distMM, correction = "cailliez")
+
+biplot<-biplot.pcoa(PCOAMM, fungroup2MM)
+PCOAaxesMM <- PCOAMM$vectors[,c(1,2)]
+allPCOMM<-bind_cols(Enviro2MM,data.frame(PCOAaxesMM)) 
+
+trait_pcoa_arrows <- compute_arrows(PCOAMM, fungroup2MM)
+
+# Now let's add the arrows
+# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
+# values of covariances of each variable
+
+arrows_df <- as.data.frame(trait_pcoa_arrows$U*10)
+arrows_df$variable <- rownames(arrows_df)
+
+plotPCO_MM<-ggplot(allPCOMM, aes(Axis.1, Axis.2))+
+  geom_hline(yintercept = 0, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  geom_point(aes(fill=Mytilusdelta, size =Mytilusdelta,stroke=1), shape=21,colour = "black")+
+  geom_segment(data = arrows_df,
+               x = 0, y = 0, alpha = 0.7,
+               mapping = aes(xend = Axis.1, yend = Axis.2),
+               size = 1.2,
+               # Add arrow head
+               arrow = arrow(length = unit(3, "mm"))) +
+  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  theme_bw()+ # Add axes
+  # Keep coord equal for each axis
+  coord_equal(ratio = 2) +
+  theme(axis.text = element_text(color = "black", size = 40), 
+        axis.title.x = element_text(color="black", size=50), 
+        axis.title.y = element_text(color="black", size=50), 
+        legend.title = element_text(color="black", size=40), 
+        legend.text = element_text(color = "black", size = 40), 
+        legend.position= "none",
+        panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
+  scale_fill_distiller(expression("Mussel percent loss"), palette = 'Blues',
+                       direction= -1,
+                       breaks=seq(-25, 100, by=25),guide="legend")+
+  scale_size_continuous(expression("Mussel percent loss"),range = c(1,10),
+                        breaks=seq(-25, 100, by=25)) +
+  # Labs
+  labs(#subtitle = "Arrows scale arbitrarily",
+    # Add Explained Variance per axis
+    x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
+    y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
+# Theme change
+plotPCO_MM
+# permanova
+perm_musselMM<-adonis(distMM~Enviro2MM$Mytilusdelta+Enviro2MM$Vav+Enviro2MM$THav)
+perm_musselMM
+
+## bring together
+
+PCOAall<-
+  (plotPCO_SS+ plotPCO_SM)/
+  (plotPCO_MS+plotPCO_MM) +
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size =50))
+  #plot_layout(guides = "collect")#edit the lettered text
+PCOAall
+ggsave(filename = "Output/PCOA_all.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 20, height = 15)
+
 
 #####PCoA surfgrass####
 SurfgrassSessFunGroup <- read_csv("Data/SurfgrassSessFunGroup.csv")
@@ -325,36 +793,7 @@ set.seed(456)
 perm_mytilus<-adonis(dist~Enviro2$Mytilusdelta+Enviro2$Vav+Enviro2$THav)
 perm_mytilus
 
-###Mobiles####
-MobilesFun<-Mobiles %>%
-  dplyr::filter(Before_After != 'Immediate') %>%
-  dplyr::group_by(PoolID, Foundation_spp, Before_After, Removal_Control) %>%
-  tidyr::pivot_longer(
-    cols = Nuttalina.spp:Gunnel,
-    names_to = "Species", #creates column with species in longformat
-    values_to = "Count", #adds column for % cover
-    values_drop_na = TRUE
-  ) 
-Mobstacked<-left_join(MobilesFun,MobileGroupings)
-Mobstacked$PoolID<-as.factor(Mobstacked$PoolID)
-Mobdata<-left_join(Mobstacked,Funsppandpp)
-Mobdata$Std.Count<-Mobdata$Count/Mobdata$SAav #std counts by SA Count/m^2
 
-Mobdata<- Mobdata%>%
-  dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Fun_group,Species) %>%
-  summarise(SumDensity = sum(Std.Count)) %>%
-  dplyr::group_by(PoolID,Removal_Control,Foundation_spp, Fun_group,Species) %>%
-  summarise(DeltaCount = SumDensity[Before_After=="After"]-SumDensity[Before_After =="Before"]) 
-
-Mobdata<-left_join(Mobdata,Funsppandpp)
-write.csv(Mobdata, file='data/Mobdata.csv')
-####PCoA Mussel Mobile####
-Musselmob<-Mobdata%>%
-  dplyr::filter(Foundation_spp=='Mytilus'& Fun_group != 'SuspensionFeeder')
-write.csv(Musselmob, file='data/Musselmob.csv')
-Surfgrassmob<-Mobdata%>%
-  dplyr::filter(Foundation_spp=='Phyllospadix'& Fun_group != 'SuspensionFeeder')
-write.csv(Surfgrassmob, file='data/Surfgrassmob.csv')
 
 Musselmobfungroups_wide <-pivot_wider(Musselmob,
                                    names_from = Fun_group, 
@@ -363,83 +802,11 @@ Musselmobfungroups_wide <-pivot_wider(Musselmob,
 
 Musselmobfungroups_wide[is.na(Musselmobfungroups_wide)] <- 0
 
-Enviro2<-Musselfungroups_wide %>%
-  dplyr::select(PoolID:Depthav)
 
-fungroup2<-Musselmobfungroups_wide %>%
-  ungroup() %>% #ungroup from factor categories
-  dplyr::select(Carnivore:Omnivore)
-# try PCOA
-dist <- vegdist(fungroup2,  method = "euclidean")
-# Some distance measures may result in negative eigenvalues. In that case, add a correction:
-PCOA <- pcoa(dist)
-#biplot<-biplot.pcoa(PCOA, fungroup2)
-PCOAaxes <- PCOA$vectors[,c(1,2)]
-allPCO<-cbind(Enviro2,data.frame(PCOAaxes))
-
-ggplot(allPCO, aes(Axis.1, Axis.2))+
-  geom_point(aes(size = Mytilusdelta))
-compute_arrows = function(given_pcoa, trait_df) {
-  # Keep only quantitative or ordinal variables
-  # /!\ Change this line for different dataset
-  #     or select only quantitative/ordinal var. /!\
-  n <- nrow(trait_df)
-  points.stand <- scale(given_pcoa$vectors)
-  # Compute covariance of variables with all axes
-  S <- cov(trait_df, points.stand)
-  # Select only positive eigenvalues
-  pos_eigen = given_pcoa$values$Eigenvalues[seq(ncol(S))]
-  # Standardize value of covariance (see Legendre & Legendre 1998)
-  U <- S %*% diag((pos_eigen/(n - 1))^(-0.5))
-  colnames(U) <- colnames(given_pcoa$vectors)
-  # Add values of covariances inside object
-  given_pcoa$U <- U
-  return(given_pcoa)
-}
-trait_pcoa_arrows <- compute_arrows(dist, fungroup2)
-# Basic plot with individuals
-plot_pcoa <-  ggplot(allPCO, aes(Axis.1, Axis.2))+
-  geom_point(aes(size = Mytilusdelta))
-plot_pcoa
-# Now let's add the arrows
-# Each arrow begins at the origin of the plot (x = 0, y = 0) and ends at the
-# values of covariances of each variable
-ggplot(allPCO, aes(Axis.1, Axis.2))+
-  geom_point(aes(size = Mytilusdelta))
-arrows_df = as.data.frame(trait_pcoa_arrows$U*50)
-arrows_df$variable = rownames(arrows_df)
-plot_pcoa +
-  geom_segment(data = arrows_df,
-               x = 0, y = 0, alpha = 0.7,
-               mapping = aes(xend = Axis.1, yend = Axis.2),
-               # Add arrow head
-               arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable))
-#labs(subtitle = "Arrows scale arbitrarily") # make sure to add in the legend that the arrows are arbitrarily scaled
-plot_pcoa +
-  geom_segment(data = as.data.frame(trait_pcoa_arrows$U*50),
-               x = 0, y = 0, alpha = 0.7,
-               mapping = aes(xend = Axis.1, yend = Axis.2),
-               # Add arrow head
-               arrow = arrow(length = unit(3, "mm"))) +
-  # Add Axes Labels
-  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable), min.segment.length = .01,max.overlaps = 20 )  +
-  # Add axes
-  geom_hline(yintercept = 0, linetype = 2) +
-  geom_vline(xintercept = 0, linetype = 2) +
-  # Keep coord equal for each axis
-  coord_equal() +
-  # Labs
-  labs(subtitle = "Arrows scale arbitrarily",
-       # Add Explained Variance per axis
-       x = paste0("Axis 1 (", round(trait_pcoa_arrows$values$Relative_eig[1] * 100, 2), "%)"),
-       y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) +
-  # Theme change
-  theme_bw()
 # permanova
-set.seed(456)
-perm_mytilus<-adonis(dist~Enviro2$Mytilusdelta+Enviro2$Vav+Enviro2$THav)
-perm_mytilus
+#set.seed(456)
+#perm_mytilus<-adonis(dist~Enviro2$Mytilusdelta+Enviro2$Vav+Enviro2$THav)
+#perm_mytilus
 
 #####nMDS Sessile Surfgrass######
 PhyllocommunitynMDS<-Communitymetrics%>%

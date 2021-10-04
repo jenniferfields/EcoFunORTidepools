@@ -60,8 +60,6 @@ SummaryTemp<-TempandLightSumall%>%
             AvgPar = mean(Par.mean)) # to show light and temp correlation, not included in SEM model
 
 #leftjoin biogeochem and temp together
-Sumbiogeochemtemp<-left_join(Summarybiogeochem,SummaryTemp)
-
 
 #summarise average NEC and NEP values over the low tide period (n=2-3 samples per pool/time period) &
 #community metrics and physical parameters 
@@ -92,7 +90,7 @@ SEMcombined<-left_join(SummaryNEPNECcommpp,Sumbiogeochemtemp)
 SEMcombined<-left_join(SEMcombined,IntegratedNECNEP)
 
 SEMcombined<-as.data.frame(SEMcombined)
-  
+
 #Takes the delta between after-before period
 SEMallavg<-SEMcombined%>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night)  %>%
@@ -210,11 +208,6 @@ qqp(resid(MDNpHall),"norm")
 #plot(MDNpHall)
 qqp(resid(MDNNEPall),"norm") 
 #plot(MDNNEPall)
-
-
-ggplot(Mytilusdaynightall,aes(y=NEC,x=MaxTemp))+
-  geom_point()+
-  geom_smooth(method='lm')
 
 MytilusDNSEMall<-psem(MDNMMalgaeall,
                    MDNTempall,
@@ -649,7 +642,7 @@ mtempnec
 mytilussig<-(mytmma | thmma)/
   (mmanep | ntpnep) /
   (mytpH | mytpHnep |mtempnec)+
-  plot_annotation(tag_levels = 'a') &         #label each individual plot with letters A-G
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size = 50))   #edit the lettered text
 mytilussig
 ggsave(filename = "Output/mytilussigsem.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
@@ -703,3 +696,80 @@ lighttempsem<-phyllolightandtemp+mytiluslightandtemp +      #patchwork to combin
 lighttempsem
 #ggsave(filename = "Output/SEMsuppLightandTempgraphs.pdf", useDingbats =FALSE,dpi=300,device = "pdf", width = 30, height = 25)
 
+####reviewer's coding requests####
+NEPtempM<-SEMcombined %>%
+  filter(Foundation_spp == 'Mytilus')%>%
+  mutate(across(Before_After, factor, levels=c("Before", "After")))%>%
+  ggplot(aes(x=AvgTempmax, y=IntegratedNEP))+
+  geom_point(size=8)+
+  geom_smooth(method='lm', color="#045a8d",size =2)+ 
+  facet_wrap(~Before_After)+
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
+  theme(strip.text.x = element_text(size = 40))+
+  labs(x ="Average maximum Temperature (°C)",y=expression("Average"~NEP~(mmol~C/m^"2"*hr)))
+NEPtempM
+NECtempM<-SEMcombined %>%
+  filter(Foundation_spp == 'Mytilus')%>%
+  ggplot(aes(x=AvgTempmax, y=IntegratedNEC))+
+  geom_point(size=8)+
+  geom_smooth(method='lm', color="#045a8d",size =2)+ 
+  facet_wrap(~Before_After)+
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
+  theme(strip.text.x = element_text(size = 40))+
+  labs(x ="Average maximum Temperature (°C)",y=expression("Average"~NEC~(mmol~C/m^"2"*hr)))
+NECtempM
+NECpHM<-SEMcombined %>%
+  filter(Foundation_spp == 'Mytilus')%>%
+  ggplot(aes(x=AvgpH, y=IntegratedNEC))+
+  geom_point(size=8)+
+  geom_smooth(method='lm', color="#045a8d",size =2)+ 
+  facet_wrap(~Before_After)+
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
+  theme(strip.text.x = element_text(size = 40))+
+  labs(x ="pH",y=expression("Average"~NEC~(mmol~C/m^"2"*hr)))
+NECpHM
+DeltaNEPtempM<-Mytilusdaynightall%>%
+  ggplot(aes(x=MaxTemp, y=NEP))+
+  geom_point(size=8)+
+  geom_smooth(method='lm', color="#045a8d",size =2)+ 
+  facet_wrap(~Day_Night)+
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
+  theme(strip.text.x = element_text(size = 40))+
+  labs(x ="Change in Average maximum Temperature (°C)",y=expression("Change in Average"~NEP~(mmol~C/m^"2"*hr)))
+DeltaNEPtempM
+DeltaNECpHM<-Mytilusdaynightall%>%
+  ggplot(aes(x=pH, y=NEC))+
+  geom_point(size=8)+
+  geom_smooth(method='lm', color="#045a8d",size =2)+ 
+  facet_wrap(~Day_Night)+
+  theme_classic()+
+  theme(axis.title.x=element_text(color="black", size=40), 
+        axis.title.y=element_text(color="black", size=40),
+        axis.text.x =element_text(color="black", size=40),
+        axis.text.y =element_text(color="black", size=40))+
+  theme(strip.text.x = element_text(size = 40))+
+  labs(x ="Change in pH",y=expression("Change in Average"~NEC~(mmol~C/m^"2"*hr)))
+DeltaNECpHM
+mytilusextra<-(NEPtempM)/
+  (NECtempM|NECpHM) /
+  (DeltaNEPtempM | DeltaNECpHM)+
+  plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
+  theme(plot.tag = element_text(size = 50))   #edit the lettered text
+mytilusextra
+ggsave(filename = "Output/mytilusextra2.pdf",useDingbats =FALSE,dpi=600,device = "pdf", width = 40, height = 45)
