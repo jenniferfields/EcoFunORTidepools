@@ -902,8 +902,8 @@ mcentroids<-aggregate(cbind(PC1,PC2)~AB_F*Before_After*Removal_Control,MytilusBi
 
 
 #create groupings for shape labels
-mgroupings<-c("After Mytilus" = 2,  "Before Mytilus" = 17, 
-              "Before Ocean" = 15, "After Ocean" = 0)
+mgroupings<-c("After Mytilus" = 17,  "Before Mytilus" = 2, 
+              "Before Ocean" = 0, "After Ocean" = 15)
 pgroupings<-c("After Phyllospadix" = 17,"Before Phyllospadix" = 2,"Before Ocean" = 0, "After Ocean" = 15)
 
 #for arrows function:
@@ -928,15 +928,15 @@ y1<-as.matrix(y1)
 Surfgrassplot<-ggplot(PhylloBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(fill =Before_After, size =Phyllodelta, stroke=1), shape=21,color='black') +
   scale_fill_manual(values=c('#252525','white'),guide="none")+
-  scale_size_continuous(expression("Foundation species percent loss"),range = c(1,10),
+  scale_size_continuous(expression("Foundation species percent loss"),range = c(3,12),
                         breaks=seq(-25, 100, by=25),guide ="legend") +
-  geom_point(data=pcentroids, size=10, stroke = 2.75) +
+  geom_point(data=pcentroids, size=15, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(pgroupings),guide="none")+
-  #geom_segment(aes(x = x0[1], y = y0[1], xend = (x1[1]), yend = (y1[1])),size = 1,#segment with arrow for surfgrass before/after control
-               #colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  #geom_segment(aes(x = x0[3], y = y0[3], xend = (x1[3]), yend = (y1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
-               #colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = x0[1], y = y0[1], xend = (x1[1]), yend = (y1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = x0[3], y = y0[3], xend = (x1[3]), yend = (y1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = x0[2], y = y0[2], xend = (x1[2]), yend = (y1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   labs(x ='Surfgrass PC1 (32.79%)', y = 'Surfgrass PC2 (27.81%)') +
@@ -996,17 +996,17 @@ z1<-as.matrix(z1)
 musselplot<-ggplot(MytilusBiogeochemPCAgraph, aes(x = PC1 , y= PC2,shape = AB_F)) + #basic plot
   geom_point(aes(fill =Before_After, size =Mytilusdelta, stroke=1), shape=21,color='black') +
   scale_fill_manual(values=c('#252525','white'),guide="none")+
-  scale_size_continuous(range = c(1,10),
+  scale_size_continuous(range = c(3,12),
                         breaks=seq(-25, 100, by=25))+
   #scale_fill_distiller(palette = "Greys",guide = "legend",direction =1,limits=c(-25,100))+
   #scale_size(range = c(1,15),limits=c(-25,100))+ #make same scale as surfgrass
-  geom_point(data=mcentroids, size=10, stroke = 2.75) +
+  geom_point(data=mcentroids, size=15, stroke = 2.75) +
   theme_classic() +
   scale_shape_manual(values = c(mgroupings))+
-  #geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
-              # colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
-  #geom_segment(aes(x = v0[3], y = z0[3], xend = (v1[3]), yend = (z1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
-               #colour = "#252525",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[1], y = z0[1], xend = (v1[1]), yend = (z1[1])),size = 1,#segment with arrow for surfgrass before/after control
+               colour = "#3182bd", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
+  geom_segment(aes(x = v0[3], y = z0[3], xend = (v1[3]), yend = (z1[3])),linetype = 2,size = 1, #segment with arrow for surfgrass before/after removal
+               colour = "#bdbdbd",arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   geom_segment(aes(x = v0[2], y = z0[2], xend = (v1[2]), yend = (z1[2])),size = .5, #segment with arrow for ocean before and after
                colour ="#de2d26", arrow = arrow(length = unit(0.3, "cm"),type = "closed")) +
   labs(x ='CA Mussel PC1 (38.08%)', y = 'CA Mussel PC2 (23.83%)', shape='', fill='',size='', linetype ='') +
@@ -1041,7 +1041,7 @@ pcas<-Surfgrassplot+surfgrass+musselplot+musselloadings+
   plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
   theme(plot.tag = element_text(size =50))   #edit the lettered text
 pcas
-ggsave(filename = "Output/allpcastest.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
+ggsave(filename = "Output/Shapes.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 35, height = 30)
 
 
 #####for supplemental summary table######

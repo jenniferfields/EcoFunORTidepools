@@ -60,10 +60,10 @@ SummaryTemp<-TempandLightSumall%>%
             AvgPar = mean(Par.mean)) # to show light and temp correlation, not included in SEM model
 
 #leftjoin biogeochem and temp together
-
+Sumbiogeochemtemp<-left_join(Summarybiogeochem,SummaryTemp)
 #summarise average NEC and NEP values over the low tide period (n=2-3 samples per pool/time period) &
 #community metrics and physical parameters 
-SummaryNEPNECcommpp<-SEMall%>%
+SummaryNEPNECcomp<-SEMall%>%
   dplyr::group_by(PoolID, Foundation_spp, Removal_Control,Day_Night,Before_After)  %>%
   summarise(AvgNEP = mean(NEP.mmol.m2.hr),
             AvgNEC = mean(NEC.mmol.m2.hr),
@@ -86,7 +86,7 @@ PP<-SEMall%>%
   summarise(SAVav = mean(SAtoV),THav = mean(TideHeight),SAav=mean(SurfaceArea),Vav=mean(Vol)) 
 
 
-SEMcombined<-left_join(SummaryNEPNECcommpp,Sumbiogeochemtemp)
+SEMcombined<-left_join(SummaryNEPNECcomp,Sumbiogeochemtemp)
 SEMcombined<-left_join(SEMcombined,IntegratedNECNEP)
 
 SEMcombined<-as.data.frame(SEMcombined)
@@ -714,6 +714,7 @@ NEPtempM<-SEMcombined %>%
 NEPtempM
 NECtempM<-SEMcombined %>%
   filter(Foundation_spp == 'Mytilus')%>%
+  mutate(across(Before_After, factor, levels=c("Before", "After")))%>%
   ggplot(aes(x=AvgTempmax, y=IntegratedNEC))+
   geom_point(size=8)+
   geom_smooth(method='lm', color="#045a8d",size =2)+ 
@@ -728,6 +729,7 @@ NECtempM<-SEMcombined %>%
 NECtempM
 NECpHM<-SEMcombined %>%
   filter(Foundation_spp == 'Mytilus')%>%
+  mutate(across(Before_After, factor, levels=c("Before", "After")))%>%
   ggplot(aes(x=AvgpH, y=IntegratedNEC))+
   geom_point(size=8)+
   geom_smooth(method='lm', color="#045a8d",size =2)+ 

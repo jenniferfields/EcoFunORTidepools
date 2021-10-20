@@ -173,6 +173,10 @@ Mobstacked<-left_join(MobilesFun,MobileGroupings)
 Mobstacked$PoolID<-as.factor(Mobstacked$PoolID)
 Mobdata<-left_join(Mobstacked,Funsppandpp)
 Mobdata$Std.Count<-Mobdata$Count/Mobdata$SAav #std counts by SA Count/m^2
+count<-Mobdata%>%
+  select(!Species) %>%  # remove the species names
+  group_by(Foundation_spp, Removal_Control, Fun_group) %>% # summarize by group
+  summarize(avg = mean(Std.Count, na.rm = TRUE))
 
 Mobdata<- Mobdata%>%
   dplyr::group_by(PoolID,Removal_Control,Foundation_spp,Before_After,Fun_group,Species) %>%
@@ -265,7 +269,7 @@ plotPCO_SS<-ggplot(allPCOSS, aes(Axis.1, Axis.2))+
                size = 1.2,
                # Add arrow head
                arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable_pretty), max.overlaps = 20)+
+  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable_pretty), size =9, max.overlaps =25)+
   theme_bw()+ # Add axes
   # Keep coord equal for each axis
   # coord_equal() +
@@ -275,11 +279,11 @@ plotPCO_SS<-ggplot(allPCOSS, aes(Axis.1, Axis.2))+
   scale_size_continuous(expression("Surfgrass percent loss"),range = c(1,10),
                         breaks=seq(-25, 100, by=25))+
   guides(fill= guide_legend(nrow =1)) +
-  theme(axis.text = element_text(color = "black", size = 40), 
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_text(color="black", size=50), 
-        legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 40), 
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35), 
         legend.position= "top",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   # Labs
@@ -347,14 +351,14 @@ plotPCO_SM<-ggplot(allPCOSM, aes(Axis.1, Axis.2))+
                size = 1.2,
                # Add arrow head
                arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable), size =9,max.overlaps = 20)+
   theme_bw()+ # Add axes
   guides(fill= guide_legend(nrow =1)) +
-  theme(axis.text = element_text(color = "black", size = 40), 
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_text(color="black", size=50), 
-        legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 40), 
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35), 
         legend.position= "none",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   # Keep coord equal for each axis
@@ -426,14 +430,14 @@ plotPCO_SM18<-ggplot(allPCO18, aes(Axis.1, Axis.2))+
                size = 1.2,
                # Add arrow head
                arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable),size =9, max.overlaps = 20)+
   theme_bw()+ # Add axes
   guides(fill= guide_legend(nrow =1)) +
-  theme(axis.text = element_text(color = "black", size = 40), 
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_text(color="black", size=50), 
-        legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 40), 
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35), 
         legend.position= "top",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   # Keep coord equal for each axis
@@ -450,7 +454,7 @@ plotPCO_SM18<-ggplot(allPCO18, aes(Axis.1, Axis.2))+
     y = paste0("Axis 2 (", round(trait_pcoa_arrows$values$Relative_eig[2] * 100, 2), "%)")) 
 # Theme change
 plotPCO_SM18
-ggsave(filename = "Output/PCOA_pool18.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 10, height = 8)
+ggsave(filename = "Output/PCOA_pool18.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 15, height = 12)
 
 # permanova with tide pool 18
 perm_phylloSM18<-adonis(distSM18~Enviro2SM18$Phyllodelta+Enviro2SM18$Vav+Enviro2SM18$THav)
@@ -509,15 +513,15 @@ plotPCO_MS<-ggplot(allPCOMS, aes(Axis.1, Axis.2))+
                size = 1.2,
                # Add arrow head
                arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable_pretty), max.overlaps = 20)+
+  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable_pretty),size =9, max.overlaps = 20)+
   theme_bw()+ # Add axes
   # Keep coord equal for each axis
   # coord_equal(1.5) +
-  theme(axis.text = element_text(color = "black", size = 40), 
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_text(color="black", size=50), 
-        legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 40), 
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35), 
         legend.position= "top",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   scale_fill_distiller(expression("Mussel percent loss"), palette = 'Blues',
@@ -588,15 +592,15 @@ plotPCO_MM<-ggplot(allPCOMM, aes(Axis.1, Axis.2))+
                size = 1.2,
                # Add arrow head
                arrow = arrow(length = unit(3, "mm"))) +
-  ggrepel::geom_label_repel(data = arrows_df, aes(label = variable), max.overlaps = 20)+
+  ggrepel::geom_text_repel(data = arrows_df, aes(label = variable),size =9, max.overlaps = 20)+
   theme_bw()+ # Add axes
   # Keep coord equal for each axis
   coord_equal(ratio = 2) +
-  theme(axis.text = element_text(color = "black", size = 40), 
-        axis.title.x = element_text(color="black", size=50), 
-        axis.title.y = element_text(color="black", size=50), 
-        legend.title = element_text(color="black", size=40), 
-        legend.text = element_text(color = "black", size = 40), 
+  theme(axis.text = element_text(color = "black", size = 35), 
+        axis.title.x = element_text(color="black", size=40), 
+        axis.title.y = element_text(color="black", size=40), 
+        legend.title = element_text(color="black", size=35), 
+        legend.text = element_text(color = "black", size = 35), 
         legend.position= "none",
         panel.grid.major=element_blank(), panel.grid.minor=element_blank()) +
   scale_fill_distiller(expression("Mussel percent loss"), palette = 'Blues',
@@ -621,10 +625,10 @@ PCOAall<-
   (plotPCO_SS+ plotPCO_SM)/
   (plotPCO_MS+plotPCO_MM) +
   plot_annotation(tag_levels = 'A') &         #label each individual plot with letters A-G
-  theme(plot.tag = element_text(size =50))
+  theme(plot.tag = element_text(size =40))
   #plot_layout(guides = "collect")#edit the lettered text
 PCOAall
-ggsave(filename = "Output/PCOA_all.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 20, height = 15)
+ggsave(filename = "Output/PCOA_all.pdf", useDingbats =FALSE,dpi=600,device = "pdf", width = 25, height = 20)
 
 
 #####PCoA surfgrass####
