@@ -4,7 +4,7 @@ This repository includes data, analysis, and methods for the following manuscrip
 
 **Authors:** Jennifer B. Fields*, Nyssa J. Silbiger
 
-**Journal:**
+**Journal:** Marine Ecology Progress Series
 
 **Link:**
 
