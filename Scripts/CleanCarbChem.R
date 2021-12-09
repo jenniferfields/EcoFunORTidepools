@@ -829,21 +829,25 @@ Biogeochem.sum<-CarbChem %>%
 #add foundation species cover and physical parameters to individual datasets
 #create dataframe that has both before (baseline so low number in this case 1) and after
 #surfgrass and mussel loss that can be used in plot later as color/size variable 
+Phyllocommunity<-Communitymetrics%>%
+  dplyr::filter(Before_After != "Immediate" & Foundation_spp == "Phyllospadix")
 PFunsppcover<-Funsppcover%>%
   filter(Foundation_spp =="Phyllospadix") 
 PFunsppcover<-PFunsppcover[c(1,5)] #select 
 PFunsppcover$Before_After<- "After"
-PBeforespploss<-PhyllocommunitynMDS%>%
+PBeforespploss<-Phyllocommunity%>%
   select(PoolID,Before_After) %>%
   filter(Before_After =='Before')
 PBeforespploss$Phyllodelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
 Phylloloss<-rbind(PBeforespploss,PFunsppcover) #combine before and after together
 
+Mytiluscommunity<-Communitymetrics%>%
+  dplyr::filter(Before_After != "Immediate" & Foundation_spp == "Mytilus") 
 MFunsppcover<-Funsppcover%>%
   filter(Foundation_spp =="Mytilus" & PoolID !=30) 
 MFunsppcover<-MFunsppcover[c(1,4)] #select poolid and mytilus delta
 MFunsppcover$Before_After<- "After"
-MBeforespploss<-MytiluscommunitynMDS%>%
+MBeforespploss<-Mytiluscommunity%>%
   select(PoolID,Before_After) %>%
   filter(Before_After =='Before'& PoolID !=30)
 MBeforespploss$Mytilusdelta<-c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) #create column of baseline of phyllodelta
@@ -1051,12 +1055,20 @@ CarbChem$daysample<-as.factor(CarbChem$Sampling_Day)
 Sumcarbchem<-CarbChem%>%
   select(PoolID, Foundation_spp, Before_After, Day_Night,DO_mg_L,
          PO_umol_L,NN_umol_L,NH4_umol_L,TA_NormSal,pH_insitu,pCO2,DIC_Norm,Temp.pool)
+
 #ocean samples
+pHsamplesOcean<-CarbChem%>%
+  select(Foundation_spp, Before_After, Day_Night,DO_mg_L,
+         PO_umol_L,NN_umol_L,NH4_umol_L,TA_NormSal,pH_insitu,pCO2,DIC_Norm,Temp.pool,daysample) %>%
+  filter(Foundation_spp=="Ocean") %>%
+  summarize(pHdelta = pH_insitu[Before_After == 'After'] - pH_insitu[Before_After == 'Before'])%>%
+  summarize(avgpH=mean(pHdelta), se=std.error(pHdelta))
+
 Oceansamples<-CarbChem%>%
   select(Foundation_spp, Before_After, Day_Night,DO_mg_L,
          PO_umol_L,NN_umol_L,NH4_umol_L,TA_NormSal,pH_insitu,pCO2,DIC_Norm,Temp.pool,daysample) %>%
-  filter(Foundation_spp=="Ocean") %>% 
-  group_by(Before_After,Day_Night,daysample) %>%
+  filter(Foundation_spp=="Ocean")%>% 
+  group_by(Before_After,Day_Night,daysample)%>%
   summarise_all(.funs=c("min","max")) #min and max values
 
 #write.csv(Oceansamples,file="Output/oceanchemsamp.csv")

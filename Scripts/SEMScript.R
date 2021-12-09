@@ -116,6 +116,12 @@ SEMallavg<-SEMcombined%>%
                    #macroalgae cover - sessile consumers (including Mytilus)
 SEMallavg<-left_join(SEMallavg,PP)                  
 
+pHcomparison<-SEMallavg%>%
+  group_by(Foundation_spp)%>%
+  summarize(pH= mean(pHdelta),se=std.error(pHdelta))
+tempcomparison<-SEMallavg%>%
+  group_by(Foundation_spp)%>%
+  summarize(temp=mean(Tempmeandelta),se=std.error(Tempmeandelta))
 ####Surfgrass SEM####
 PhylloDayNightall<-SEMallavg %>%
   filter(Foundation_spp == 'Phyllospadix') %>%
