@@ -34,11 +34,15 @@ Contains calculations for tide pools volumes of n=16 surfgrass and n=16 mussel t
 
 *[Community compositon script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CommunityComp.R)*
 
-Code to investigate how tide pool sessile and mobile communities were altered by surfgrass and mussel removal. Contains non-Metric Dimensional Scale plot code and PERMANOVA analysis of community structure and community composition supplemental material plots
+Code to investigate how tide pool sessile and mobile communities were altered by surfgrass and mussel removal. Contains PCoA plot code and PERMANOVA analysis of community structure and community composition supplemental material plots
 
 *[Temperature and light script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/TemperatureandLight.R)*
 
 Code to test how surfgrass and mussel loss affected maximum temperature and percent light values of tide pools. Contains temperature and light logger data cleaning and month-long temperature and light analyses. Includes nearshore ocean temperature over study period from ODFW Marine Reserves mooring sensor at 1 meter depth within Otter Rock Marine Reserve
+
+*[Map script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/OregonMaps.R)*
+
+Code for both West Coast and Oregon Coast map for project location for Figure 1 in manuscript.
 
 *[Carbonate and biogeochemistry script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CleanCarbChem.R)* 
 
