@@ -42,7 +42,7 @@ Code to test how surfgrass and mussel loss affected maximum temperature and perc
 
 *[Map script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/OregonMaps.R)*
 
-Code for both West Coast and Oregon Coast map for project location for Figure 1 in manuscript.
+Code for both West Coast and Otter Rock Marine Reserve and Marine Garden maps along the Oregon Coast for the project location in Figure 1 of the manuscript.
 
 *[Carbonate and biogeochemistry script](https://github.com/jenniferfields/EcoFunORTidepools/blob/master/Scripts/CleanCarbChem.R)* 
 
