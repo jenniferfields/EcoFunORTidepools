@@ -7,6 +7,7 @@ This repository includes data, analysis, and methods for the following manuscrip
 **Journal:** Marine Ecology Progress Series
 
 **Link:** https://doi.org/10.3354/meps13978
+[![DOI](https://zenodo.org/badge/307201313.svg)](https://zenodo.org/badge/latestdoi/307201313)
 
 
 **Funding and permit support:** Funding for this project was provided by California State University, Northridge (CSUN) Research and Graduate Studies, CSUN Department of Biology, CSU Council on Ocean Affairs, Science & Technology Graduate Research Grant, Association of Retired Faculty, Sigma Xi Grants-in-Aid of Research, Dr. Julie Gorchynski research grant, and NSF BIO-OCE #2044837 to NJS. This project was conducted under ODFW Scientific Taking Permit #22930 and Oregon Parks and Recreation Department Scientific Take Permit #017-19 as well as California DFW permit #13047 and CA State Parks permit #18-820-50 for preliminary testing. This is CSUN contribution #367.
