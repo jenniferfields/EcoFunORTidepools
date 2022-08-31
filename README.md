@@ -7,6 +7,7 @@ This repository includes data, analysis, and methods for the following manuscrip
 **Journal:** Marine Ecology Progress Series
 
 **Link:** https://doi.org/10.3354/meps13978
+
 [![DOI](https://zenodo.org/badge/307201313.svg)](https://zenodo.org/badge/latestdoi/307201313)
 
 
